@@ -2,6 +2,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
+export function hasAdminRole(role: unknown): boolean {
+  return typeof role === "string" && role.split(",").some((value) => value.trim() === "admin");
+}
+
 export async function requireAdmin() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -11,11 +15,8 @@ export async function requireAdmin() {
     redirect("/admin/login");
   }
 
-  const role = "role" in session.user && typeof session.user.role === "string"
-    ? session.user.role
-    : "";
-
-  if (!role.split(",").includes("admin")) {
+  const role = "role" in session.user ? session.user.role : undefined;
+  if (!hasAdminRole(role)) {
     redirect("/admin/login?error=not-authorized");
   }
 
