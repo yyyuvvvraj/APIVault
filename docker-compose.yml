@@ -18,5 +18,21 @@ services:
       timeout: 5s
       retries: 10
 
+  verifier:
+    build:
+      context: ./services/verifier
+      dockerfile: Dockerfile
+    profiles: ["workers"]
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: ${APIVAULT_INTERNAL_URL:-http://host.docker.internal:3000}
+      VERIFIER_SHARED_SECRET: ${VERIFIER_SHARED_SECRET}
+      SCAN_INTERVAL: ${VERIFIER_SCAN_INTERVAL:-30m}
+      CONCURRENCY: ${VERIFIER_CONCURRENCY:-8}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8081:8081"
+
 volumes:
   apivault_postgres_data:
