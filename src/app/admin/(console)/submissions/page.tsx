@@ -1,6 +1,15 @@
 import { getPrisma } from "@/lib/db";
+import { AdminSubmissionReviewActions } from "@/components/admin-submission-review-actions";
 
 export const metadata = { title: "Community submissions" };
+
+const statusTone: Record<string, string> = {
+  PENDING: "bg-amber-400/10 text-amber-300",
+  IN_REVIEW: "bg-sky-400/10 text-sky-300",
+  CHANGES_REQUESTED: "bg-orange-400/10 text-orange-300",
+  REJECTED: "bg-rose-400/10 text-rose-300",
+  APPROVED: "bg-emerald-400/10 text-emerald-300",
+};
 
 export default async function AdminSubmissionsPage() {
   const submissions = await getPrisma().apiSubmission.findMany({
@@ -26,14 +35,9 @@ export default async function AdminSubmissionsPage() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-extrabold text-white">{submission.kind === "CREATE" ? "New API suggestion" : "Update request"}</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {submission.submitterName || "Community member"}
-                  {submission.submitterGithub ? " · @" + submission.submitterGithub : ""}
-                  {" · "}
-                  {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(submission.createdAt)}
-                </p>
+                <p className="mt-1 text-xs text-slate-500">{submission.submitterName || "Community member"}{submission.submitterGithub ? " · @" + submission.submitterGithub : ""} · {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(submission.createdAt)}</p>
               </div>
-              <span className="rounded-full bg-amber-400/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide text-amber-300">{submission.status.replaceAll("_", " ")}</span>
+              <span className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide ${statusTone[submission.status]}`}>{submission.status.replaceAll("_", " ")}</span>
             </div>
             {submission.targetApi && <p className="mt-3 text-xs text-slate-400">Target API: {submission.targetApi.name} ({submission.targetApi.slug})</p>}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -44,26 +48,15 @@ export default async function AdminSubmissionsPage() {
               <div className="rounded-xl bg-black/20 p-3">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Source evidence</p>
                 {submission.sources.length ? (
-                  <ul className="mt-2 space-y-2">
-                    {submission.sources.map((source) => (
-                      <li key={source.id} className="break-all text-xs leading-5">
-                        <span className="mr-2 text-slate-500">{source.sourceKind.replaceAll("_", " ")}</span>
-                        <a href={source.url} target="_blank" rel="noreferrer" className="font-semibold text-cyan-300 hover:underline">{source.url}</a>
-                      </li>
-                    ))}
-                  </ul>
+                  <ul className="mt-2 space-y-2">{submission.sources.map((source) => <li key={source.id} className="break-all text-xs leading-5"><span className="mr-2 text-slate-500">{source.sourceKind.replaceAll("_", " ")}</span><a href={source.url} target="_blank" rel="noreferrer" className="font-semibold text-cyan-300 hover:underline">{source.url}</a></li>)}</ul>
                 ) : <p className="mt-2 text-xs text-slate-500">No source URLs attached.</p>}
               </div>
             </div>
             {submission.reviewNote && <p className="mt-3 text-xs text-slate-400">Review note: {submission.reviewNote}</p>}
+            <AdminSubmissionReviewActions submissionId={submission.id} currentStatus={submission.status}/>
           </article>
         ))}
-        {!submissions.length && (
-          <div className="rounded-2xl border border-dashed border-white/10 px-6 py-16 text-center">
-            <p className="text-sm font-bold text-slate-300">Your review queue is clear.</p>
-            <p className="mt-2 text-xs text-slate-500">New community submissions will appear here.</p>
-          </div>
-        )}
+        {!submissions.length && <div className="rounded-2xl border border-dashed border-white/10 px-6 py-16 text-center"><p className="text-sm font-bold text-slate-300">Your review queue is clear.</p><p className="mt-2 text-xs text-slate-500">New community submissions will appear here.</p></div>}
       </div>
     </>
   );
