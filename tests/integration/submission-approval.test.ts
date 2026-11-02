@@ -41,7 +41,7 @@ async function createSubmission(category: string, variant = "") {
 
 after(async () => {
   await prisma.apiSubmission.deleteMany({ where: { id: { in: submissionIds } } });
-  await prisma.api.deleteMany({ where: { slug: apiSlug } });
+  await prisma.api.deleteMany({ where: { slug: { startsWith: apiSlug } } });
   await prisma.apiProvider.deleteMany({ where: { name: { startsWith: providerName } } });
   await prisma.category.deleteMany({ where: { slug: categorySlug } });
   await prisma.$disconnect();
@@ -82,7 +82,7 @@ test("approval fails and rolls back provider creation when submitted category is
 
   const savedSubmission = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
   const provider = await prisma.apiProvider.findFirst({ where: { name: `${providerName}-rollback` } });
-  const api = await prisma.api.findUnique({ where: { slug: apiSlug } });
+  const api = await prisma.api.findUnique({ where: { slug: `${apiSlug}-rollback` } });
 
   assert.equal(savedSubmission.status, SubmissionStatus.IN_REVIEW);
   assert.equal(provider, null);
