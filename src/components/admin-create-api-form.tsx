@@ -89,7 +89,7 @@ export function AdminCreateApiForm({ categories }: { categories: CategoryOption[
       <section className="grid gap-5 rounded-2xl border border-white/[0.08] bg-[#10151e] p-5 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2">
           <h2 className="text-sm font-extrabold text-white">Official links</h2>
-          <p className="mt-1 text-xs text-slate-500">Provide evidence links. These are recorded in the API's source history.</p>
+          <p className="mt-1 text-xs text-slate-500">Provide evidence links. These are recorded in the API&apos;s source history.</p>
         </div>
 
         <label className="block text-xs font-semibold text-slate-300 sm:col-span-2">
