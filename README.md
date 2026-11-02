@@ -17,7 +17,7 @@ Discover APIs, compare their capabilities and requirements, and contribute relia
 
 ## Local development
 
-Start with the [local development guide](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), and [verification policy](docs/VERIFICATION_POLICY.md) before changing catalogue behaviour.
+Start with the [local development guide](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), and [verification policy](docs/VERIFICATION_POLICY.md) before changing catalogue behaviour. For container builds and GHCR publishing, see the [Docker deployment guide](docs/DOCKER_DEPLOYMENT.md).
 
 ## Contributing
 
