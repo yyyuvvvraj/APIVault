@@ -71,7 +71,6 @@ export function AdminLoginForm({ accessError }: { accessError: boolean }) {
           type="password"
           autoComplete="current-password"
           required
-          minLength={12}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           className="w-full rounded-xl border border-white/10 bg-[#11151d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10"
