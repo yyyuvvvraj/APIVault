@@ -44,7 +44,7 @@ export default async function AdminApisPage() {
                   <td className="px-5 py-4 text-xs font-semibold text-slate-300">{api.status}</td>
                   <td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${statusTone[api.verificationStatus] ?? "bg-slate-400/10 text-slate-300"}`}>{api.verificationStatus.replaceAll("_", " ")}</span></td>
                   <td className="px-5 py-4 text-xs text-slate-500">{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(api.updatedAt)}</td>
-                  <td className="px-5 py-4"><div className="flex items-center gap-3 text-xs font-bold"><Link href={`/admin/apis/${api.slug}/edit`} className="text-cyan-300 hover:text-cyan-200">Edit</Link><Link href={`/admin/apis/${api.slug}/history`} className="text-slate-400 hover:text-white">History</Link></div></td>
+                  <td className="px-5 py-4"><div className="flex items-center gap-3 text-xs font-bold"><Link href={`/admin/apis/${api.slug}/edit`} className="text-cyan-300 hover:text-cyan-200">Edit</Link><Link href={`/admin/apis/${api.slug}/review`} className="text-amber-300 hover:text-amber-200">Review</Link><Link href={`/admin/apis/${api.slug}/history`} className="text-slate-400 hover:text-white">History</Link></div></td>
                 </tr>
               ))}
               {!apis.length && <tr><td colSpan={5} className="px-5 py-16 text-center"><p className="text-sm text-slate-400">No API records yet.</p><Link href="/admin/apis/new" className="mt-2 inline-block text-xs font-bold text-rose-400 hover:text-rose-300">Create the first catalogue entry →</Link></td></tr>}
