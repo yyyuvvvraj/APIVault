@@ -17,7 +17,7 @@ APIVault is a web application backed by one canonical PostgreSQL catalogue. The 
 | Validation | Zod 4 | Runtime validation at untrusted input boundaries |
 | Authentication | Better Auth | Session-based authentication and administrator roles |
 | Local database | Docker Compose | Repeatable PostgreSQL development environment |
-| CI | GitHub Actions | Lint, type-check, schema generation, and production build |
+| CI | GitHub Actions | Unit tests, lint, type-check, schema generation, and production build |
 
 Prisma ORM 7 is intentionally selected instead of the Prisma 8 release candidate so the foundation uses a generally available ORM version. Prisma 7 requires a PostgreSQL driver adapter and an ESM project; this repository uses `@prisma/adapter-pg`.
 
@@ -64,6 +64,7 @@ The browser never talks directly to PostgreSQL. Route handlers expose explicit p
 - `src/lib/auth.ts` and `src/lib/auth-client.ts`: Better Auth server and client configuration.
 - `src/lib/db.ts`: server-only Prisma client lifecycle.
 - `prisma/`: canonical database schema, migrations, and seed data.
+- `tests/`: automated unit tests.
 - `docs/`: product and engineering decisions.
 
 ## Authentication and administrator authorization
@@ -105,6 +106,12 @@ Verification is evidence-gated: the official homepage source must match the cano
 Community CREATE and UPDATE proposals are stored separately from canonical API records. Admin review actions enforce the allowed status transitions server-side. Approval revalidates the stored JSON payload, resolves providers and categories, applies the change to the canonical record, writes an API revision, and marks the submission approved in one transaction.
 
 Applying a community submission never directly publishes an API. New or materially updated records return to pending verification and must pass the independent verification process.
+
+## Testing architecture
+
+Unit tests use Node.js's built-in test runner through the existing `tsx` dependency. The initial suite covers catalogue filter parsing and the Zod schemas used by admin API creation and community submissions. Application CI runs `npm test` before lint, type checking, and build.
+
+Database transaction tests, authorization tests, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
 
 ## Deployment boundary
 

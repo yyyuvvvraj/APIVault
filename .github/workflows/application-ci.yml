@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Lint, typecheck, and build
+    name: Test, lint, typecheck, and build
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -47,6 +47,9 @@ jobs:
         env:
           DATABASE_URL: postgresql://apivault@localhost:5432/apivault?schema=public
         run: npm run db:generate
+
+      - name: Unit tests
+        run: npm test
 
       - name: Lint
         run: npm run lint
