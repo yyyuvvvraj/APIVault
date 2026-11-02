@@ -31,6 +31,10 @@ npm run test:integration
 
 The initial database suite verifies relational persistence, the public query boundary (only `ACTIVE + VERIFIED` records are returned), detail lookup visibility, and rollback of multiple writes when a transaction fails. CI provisions an ephemeral PostgreSQL service, applies migrations, and runs this suite. The tests use unique fixture slugs and clean up their records.
 
+## Verification and publication tests
+
+The lifecycle service is shared by the admin server action and PostgreSQL integration tests. Tests cover matching official homepage evidence, required category and authentication metadata, successful verification timestamps, revision creation, publication, and unpublishing when verification becomes stale. Public detail lookup is checked before and after the lifecycle change.
+
 ## Continuous integration
 
 Application CI runs the unit test suite after Prisma client generation and before lint, type checking, and the production build. A pull request must pass the complete application validation workflow.
