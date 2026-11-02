@@ -21,7 +21,7 @@ A health observation is not verification evidence. A successful HTTP response ne
 
 Catalogue URLs are untrusted input. The worker:
 
-- Allows only HTTP and HTTPS.
+- Allows only HTTP and HTTPS on standard ports 80 and 443.
 - Rejects URL credentials and invalid ports.
 - Rejects loopback, private, link-local, multicast, unspecified, and reserved IP ranges.
 - Resolves hostnames at connection time and rejects DNS answers containing non-public IP addresses.
