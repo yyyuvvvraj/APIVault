@@ -89,7 +89,7 @@ jobs:
           cleanup() {
             docker logs apivault-smoke || true
             docker rm --force apivault-smoke >/dev/null 2>&1 || true
-          }}
+          }
           trap cleanup EXIT
 
           for attempt in $(seq 1 30); do
