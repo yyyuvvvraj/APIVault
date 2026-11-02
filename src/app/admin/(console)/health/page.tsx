@@ -24,7 +24,9 @@ function Metric({ label, value, detail }: { label: string; value: number; detail
 }
 
 export default async function AdminHealthPage() {
-  const apis = await getPrisma().api.findMany({
+  const db = getPrisma();
+  const [{ now }] = await db.$queryRaw<Array<{ now: Date }>>`SELECT CURRENT_TIMESTAMP AS now`;
+  const apis = await db.api.findMany({
     where: { status: { not: ApiStatus.ARCHIVED } },
     select: {
       id: true,
@@ -51,11 +53,11 @@ export default async function AdminHealthPage() {
     take: 200,
   });
 
-  const now = Date.now();
+  const nowMs = now.getTime();
   const unreachable = apis.filter((api) => api.healthChecks[0]?.isReachable === false);
   const stale = apis.filter((api) => {
     const latest = api.healthChecks[0];
-    return !latest || now - latest.checkedAt.getTime() > STALE_AFTER_MS;
+    return !latest || nowMs - latest.checkedAt.getTime() > STALE_AFTER_MS;
   });
   const failedRecent = apis.filter((api) => api.healthChecks.some((check) => !check.isReachable));
 
