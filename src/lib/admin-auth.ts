@@ -1,10 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-
-export function hasAdminRole(role: unknown): boolean {
-  return typeof role === "string" && role.split(",").some((value) => value.trim() === "admin");
-}
+import { hasAdminRole } from "@/lib/admin-role";
 
 export async function requireAdmin() {
   const session = await auth.api.getSession({
