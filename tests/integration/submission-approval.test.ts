@@ -16,14 +16,14 @@ async function setupCategory() {
   return prisma.category.create({ data: { slug: categorySlug, name: `Approval Category ${suffix}` } });
 }
 
-async function createSubmission(category: string) {
+async function createSubmission(category: string, variant = "") {
   const row = await prisma.apiSubmission.create({
     data: {
       kind: SubmissionKind.CREATE,
       status: SubmissionStatus.IN_REVIEW,
       payload: {
-        name: `Approval API ${suffix}`,
-        providerName,
+        name: `Approval API ${suffix}${variant}`,
+        providerName: `${providerName}${variant}`,
         summary: "Integration test API proposal with sufficient descriptive detail.",
         homepageUrl: `https://${apiSlug}.example.test`,
         documentationUrl: `https://${apiSlug}.example.test/docs`,
@@ -42,7 +42,7 @@ async function createSubmission(category: string) {
 after(async () => {
   await prisma.apiSubmission.deleteMany({ where: { id: { in: submissionIds } } });
   await prisma.api.deleteMany({ where: { slug: apiSlug } });
-  await prisma.apiProvider.deleteMany({ where: { name: providerName } });
+  await prisma.apiProvider.deleteMany({ where: { name: { startsWith: providerName } } });
   await prisma.category.deleteMany({ where: { slug: categorySlug } });
   await prisma.$disconnect();
 });
@@ -73,7 +73,7 @@ test("approval atomically creates API, evidence, revision, and approved submissi
 });
 
 test("approval fails and rolls back provider creation when submitted category is missing", async () => {
-  const submission = await createSubmission(`missing-${suffix}`);
+  const submission = await createSubmission(`missing-${suffix}`, "-rollback");
 
   await assert.rejects(
     prisma.$transaction((tx) => applySubmissionApproval(tx, submission.id, "")),
