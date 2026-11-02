@@ -1,14 +1,17 @@
 # Docker build and deployment
 
-## What GitHub Actions does
+## Branch and release strategy
 
-The workflow at `.github/workflows/docker-publish.yml` uses a fast path for normal development and a full release path:
+APIVault uses separate development and release paths:
 
-- Pull requests targeting `dev` or `stable`: build an amd64 image and run a container smoke test. The image is not published.
-- Pushes to `dev`: build and publish an amd64 image to GitHub Container Registry (GHCR). This matches the planned x86_64 Render web-service target and avoids slow ARM emulation on frequent integration builds.
-- Pushes to `stable` and version tags matching `v*`: build and publish a multi-platform image (amd64 and arm64), including provenance and SBOM attestations.
+- Pull requests targeting `dev` or `stable`: build a native amd64 image and run a container smoke test. The image is not published.
+- Pushes to `dev`: build and publish an amd64 image tagged `dev` (and its commit SHA). This is the frequently updated integration image used for testing.
+- Pushes to `stable`: do not publish a Docker image. This branch contains reviewed, production-ready source code.
+- Version tags matching `v1.*`: only when the tagged commit is already reachable from `stable`, build and publish a multi-platform (amd64 and arm64) release image. Generate provenance and SBOM attestations for this release image.
 
-The workflow uses the repository-provided `GITHUB_TOKEN`; no Docker Hub account or long-lived registry password is required. BuildKit's GitHub Actions cache is enabled for all paths.
+For example, a final release is created by tagging a commit already merged into `stable` as `v1.0.0`. A later patch release might be `v1.0.1`. The `latest` container tag is updated only by a successful `v1.x` release.
+
+The workflow uses the repository-provided `GITHUB_TOKEN`; no Docker Hub account or long-lived registry password is required. BuildKit's GitHub Actions cache is enabled.
 
 ## Image names
 
@@ -16,22 +19,25 @@ For this repository, the image is:
 
 ```text
 ghcr.io/yyyuvvvraj/apivault:dev
-ghcr.io/yyyuvvvraj/apivault:stable
-ghcr.io/yyyuvvvraj/apivault:latest
 ghcr.io/yyyuvvvraj/apivault:v1.0.0
+ghcr.io/yyyuvvvraj/apivault:latest
 ghcr.io/yyyuvvvraj/apivault:sha-<commit>
 ```
 
-The `latest` tag is emitted only from `stable`. Version tags (for example `v1.0.0`) receive matching image tags. The exact commit SHA tag is published for traceability.
-
-After the first successful publication, open the package page under the GitHub account's **Packages** tab. If the image should be publicly pullable without authentication, set the GHCR package visibility to **Public** in its package settings. A public GitHub source repository does not, by itself, guarantee that a newly created GHCR package is public.
+The `dev` tag is mutable and follows the latest successful dev publish. Version tags are immutable release references by convention. The `latest` tag tracks the latest published v1.x release. A public GitHub source repository does not, by itself, guarantee that a newly created GHCR package is public; set package visibility to **Public** only when anonymous pulls are desired.
 
 ## Run an image locally
 
-After the workflow has published an image:
+For the latest development build:
 
 ```bash
 docker pull ghcr.io/yyyuvvvraj/apivault:dev
+```
+
+For a specific production release:
+
+```bash
+docker pull ghcr.io/yyyuvvvraj/apivault:v1.0.0
 ```
 
 The production container needs a reachable PostgreSQL database and runtime values for:
@@ -50,7 +56,7 @@ docker run --detach \
   --restart unless-stopped \
   --publish 3000:3000 \
   --env-file .env.production \
-  ghcr.io/yyyuvvvraj/apivault:stable
+  ghcr.io/yyyuvvvraj/apivault:v1.0.0
 ```
 
 The image intentionally contains only the standalone Next.js runtime and production files. Build-time database and auth values are non-secret placeholders and are not copied into the final runtime stage.
@@ -61,4 +67,4 @@ Run committed Prisma migrations against the target database as a separate deploy
 
 ## Actual hosting deployment
 
-Publishing to GHCR makes a versioned container available; it does not select or configure a server. To automate the final deployment, choose a runtime target (for example, an EC2/VPS host, Azure Container Apps, Fly.io, or another container platform) and configure its deployment credentials as GitHub Actions secrets or use its supported OIDC integration. Keep database and Better Auth secrets in the runtime platform's secret manager.
+Publishing to GHCR makes a versioned container available; it does not select or configure a server. The intended production deployment should be triggered only after a successful v1.x release image publication. Keep database and Better Auth secrets in the runtime platform's secret manager.
