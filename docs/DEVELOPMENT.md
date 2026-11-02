@@ -23,6 +23,12 @@ git push -u origin feature/short-description
 
 Open a pull request from your branch into `dev`. External contributors should work in a fork and select the fork branch as the PR head.
 
+## Documentation is part of the change
+
+Every feature, bug fix, schema change, API contract change, security change, and contributor workflow change must update its relevant documentation in the same pull request. Do not defer documentation to a later cleanup PR.
+
+At minimum, review the relevant pages in `docs/`, `README.md`, and `CHANGELOG.md`. Update local setup instructions when commands or configuration change, the data model when the schema changes, and API examples/contracts when endpoints change. If no documentation change is needed, explain why in the PR description.
+
 ## Release process
 1. Confirm CI is green on `dev`.
 2. Create `release/vX.Y.Z` from the selected `dev` commit.
