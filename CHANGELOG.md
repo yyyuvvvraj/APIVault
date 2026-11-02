@@ -7,6 +7,8 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Added
+- PostgreSQL integration coverage for submission rejection, invalid state transitions, atomic CREATE approval, evidence/revision persistence, and approval rollback.
+- Shared submission review and approval services so server actions and integration tests exercise the same transaction logic.
 - PostgreSQL-backed integration tests for catalogue persistence, public visibility rules, and transaction rollback.
 - Administrator role-policy tests using the server-side authorization helper.
 - Initial repository governance, contribution documentation, issue and pull request templates, MIT license, and automated repository hygiene checks.

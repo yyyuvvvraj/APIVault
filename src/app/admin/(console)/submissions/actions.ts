@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { SubmissionStatus } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-auth";
+import { transitionSubmissionReview, submissionReviewError } from "@/lib/submissions/review-service";
 
 export type SubmissionReviewState = { status: "idle" | "error" | "success"; message: string };
 
@@ -23,38 +24,18 @@ export async function updateSubmissionReviewAction(
   if (!validStatuses.has(nextStatus) || nextStatus === SubmissionStatus.APPROVED) {
     return { status: "error", message: "Choose a supported review action." };
   }
-  if (note.length > 4_000) return { status: "error", message: "Review notes must be 4,000 characters or fewer." };
+  const reviewError = submissionReviewError(SubmissionStatus.PENDING, nextStatus as SubmissionStatus, note);
+  if (reviewError === "Approval must use the dedicated approval workflow.") {
+    return { status: "error", message: "Choose a supported review action." };
+  }
+  if (note.length > 4_000) return { status: "error", message: reviewError ?? "Review notes must be 4,000 characters or fewer." };
   if ((nextStatus === SubmissionStatus.CHANGES_REQUESTED || nextStatus === SubmissionStatus.REJECTED) && note.length < 5) {
-    return { status: "error", message: "Add a review note of at least 5 characters for this decision." };
+    return { status: "error", message: reviewError ?? "Add a review note of at least 5 characters for this decision." };
   }
 
   try {
     await getPrisma().$transaction(async (tx) => {
-      const current = await tx.apiSubmission.findUnique({
-        where: { id },
-        select: { id: true, status: true },
-      });
-      if (!current) throw new Error("Submission not found.");
-
-      const allowed: Record<SubmissionStatus, SubmissionStatus[]> = {
-        PENDING: [SubmissionStatus.IN_REVIEW, SubmissionStatus.CHANGES_REQUESTED, SubmissionStatus.REJECTED],
-        IN_REVIEW: [SubmissionStatus.IN_REVIEW, SubmissionStatus.CHANGES_REQUESTED, SubmissionStatus.REJECTED],
-        CHANGES_REQUESTED: [SubmissionStatus.IN_REVIEW, SubmissionStatus.REJECTED],
-        REJECTED: [],
-        APPROVED: [],
-      };
-      if (!allowed[current.status].includes(nextStatus as SubmissionStatus)) {
-        throw new Error(`Cannot move a ${current.status.replaceAll("_", " ")} submission to ${nextStatus.replaceAll("_", " ")}.`);
-      }
-
-      await tx.apiSubmission.update({
-        where: { id },
-        data: {
-          status: nextStatus as SubmissionStatus,
-          reviewNote: note || null,
-          reviewedAt: nextStatus === SubmissionStatus.IN_REVIEW ? null : new Date(),
-        },
-      });
+      await transitionSubmissionReview(tx, id, nextStatus as SubmissionStatus, note);
     });
 
     revalidatePath("/admin/submissions");
