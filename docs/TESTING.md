@@ -46,6 +46,18 @@ Expand coverage in layers:
 
 Never point automated tests at a production database. Use isolated test credentials and disposable test data. Do not commit secrets or real user information.
 
+## Browser end-to-end tests
+
+Playwright tests live in `tests/e2e/` and use Chromium. Install the browser tooling locally when needed:
+
+```bash
+npm install --no-save @playwright/test@1.56.1
+npx playwright install chromium
+npx playwright test
+```
+
+The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds a disposable administrator and submission fixture, builds and starts the app, then exercises unauthenticated admin denial, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. Credentials are test-only CI values and must never be reused outside disposable environments.
+
 ## Pull request expectations
 
 Add or update tests in the same pull request as the behaviour they cover. If a change cannot reasonably be tested, explain why in the pull request and record the remaining risk.
