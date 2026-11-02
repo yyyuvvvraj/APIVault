@@ -132,6 +132,7 @@ export function AdminCreateApiForm({ categories }: { categories: CategoryOption[
 
         <fieldset className="sm:col-span-2">
           <legend className="text-xs font-semibold text-slate-300">Authentication methods <span className="text-rose-400">*</span></legend>
+          <p className="mt-1 text-[11px] text-slate-500">Select Unknown or No authentication on its own; otherwise choose the applicable methods.</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {authOptions.map(([value, label]) => (
               <label key={value} className="flex items-center gap-2 rounded-lg border border-white/[0.07] bg-black/10 px-3 py-2.5 text-xs text-slate-300">
