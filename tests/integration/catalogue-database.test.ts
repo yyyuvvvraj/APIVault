@@ -111,3 +111,7 @@ test("rolls back all writes when a multi-record transaction fails", async () => 
   assert.equal(provider, null);
   assert.equal(category, null);
 });
+
+after(async () => {
+  await prisma.$disconnect();
+});
