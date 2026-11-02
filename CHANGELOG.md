@@ -10,3 +10,5 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 - Initial repository governance and contribution documentation.
 - Automated repository hygiene checks.
 - Issue and pull request templates.
+- MIT license.
+- Initial product direction for the web-first API catalogue and future REST API.
