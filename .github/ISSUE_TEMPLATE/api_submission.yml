@@ -1,0 +1,100 @@
+name: Suggest an API
+description: Propose a new API listing or correction with reliable source links
+title: "[API submission]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Please submit only public information. Never include API keys, access tokens, credentials, or private data. Source links are required so maintainers can verify claims."
+  - type: input
+    id: api_name
+    attributes:
+      label: API name
+      placeholder: Official product or API name
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: Provider
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What does this API do?
+      description: Keep the summary factual and concise.
+    validations:
+      required: true
+  - type: input
+    id: homepage
+    attributes:
+      label: Official homepage
+      placeholder: https://
+    validations:
+      required: true
+  - type: input
+    id: documentation
+    attributes:
+      label: Official documentation
+      placeholder: https://
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Primary category
+      options:
+        - AI & Machine Learning
+        - Developer Tools
+        - Data & Analytics
+        - Finance
+        - Communication
+        - Maps & Geospatial
+        - Productivity
+        - Media
+        - Weather & Environment
+        - Science & Education
+    validations:
+      required: true
+  - type: dropdown
+    id: pricing
+    attributes:
+      label: Pricing model
+      options:
+        - Free
+        - Freemium
+        - Paid
+        - Open source
+        - Unknown / not verified
+    validations:
+      required: true
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Authentication
+      options:
+        - API key
+        - OAuth 2.0
+        - Bearer token
+        - Basic authentication
+        - No authentication
+        - Custom
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: rate_limits
+    attributes:
+      label: Rate limits and restrictions (optional)
+      description: Record documented quotas, windows, geographic restrictions, or usage limits. Say "unknown" when unavailable.
+  - type: textarea
+    id: sources
+    attributes:
+      label: Evidence and additional details
+      description: Add official URLs for pricing, authentication, rate limits, terms, and restrictions. Say "not found" when information is unavailable.
+    validations:
+      required: true
+  - type: input
+    id: submitter
+    attributes:
+      label: Your GitHub username (optional)
