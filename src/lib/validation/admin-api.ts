@@ -37,7 +37,20 @@ export const adminCreateApiSchema = z.object({
     "NONE",
     "CUSTOM",
     "UNKNOWN",
-  ])).min(1, "Choose at least one authentication method."),
+  ])).min(1, "Choose at least one authentication method.").superRefine((methods, context) => {
+    if (methods.includes("UNKNOWN") && methods.length > 1) {
+      context.addIssue({
+        code: "custom",
+        message: "Select Unknown by itself when the authentication method has not been verified.",
+      });
+    }
+    if (methods.includes("NONE") && methods.length > 1) {
+      context.addIssue({
+        code: "custom",
+        message: "No authentication cannot be combined with another authentication method.",
+      });
+    }
+  }),
   pricingModel: z.enum(["FREE", "FREEMIUM", "PAID", "OPEN_SOURCE", "UNKNOWN"]),
   pricingSummary: optionalText(2_000),
 });
