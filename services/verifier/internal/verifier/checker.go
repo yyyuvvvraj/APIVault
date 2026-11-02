@@ -124,7 +124,12 @@ func Check(ctx context.Context, apiID, rawURL string) Result {
 	response, err := client.Do(request)
 	if err == nil && (response.StatusCode == http.StatusMethodNotAllowed || response.StatusCode == http.StatusNotImplemented) {
 		response.Body.Close()
-		request, _ = http.NewRequestWithContext(ctx, http.MethodGet, parsed.String(), nil)
+		request, err = http.NewRequestWithContext(ctx, http.MethodGet, parsed.String(), nil)
+		if err != nil {
+			result.ErrorMessage = NormalizeError(err.Error())
+			result.LatencyMs = time.Since(started).Milliseconds()
+			return result
+		}
 		request.Header.Set("User-Agent", "APIVault-Verifier/1.0")
 		request.Header.Set("Range", "bytes=0-0")
 		response, err = client.Do(request)
