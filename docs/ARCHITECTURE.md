@@ -113,6 +113,12 @@ Unit tests use Node.js's built-in test runner through the existing `tsx` depende
 
 Database transaction tests, authorization tests, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
 
+## Go verifier worker
+
+The optional Go verifier is a separate worker, not a replacement for Next.js route handlers or the catalogue domain layer. It obtains bounded health-check jobs and submits observations through authenticated internal Next.js endpoints. It has no direct database credentials and cannot change verification or publication state.
+
+The `ApiHealthCheck` table stores timestamped reachability observations, HTTP status, latency, and bounded error details. Health checks are operational signals only; maintainer evidence review remains the sole path to VERIFIED and public publication. See [GO_VERIFIER.md](GO_VERIFIER.md) for its SSRF boundary, configuration, and operations.
+
 ## Deployment boundary
 
 The project can run locally with Docker Compose and any PostgreSQL 18-compatible hosted service. Deployment provider, secrets management, backups, and production observability remain deployment decisions; no cloud vendor is assumed in the application code. No production deployment is implied by the current development workflow.
