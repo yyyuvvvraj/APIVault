@@ -2,12 +2,13 @@
 
 ## What GitHub Actions does
 
-The workflow at `.github/workflows/docker-publish.yml` has two modes:
+The workflow at `.github/workflows/docker-publish.yml` uses a fast path for normal development and a full release path:
 
 - Pull requests targeting `dev` or `stable`: build an amd64 image and run a container smoke test. The image is not published.
-- Pushes to `dev`, `stable`, and version tags matching `v*`: build and publish a multi-platform image (amd64 and arm64) to GitHub Container Registry (GHCR).
+- Pushes to `dev`: build and publish an amd64 image to GitHub Container Registry (GHCR). This matches the planned x86_64 Render web-service target and avoids slow ARM emulation on frequent integration builds.
+- Pushes to `stable` and version tags matching `v*`: build and publish a multi-platform image (amd64 and arm64), including provenance and SBOM attestations.
 
-The workflow uses the repository-provided `GITHUB_TOKEN`; no Docker Hub account or long-lived registry password is required.
+The workflow uses the repository-provided `GITHUB_TOKEN`; no Docker Hub account or long-lived registry password is required. BuildKit's GitHub Actions cache is enabled for all paths.
 
 ## Image names
 
