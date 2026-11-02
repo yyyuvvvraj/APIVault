@@ -81,7 +81,7 @@ test("approval fails and rolls back provider creation when submitted category is
   );
 
   const savedSubmission = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
-  const provider = await prisma.apiProvider.findFirst({ where: { name: providerName } });
+  const provider = await prisma.apiProvider.findFirst({ where: { name: `${providerName}-rollback` } });
   const api = await prisma.api.findUnique({ where: { slug: apiSlug } });
 
   assert.equal(savedSubmission.status, SubmissionStatus.IN_REVIEW);
