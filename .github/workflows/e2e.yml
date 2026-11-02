@@ -1,0 +1,83 @@
+name: Browser E2E
+
+on:
+  pull_request:
+    branches: [dev, stable, "test/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: Playwright Chromium workflows
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_USER: apivault
+          POSTGRES_PASSWORD: apivault
+          POSTGRES_DB: apivault
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U apivault -d apivault"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://apivault:apivault@localhost:5432/apivault?schema=public
+      BETTER_AUTH_SECRET: e2e-only-secret-never-use-outside-ci-1234567890
+      BETTER_AUTH_URL: http://127.0.0.1:3000
+      E2E_ADMIN_EMAIL: apivault-e2e@example.test
+      E2E_ADMIN_PASSWORD: E2E-only-password-12345
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - run: npm install --no-audit --no-fund
+      - name: Generate Prisma and Better Auth clients
+        run: |
+          npm run db:generate
+          npx auth@latest generate --adapter prisma --dialect postgresql --yes
+          npm run db:generate
+      - name: Apply migrations and seed fixtures
+        run: |
+          npm run db:deploy
+          npm run db:seed
+          npx auth@latest create-admin --email "$E2E_ADMIN_EMAIL" --password "$E2E_ADMIN_PASSWORD" --name "APIVault E2E Admin" --role admin --yes --config ./src/lib/auth.ts
+          npx tsx scripts/seed-e2e.ts
+      - name: Build application
+        run: npm run build
+      - name: Start application
+        run: |
+          npm run start > /tmp/apivault-next.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3000/admin/login > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/apivault-next.log
+          exit 1
+      - name: Install Playwright browser
+        run: |
+          npm install --no-save @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run browser tests
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: apivault-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
