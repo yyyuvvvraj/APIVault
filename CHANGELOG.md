@@ -7,12 +7,15 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Added
-- Initial repository governance and contribution documentation.
-- Automated repository hygiene checks.
-- Issue and pull request templates.
-- MIT license.
-- Initial product direction for the web-first API catalogue and future REST API.
+- Initial repository governance, contribution documentation, issue and pull request templates, MIT license, and automated repository hygiene checks.
+- Initial Next.js application scaffold, PostgreSQL / Prisma canonical catalogue, category seed, and local Docker environment.
+- Public catalogue browsing, search, filtering, API detail pages, and read-only versioned REST routes.
+- Better Auth administrator sign-in with public registration disabled and protected admin console.
+- Admin API creation and editing with server-side validation and revision snapshots.
+- Evidence-gated API verification, availability controls, and publication lifecycle.
+- Category create, edit, and safe deletion workflows.
+- Community submission review, approval, transactional catalogue application, and revision history.
+- Documentation for admin setup, architecture, local development, verification policy, and contribution workflow.
 
-- Initial Next.js application scaffold and public read-only REST routes.
-- PostgreSQL / Prisma canonical API catalogue schema, category seed, and local Docker environment.
-- Search, filtering, API detail pages, and contribution verification documentation.
+### Changed
+- Require relevant documentation updates in the same pull request as implementation changes.

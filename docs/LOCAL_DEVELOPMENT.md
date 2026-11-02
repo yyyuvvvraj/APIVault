@@ -48,21 +48,29 @@ npm run db:seed
 
 The seed script creates categories only. It intentionally does not insert unverified API listings.
 
-## 6. Run the application
+## 6. Provision an administrator
+
+Follow [ADMIN_SETUP.md](ADMIN_SETUP.md) to configure Better Auth and provision the first administrator. Public registration is disabled.
+
+## 7. Run the application
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000. The catalogue starts empty until verified API entries are added.
+Open http://localhost:3000. The catalogue starts empty until verified API entries are added. The admin console is available at http://localhost:3000/admin after administrator provisioning.
 
 ## Quality checks
+
+Run the checks currently provided by the repository:
 
 ```bash
 npm run lint
 npm run typecheck
 npm run build
 ```
+
+Automated unit, integration, and browser-test coverage is tracked as development work; do not assume these commands exercise the full admin workflows.
 
 ## Database tools
 
@@ -84,7 +92,8 @@ docker compose down -v
 
 ## Contribution flow
 
-- Create a branch from `dev`.
-- For code or schema changes, open a pull request into `dev`.
-- For API data suggestions, use the GitHub **Suggest an API** issue template until the authenticated in-app moderation workflow is implemented.
-- Include source URLs and evidence for catalogue facts.
+- Create a short-lived branch from `dev`.
+- Open code, test, and documentation changes as a pull request into `dev`.
+- For API data proposals, use the in-app community submission workflow when available to your local admin setup; proposals are reviewed by an administrator before they affect the catalogue.
+- Include official source URLs and evidence for catalogue facts.
+- Update the relevant documentation in the same pull request whenever behaviour, configuration, schema, API contracts, or contributor workflows change.
