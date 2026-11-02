@@ -66,6 +66,8 @@ Run the same checks used by Application CI:
 
 ```bash
 npm test
+npm run db:deploy
+npm run test:integration
 npm run lint
 npm run typecheck
 npm run build
