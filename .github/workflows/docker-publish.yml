@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: docker-${ github.workflow }}-${ github.ref }}
+  group: docker-${{ github.workflow }}}-${{ github.ref }}}
   cancel-in-progress: true
 
 jobs:
@@ -40,41 +40,41 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${ github.repository }}
+          images: ghcr.io/${{ github.repository }}}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
             type=ref,event=pr
             type=sha,prefix=sha-
-            type=raw,value=latest,enable=${ github.ref == 'refs/heads/stable' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/stable' }}}
 
       - name: Sign in to GitHub Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
-          username: ${ github.actor }}
-          password: ${ secrets.GITHUB_TOKEN }}
+          username: ${{ github.actor }}}
+          password: ${{ secrets.GITHUB_TOKEN }}}
 
       - name: Build Docker image
         id: build
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: ${ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
-          push: ${ github.event_name != 'pull_request' }}
-          load: ${ github.event_name == 'pull_request' }}
-          tags: ${ steps.meta.outputs.tags }}
-          labels: ${ steps.meta.outputs.labels }}
+          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}}
+          push: ${{ github.event_name != 'pull_request' }}}
+          load: ${{ github.event_name == 'pull_request' }}}
+          tags: ${{ steps.meta.outputs.tags }}}
+          labels: ${{ steps.meta.outputs.labels }}}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: ${ github.event_name != 'pull_request' }}
-          sbom: ${ github.event_name != 'pull_request' }}
+          provenance: ${{ github.event_name != 'pull_request' }}}
+          sbom: ${{ github.event_name != 'pull_request' }}}
 
       - name: Smoke-test the container
         if: github.event_name == 'pull_request'
         env:
-          IMAGE: ghcr.io/${ github.repository }}:${ steps.meta.outputs.version }}
+          IMAGE: ghcr.io/${{ github.repository }}}:${{ steps.meta.outputs.version }}}
         shell: bash
         run: |
           set -euo pipefail
@@ -89,7 +89,7 @@ jobs:
           cleanup() {
             docker logs apivault-smoke || true
             docker rm --force apivault-smoke >/dev/null 2>&1 || true
-          }
+          }}
           trap cleanup EXIT
 
           for attempt in $(seq 1 30); do
