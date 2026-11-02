@@ -51,7 +51,7 @@ jobs:
           }
           trap cleanup EXIT
           for attempt in $(seq 1 20); do
-            if curl --fail --silent http://127.0.0.1:8081/healthz | grep -q '^ok; then
+            if curl --fail --silent http://127.0.0.1:8081/healthz | grep -q ok; then
               echo "Go verifier health endpoint responded successfully."
               exit 0
             fi
