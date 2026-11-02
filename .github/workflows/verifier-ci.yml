@@ -36,4 +36,26 @@ jobs:
         working-directory: services/verifier
         run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" ./cmd/verifier
       - name: Build Alpine container
-        run: docker build -f services/verifier/Dockerfile services/verifier
+        run: docker build -t apivault-verifier -f services/verifier/Dockerfile services/verifier
+      - name: Smoke-test verifier health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name apivault-verifier-smoke --publish 8081:8081 \
+            --env API_BASE_URL=http://127.0.0.1:3000 \
+            --env VERIFIER_SHARED_SECRET=ci-only-verifier-secret-with-at-least-32-characters \
+            apivault-verifier
+          cleanup() {
+            docker logs apivault-verifier-smoke || true
+            docker rm --force apivault-verifier-smoke >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8081/healthz | grep -q '^ok; then
+              echo "Go verifier health endpoint responded successfully."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Go verifier did not become healthy."
+          exit 1
