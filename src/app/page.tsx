@@ -4,6 +4,8 @@ import { CATEGORY_DIRECTORY } from "@/lib/catalogue/constants";
 import { parseCatalogueFilters } from "@/lib/catalogue/search";
 import { listApis } from "@/lib/catalogue/queries";
 
+export const dynamic = "force-dynamic";
+
 const menuLinks = [
   { href: "/", label: "Home", icon: "⌂" },
   { href: "/apis", label: "Explore APIs", icon: "◫" },
