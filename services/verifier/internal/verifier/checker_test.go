@@ -14,6 +14,8 @@ func TestValidateTargetRejectsUnsafeURLs(t *testing.T) {
 		"http://10.0.0.5",
 		"http://169.254.169.254/latest/meta-data",
 		"http://user:pass@example.com",
+		"https://example.com:8443",
+		"http://example.com:443",
 		"http://[::1]/",
 	}
 	for _, raw := range cases {
