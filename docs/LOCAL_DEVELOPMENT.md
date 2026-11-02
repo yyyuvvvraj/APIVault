@@ -62,15 +62,16 @@ Open http://localhost:3000. The catalogue starts empty until verified API entrie
 
 ## Quality checks
 
-Run the checks currently provided by the repository:
+Run the same checks used by Application CI:
 
 ```bash
+npm test
 npm run lint
 npm run typecheck
 npm run build
 ```
 
-Automated unit, integration, and browser-test coverage is tracked as development work; do not assume these commands exercise the full admin workflows.
+See [TESTING.md](TESTING.md) for current coverage, test strategy, and known gaps. Unit tests do not replace database integration, authorization, or browser-based end-to-end tests.
 
 ## Database tools
 
