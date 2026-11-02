@@ -74,7 +74,7 @@ func safeTransport() *http.Transport {
 	dialer := &net.Dialer{Timeout: 5 * time.Second, KeepAlive: 30 * time.Second}
 	return &http.Transport{
 		Proxy:                 nil,
-		DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+		DialContext:           func(ctx context.Context, network, address string) (net.Conn, error) {
 			host, port, err := net.SplitHostPort(address)
 			if err != nil {
 				return nil, err
