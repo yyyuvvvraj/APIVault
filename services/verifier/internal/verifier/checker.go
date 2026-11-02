@@ -73,8 +73,8 @@ func validateTarget(raw string) (*url.URL, error) {
 func safeTransport() *http.Transport {
 	dialer := &net.Dialer{Timeout: 5 * time.Second, KeepAlive: 30 * time.Second}
 	return &http.Transport{
-		Proxy:                 nil,
-		DialContext:           func(ctx context.Context, network, address string) (net.Conn, error) {
+		Proxy: nil,
+		DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
 			host, port, err := net.SplitHostPort(address)
 			if err != nil {
 				return nil, err
@@ -111,7 +111,7 @@ func Check(ctx context.Context, apiID, rawURL string) Result {
 
 	client := &http.Client{
 		Transport: safeTransport(),
-		Timeout: 10 * time.Second,
+		Timeout:   10 * time.Second,
 		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
