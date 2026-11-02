@@ -121,9 +121,8 @@ Before public release, define an OpenAPI specification, pagination, stable error
 
 ## Open decisions
 
-The following should be decided before application implementation:
-- Frontend and backend framework.
-- Database and search strategy.
+The following application decisions are now recorded in [ARCHITECTURE.md](ARCHITECTURE.md):
+- Remaining work: hosted database and deployment provider, search indexing strategy after measurement.
 - Hosting and deployment platform.
 - Catalogue submission and moderation UX.
 - Initial category taxonomy and seed dataset.

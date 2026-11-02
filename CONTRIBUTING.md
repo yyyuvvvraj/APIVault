@@ -52,3 +52,8 @@ Use lowercase, hyphen-separated names:
 
 ## Recognition
 Meaningful contributions are valued regardless of size. Maintainers may highlight contributors in release notes and project documentation with their permission.
+
+
+## Catalogue contributions
+
+For a new API or a correction to an existing listing, use the [Suggest an API issue form](https://github.com/yyyuvvvraj/APIVault/issues/new?template=api_submission.yml). Include official homepage and documentation links plus evidence for pricing, authentication, and rate-limit claims. Read the [verification policy](docs/VERIFICATION_POLICY.md) before submitting catalogue data.

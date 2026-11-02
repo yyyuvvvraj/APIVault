@@ -1,37 +1,27 @@
 # APIVault
 
 [![Repository checks](https://github.com/yyyuvvvraj/APIVault/actions/workflows/repository-checks.yml/badge.svg?branch=dev)](https://github.com/yyyuvvvraj/APIVault/actions/workflows/repository-checks.yml)
+[![Application CI](https://github.com/yyyuvvvraj/APIVault/actions/workflows/application-ci.yml/badge.svg?branch=dev)](https://github.com/yyyuvvvraj/APIVault/actions/workflows/application-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **APIVault is a community-driven directory of useful APIs for developers.**
 
-Discover APIs, compare their capabilities and requirements, and contribute reliable, well-documented API listings. APIVault is being built as a web application backed by a curated API catalogue, with a public REST API planned as the catalogue and community mature.
+Discover APIs, compare their capabilities and requirements, and contribute reliable, well-documented API listings. APIVault is a web application backed by a curated API catalogue, with a public REST API built from the same canonical records as the catalogue matures.
 
-## What we're building
+## Technology
 
-- A searchable web directory of useful APIs.
-- Consistent API profiles covering documentation, authentication, pricing, limits, terms, and provider details.
-- Community contributions with source links, verification dates, and maintainer review.
-- A public REST API as a later platform capability, built from the same catalogue data.
+- Next.js 16, React 19, TypeScript, and Tailwind CSS 4.
+- PostgreSQL 18 with Prisma ORM 7.
+- Zod for runtime validation.
+- GitHub Actions for repository and application checks.
 
-## Project principles
+## Local development
 
-- Accuracy and provenance over raw catalogue size.
-- Clear distinction between free, freemium, paid, and unknown pricing.
-- Transparent authentication, rate-limit, geography, and usage restrictions.
-- Safe, reviewable community contributions.
-- No claim of affiliation with listed API providers unless explicitly authorized.
-
-## Project status
-
-APIVault is in its foundation and product-design phase. The repository's governance, contribution process, and automated checks are in place. Application implementation and the catalogue data contract are the next milestones.
-
-See [docs/PRODUCT_DIRECTION.md](docs/PRODUCT_DIRECTION.md) for the initial product scope and staged roadmap.
+Start with the [local development guide](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), and [verification policy](docs/VERIFICATION_POLICY.md) before changing catalogue behaviour.
 
 ## Contributing
 
-Contributions of code, API listings, data corrections, tests, and documentation are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Look for issues labelled **good first issue**.
+Contributions of code, API listings, data corrections, tests, and documentation are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md). API suggestions should include official source links and can be submitted using the [Suggest an API issue form](https://github.com/yyyuvvvraj/APIVault/issues/new?template=api_submission.yml).
 
 ## Development workflow
 
@@ -40,13 +30,11 @@ Contributions of code, API listings, data corrections, tests, and documentation 
 - Open pull requests into `dev`; do not push directly to protected branches.
 - Stable releases will be prepared from `dev` and published from `stable` with version tags.
 
-See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the complete workflow.
-
 ## Community
 
+- [GitHub Discussions](https://github.com/yyyuvvvraj/APIVault/discussions)
 - [Report a bug](https://github.com/yyyuvvvraj/APIVault/issues/new?template=bug_report.yml)
 - [Request a feature](https://github.com/yyyuvvvraj/APIVault/issues/new?template=feature_request.yml)
-- [Start a discussion](https://github.com/yyyuvvvraj/APIVault/discussions)
 - [Security policy](SECURITY.md)
 
 ## License
