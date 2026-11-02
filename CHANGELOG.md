@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Added
+- Playwright Chromium browser tests and a dedicated CI workflow for admin login, protected-route access, API creation/verification/publication, and submission moderation.
 - PostgreSQL-backed integration tests for catalogue persistence, public visibility rules, and transaction rollback.
 - Administrator role-policy tests using the server-side authorization helper.
 - Initial repository governance, contribution documentation, issue and pull request templates, MIT license, and automated repository hygiene checks.
