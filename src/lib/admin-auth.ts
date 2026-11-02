@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { hasAdminRole } from "@/lib/admin-role";
 
 export async function requireAdmin() {
   const session = await auth.api.getSession({
@@ -11,11 +12,8 @@ export async function requireAdmin() {
     redirect("/admin/login");
   }
 
-  const role = "role" in session.user && typeof session.user.role === "string"
-    ? session.user.role
-    : "";
-
-  if (!role.split(",").includes("admin")) {
+  const role = "role" in session.user ? session.user.role : undefined;
+  if (!hasAdminRole(role)) {
     redirect("/admin/login?error=not-authorized");
   }
 

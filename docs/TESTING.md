@@ -4,6 +4,8 @@
 
 The repository uses Node.js's built-in test runner with TypeScript execution provided by the existing `tsx` development dependency. Tests live in `tests/unit/` and use the `*.test.ts` naming convention.
 
+The unit suite also covers administrator role parsing through the same pure policy function used by the server-side authorization guard.
+
 Run the unit suite with:
 
 ```bash
@@ -17,6 +19,17 @@ The initial unit suite covers:
 - Community API submission validation, including evidence URL requirements and contributor handle validation.
 
 These are unit tests. They do not replace database integration tests, authorization tests, or browser-based end-to-end tests.
+
+## Database integration suite
+
+Database tests live in `tests/integration/` and require a disposable PostgreSQL database with the committed Prisma migrations applied. Configure `DATABASE_URL` to point only at a test database, then run:
+
+```bash
+npm run db:deploy
+npm run test:integration
+```
+
+The initial database suite verifies relational persistence, the public query boundary (only `ACTIVE + VERIFIED` records are returned), detail lookup visibility, and rollback of multiple writes when a transaction fails. CI provisions an ephemeral PostgreSQL service, applies migrations, and runs this suite. The tests use unique fixture slugs and clean up their records.
 
 ## Continuous integration
 
