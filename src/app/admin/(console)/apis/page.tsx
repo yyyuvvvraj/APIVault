@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getPrisma } from "@/lib/db";
 
 export const metadata = { title: "API management" };
@@ -24,7 +25,12 @@ export default async function AdminApisPage() {
           <h1 className="mt-2 text-3xl font-black tracking-tight text-white">API catalogue</h1>
           <p className="mt-2 text-sm text-slate-400">All records, including unverified and archived entries.</p>
         </div>
-        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-300">{apis.length} records shown</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-300">{apis.length} records shown</span>
+          <Link href="/admin/apis/new" className="rounded-xl bg-gradient-to-r from-rose-500 to-red-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-rose-950/30 transition hover:brightness-110">
+            + Add API
+          </Link>
+        </div>
       </header>
 
       <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#10151e]">
@@ -53,7 +59,12 @@ export default async function AdminApisPage() {
                 </tr>
               ))}
               {!apis.length && (
-                <tr><td colSpan={4} className="px-5 py-16 text-center text-sm text-slate-500">No API records yet. The first listing can be added once the editor workflow is enabled.</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-5 py-16 text-center">
+                    <p className="text-sm text-slate-400">No API records yet.</p>
+                    <Link href="/admin/apis/new" className="mt-2 inline-block text-xs font-bold text-rose-400 hover:text-rose-300">Create the first catalogue entry →</Link>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
