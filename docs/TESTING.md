@@ -29,6 +29,19 @@ The approval service is also shared by the server action and integration tests. 
 
 The lifecycle service is shared by the admin server action and PostgreSQL integration tests. Tests cover matching official homepage evidence, required category and authentication metadata, successful verification timestamps, revision creation, publication, and unpublishing when verification becomes stale. Public detail lookup is checked before and after the lifecycle change.
 
+## Go verifier tests
+
+The independent worker uses Go's standard test runner and has no third-party Go module dependencies:
+
+```bash
+cd services/verifier
+go test -race -cover ./...
+go vet ./...
+go build ./cmd/verifier
+```
+
+Tests cover unsafe URL rejection, standard-port restrictions, public/private IP classification, and the authenticated jobs/results contract. Go Verifier CI runs tests, vet, binary compilation, and an Alpine container build and smoke test.
+
 ## Continuous integration
 
 Application CI provisions a disposable PostgreSQL 18 service, applies committed migrations, runs unit tests and database integration tests, then runs lint, type checking, and the production build. Never run these tests against production.
