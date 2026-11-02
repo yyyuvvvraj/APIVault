@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hasAdminRole } from "../../src/lib/admin-auth";
+import { hasAdminRole } from "../../src/lib/admin-role";
 
 test("only an explicit admin role grants administrator access", () => {
   assert.equal(hasAdminRole("admin"), true);
