@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - apivault_postgres_data:/var/lib/postgresql/data
+      - apivault_postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U apivault -d apivault"]
       interval: 5s
