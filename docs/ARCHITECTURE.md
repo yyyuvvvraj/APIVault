@@ -111,7 +111,7 @@ Applying a community submission never directly publishes an API. New or material
 
 Unit tests use Node.js's built-in test runner through the existing `tsx` dependency. The initial suite covers catalogue filter parsing and the Zod schemas used by admin API creation and community submissions. Application CI runs `npm test` before lint, type checking, and build.
 
-Database transaction tests, authorization tests, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
+PostgreSQL integration tests now cover catalogue persistence, public visibility, transaction rollback, submission review transitions, rejection, and atomic CREATE approval. Session-backed authorization, UPDATE approval edge cases, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
 
 ## Deployment boundary
 
