@@ -15,7 +15,7 @@ Thank you for helping make APIVault useful and trustworthy. Contributions includ
 4. Make focused commits with clear messages, e.g. `feat: add API source metadata`.
 5. Run relevant checks locally.
 6. Push your branch and open a pull request targeting **dev**.
-7. Explain the motivation, changes, testing performed, and limitations.
+7. Explain the motivation, changes, testing performed, documentation updated, and limitations.
 8. Address review feedback. Maintainers merge only after required checks pass.
 
 Do not open routine feature PRs against `stable`. Release PRs are managed by maintainers.
@@ -36,10 +36,13 @@ Do not describe an API as free, unlimited, open, or production-ready without evi
 ## Pull request standards
 - Keep PRs focused and reasonably small.
 - Include tests or explain why tests are not applicable.
-- Update documentation when behaviour or data formats change.
+- **Update the relevant documentation in the same PR as every feature or behaviour change.** Do not defer documentation updates to a later cleanup task.
+- Update setup, architecture, data-model, API-contract, security, and troubleshooting docs whenever the corresponding implementation changes.
+- For database/schema changes, include migration guidance and update the canonical data-model documentation.
+- For API changes, update endpoint documentation and examples.
+- For security or authorization changes, update the security and admin setup guidance.
 - Do not commit generated files unless maintainers request them.
 - Ensure automated checks pass.
-- Be respectful and constructive in review discussions.
 
 ## Branch conventions
 Use lowercase, hyphen-separated names:
@@ -52,7 +55,6 @@ Use lowercase, hyphen-separated names:
 
 ## Recognition
 Meaningful contributions are valued regardless of size. Maintainers may highlight contributors in release notes and project documentation with their permission.
-
 
 ## Catalogue contributions
 
