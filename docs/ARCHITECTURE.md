@@ -64,7 +64,7 @@ The browser never talks directly to PostgreSQL. Route handlers expose explicit p
 - `src/lib/auth.ts` and `src/lib/auth-client.ts`: Better Auth server and client configuration.
 - `src/lib/db.ts`: server-only Prisma client lifecycle.
 - `prisma/`: canonical database schema, migrations, and seed data.
-- `tests/unit/`, `tests/integration/`, and `tests/e2e/`: policy/validation tests, PostgreSQL-backed persistence tests, and Playwright browser workflows.
+- `tests/unit/`, `tests/integration/`, `tests/e2e/`, and `services/verifier/`: policy/validation tests, PostgreSQL-backed persistence tests, Playwright browser workflows, and the independent Go health-check worker.
 - `docs/`: product and engineering decisions.
 
 ## Authentication and administrator authorization
@@ -112,6 +112,12 @@ Applying a community submission never directly publishes an API. New or material
 Unit tests use Node.js's built-in test runner through the existing `tsx` dependency. The initial suite covers catalogue filter parsing and the Zod schemas used by admin API creation and community submissions. Application CI runs `npm test` before lint, type checking, and build.
 
 PostgreSQL integration tests now cover catalogue persistence, public visibility, transaction rollback, submission review transitions, rejection, and atomic CREATE approval. Session-backed authorization, UPDATE approval edge cases, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
+
+## Go verifier worker
+
+The optional Go verifier is a separate worker, not a replacement for Next.js route handlers or the catalogue domain layer. It obtains bounded health-check jobs and submits observations through authenticated internal Next.js endpoints. It has no direct database credentials and cannot change verification or publication state.
+
+The `ApiHealthCheck` table stores timestamped reachability observations, HTTP status, latency, and bounded error details. Health checks are operational signals only; maintainer evidence review remains the sole path to VERIFIED and public publication. See [GO_VERIFIER.md](GO_VERIFIER.md) for its SSRF boundary, configuration, and operations.
 
 ## Deployment boundary
 
