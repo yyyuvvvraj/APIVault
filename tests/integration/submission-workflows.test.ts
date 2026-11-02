@@ -8,7 +8,7 @@ import { transitionSubmissionReview } from "../../src/lib/submissions/review-ser
 const prisma = getPrisma();
 const ids: string[] = [];
 
-async function createSubmission(status = SubmissionStatus.PENDING) {
+async function createSubmission(status: SubmissionStatus = SubmissionStatus.PENDING) {
   const row = await prisma.apiSubmission.create({
     data: {
       kind: SubmissionKind.CREATE,
