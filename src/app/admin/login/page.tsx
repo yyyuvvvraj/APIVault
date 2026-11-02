@@ -7,7 +7,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLoginPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminLoginPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const accessError = params.error === "not-authorized";
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#090c11] px-5 py-12 text-white">
       <div className="w-full max-w-[430px]">
@@ -24,7 +31,7 @@ export default function AdminLoginPage() {
             <h1 className="mt-3 text-3xl font-black tracking-tight">Welcome back.</h1>
             <p className="mt-2 text-sm leading-6 text-slate-400">Sign in to manage the API catalogue and review community submissions.</p>
           </div>
-          <AdminLoginForm />
+          <AdminLoginForm accessError={accessError} />
         </section>
 
         <p className="mt-6 text-center text-xs text-slate-600">APIVault administration · Authorized maintainers only</p>
