@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -148,11 +149,11 @@ model Category {
 }
 
 model Tag {
-  id        String    @id @default(uuid()) @db.Uuid
-  slug      String    @unique @db.VarChar(100)
-  name      String    @db.VarChar(100)
+  id        String   @id @default(uuid()) @db.Uuid
+  slug      String   @unique @db.VarChar(100)
+  name      String   @db.VarChar(100)
   apis      ApiTag[]
-  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([name])
 }
@@ -188,35 +189,35 @@ model ApiAuthMethod {
 }
 
 model ApiSource {
-  id          String     @id @default(uuid()) @db.Uuid
-  apiId       String     @db.Uuid
-  sourceKind  SourceKind
-  url         String     @db.Text
-  title       String?    @db.VarChar(240)
-  isOfficial  Boolean    @default(false)
-  notes       String?    @db.Text
-  checkedAt   DateTime?  @db.Timestamptz(6)
-  api         Api        @relation(fields: [apiId], references: [id], onDelete: Cascade)
-  rateLimits  ApiRateLimit[]
+  id           String           @id @default(uuid()) @db.Uuid
+  apiId        String           @db.Uuid
+  sourceKind   SourceKind
+  url          String           @db.Text
+  title        String?          @db.VarChar(240)
+  isOfficial   Boolean          @default(false)
+  notes        String?          @db.Text
+  checkedAt    DateTime?        @db.Timestamptz(6)
+  api          Api              @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  rateLimits   ApiRateLimit[]
   pricingPlans ApiPricingPlan[]
-  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(6)
 
   @@unique([apiId, url])
   @@index([apiId, sourceKind])
 }
 
 model ApiRateLimit {
-  id            String    @id @default(uuid()) @db.Uuid
-  apiId         String    @db.Uuid
-  description   String    @db.Text
+  id            String     @id @default(uuid()) @db.Uuid
+  apiId         String     @db.Uuid
+  description   String     @db.Text
   requestCount  Int?
   windowSeconds Int?
-  scope         String?   @db.VarChar(160)
-  sourceId      String?   @db.Uuid
-  api           Api       @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  scope         String?    @db.VarChar(160)
+  sourceId      String?    @db.Uuid
+  api           Api        @relation(fields: [apiId], references: [id], onDelete: Cascade)
   source        ApiSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
-  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime   @updatedAt @db.Timestamptz(6)
 
   @@index([apiId])
   @@index([sourceId])
@@ -242,33 +243,33 @@ model ApiPricingPlan {
 }
 
 model ApiSubmission {
-  id             String           @id @default(uuid()) @db.Uuid
-  kind           SubmissionKind
-  status         SubmissionStatus @default(PENDING)
-  targetApiId    String?          @db.Uuid
-  payload        Json
-  submitterName  String?          @db.VarChar(120)
-  submitterGithub String?         @db.VarChar(80)
-  reviewerGithub String?          @db.VarChar(80)
-  reviewNote     String?          @db.Text
-  reviewedAt     DateTime?        @db.Timestamptz(6)
-  targetApi      Api?             @relation(fields: [targetApiId], references: [id], onDelete: SetNull)
-  sources        SubmissionSource[]
-  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
-  updatedAt      DateTime         @updatedAt @db.Timestamptz(6)
+  id              String             @id @default(uuid()) @db.Uuid
+  kind            SubmissionKind
+  status          SubmissionStatus   @default(PENDING)
+  targetApiId     String?            @db.Uuid
+  payload         Json
+  submitterName   String?            @db.VarChar(120)
+  submitterGithub String?            @db.VarChar(80)
+  reviewerGithub  String?            @db.VarChar(80)
+  reviewNote      String?            @db.Text
+  reviewedAt      DateTime?          @db.Timestamptz(6)
+  targetApi       Api?               @relation(fields: [targetApiId], references: [id], onDelete: SetNull)
+  sources         SubmissionSource[]
+  createdAt       DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @db.Timestamptz(6)
 
   @@index([status, createdAt])
   @@index([targetApiId])
 }
 
 model SubmissionSource {
-  id           String      @id @default(uuid()) @db.Uuid
-  submissionId String      @db.Uuid
+  id           String        @id @default(uuid()) @db.Uuid
+  submissionId String        @db.Uuid
   sourceKind   SourceKind
-  url          String      @db.Text
-  notes        String?     @db.Text
+  url          String        @db.Text
+  notes        String?       @db.Text
   submission   ApiSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
 
   @@index([submissionId])
 }
@@ -284,4 +285,72 @@ model ApiRevision {
   createdAt   DateTime       @default(now()) @db.Timestamptz(6)
 
   @@index([apiId, createdAt])
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          String?
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }
