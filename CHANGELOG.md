@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Added
+- PostgreSQL integration coverage for verifier health observation persistence and the invariant that health checks do not verify or publish catalogue entries.
 - Optional Go API homepage verifier worker with authenticated internal job/result endpoints, SSRF protections, health-check history, and Alpine container image.
 - PostgreSQL-backed integration tests for catalogue persistence, public visibility rules, and transaction rollback.
 - Administrator role-policy tests using the server-side authorization helper.
