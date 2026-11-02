@@ -2,19 +2,25 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 
-export function SiteChrome({ children }: { children: ReactNode }) {
+export function SiteChrome({
+  children,
+  header,
+  footer,
+}: {
+  children: ReactNode;
+  header: ReactNode;
+  footer: ReactNode;
+}) {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isAdmin = pathname.startsWith("/admin");
 
   return (
     <>
-      {!isHome && !isAdmin && <SiteHeader />}
+      {!isHome && !isAdmin && header}
       {children}
-      {!isHome && !isAdmin && <SiteFooter />}
+      {!isHome && !isAdmin && footer}
     </>
   );
 }
