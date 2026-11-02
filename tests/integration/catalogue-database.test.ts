@@ -44,7 +44,7 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
       status: ApiStatus.ACTIVE,
       verificationStatus: VerificationStatus.VERIFIED,
       publishedAt: new Date(),
-      categories: { create: [{ categoryId: category.id }] },
+      categories: { create: [{ category: { connect: { id: category.id } } }] },
       authMethods: { create: [{ method: AuthMethod.API_KEY }] },
       sources: {
         create: [{
