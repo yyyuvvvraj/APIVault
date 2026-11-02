@@ -2,50 +2,37 @@
 
 ## Current automated coverage
 
-The repository uses Node.js's built-in test runner with TypeScript execution provided by the existing `tsx` development dependency. Tests live in `tests/unit/` and use the `*.test.ts` naming convention.
+The repository uses Node.js's built-in test runner with TypeScript execution provided by the existing `tsx` dependency.
 
-The unit suite also covers administrator role parsing through the same pure policy function used by the server-side authorization guard.
-
-Run the unit suite with:
+Run unit tests:
 
 ```bash
 npm test
 ```
 
-The initial unit suite covers:
-
-- Catalogue query parameter parsing, normalization, enum allow-lists, and pagination bounds.
-- Admin API input validation, including URL protocols, required categories, duplicate categories, and authentication classification rules.
-- Community API submission validation, including evidence URL requirements and contributor handle validation.
-
-These are unit tests. They do not replace database integration tests, authorization tests, or browser-based end-to-end tests.
-
-## Database integration suite
-
-Database tests live in `tests/integration/` and require a disposable PostgreSQL database with the committed Prisma migrations applied. Configure `DATABASE_URL` to point only at a test database, then run:
+Run PostgreSQL-backed integration tests against a disposable database after applying migrations:
 
 ```bash
 npm run db:deploy
 npm run test:integration
 ```
 
-The initial database suite verifies relational persistence, the public query boundary (only `ACTIVE + VERIFIED` records are returned), detail lookup visibility, and rollback of multiple writes when a transaction fails. CI provisions an ephemeral PostgreSQL service, applies migrations, and runs this suite. The tests use unique fixture slugs and clean up their records.
+Coverage currently includes catalogue filter parsing, admin API and community submission validation, administrator role policy, database relation persistence, public visibility filtering, transaction rollback, submission review transitions, rejection persistence, and atomic CREATE-submission approval.
+
+## Submission workflow tests
+
+The submission review service is shared by the server action and integration tests. Tests cover allowed and forbidden state transitions, required reviewer notes, rejection persistence, and transaction rollback.
+
+The approval service is also shared by the server action and integration tests. CREATE approval is verified to apply the canonical API, official homepage evidence, revision snapshot, and APPROVED status in one transaction. The API remains pending verification and unpublished. A missing-category failure verifies that provider creation and submission changes roll back. UPDATE approval, concurrent reviewer races, and real Better Auth session authorization remain additional coverage targets.
 
 ## Continuous integration
 
-Application CI runs the unit test suite after Prisma client generation and before lint, type checking, and the production build. A pull request must pass the complete application validation workflow.
+Application CI provisions a disposable PostgreSQL 18 service, applies committed migrations, runs unit tests and database integration tests, then runs lint, type checking, and the production build. Never run these tests against production.
 
-## Test strategy and gaps
+## Browser end-to-end strategy
 
-Expand coverage in layers:
-
-1. **Unit tests:** pure parsers, schemas, serializers, lifecycle transition helpers, and domain rules. Keep tests independent of PostgreSQL and external services where possible.
-2. **Database integration tests:** verify transactions, relation updates, rollback behavior, uniqueness constraints, submission approval, and immutable revision snapshots against an isolated test database.
-3. **Authorization tests:** prove that unauthenticated and non-admin users cannot invoke protected server actions or access admin data.
-4. **End-to-end tests:** exercise sign-in, API creation/editing, verification, category management, submission moderation, and revision history in a disposable environment.
-
-Never point automated tests at a production database. Use isolated test credentials and disposable test data. Do not commit secrets or real user information.
+Browser tests will exercise real sign-in, role-based route protection, API lifecycle, and submission moderation using a disposable test environment. See future E2E configuration before treating browser coverage as complete.
 
 ## Pull request expectations
 
-Add or update tests in the same pull request as the behaviour they cover. If a change cannot reasonably be tested, explain why in the pull request and record the remaining risk.
+Add or update tests and documentation in the same pull request as the behaviour they cover. If a change cannot reasonably be tested, explain why and record the remaining risk.
