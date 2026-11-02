@@ -20,6 +20,13 @@ dist
 coverage
 src/generated/prisma
 
+# Source-only assets not needed in the Next.js production image build context
+docs
+tests
+scripts
+services/verifier
+playwright.config.ts
+
 # Logs and temporary files
 *.log
 tmp
