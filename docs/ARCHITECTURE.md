@@ -123,3 +123,8 @@ The `ApiHealthCheck` table stores timestamped reachability observations, HTTP st
 ## Deployment boundary
 
 The project can run locally with Docker Compose and any PostgreSQL 18-compatible hosted service. Deployment provider, secrets management, backups, and production observability remain deployment decisions; no cloud vendor is assumed in the application code. No production deployment is implied by the current development workflow.
+
+
+## Admin verifier health operations
+
+The protected `/admin/health` route reads the latest five health observations for each non-archived API. It summarizes the latest unreachable check, any failure in the recent history, and observations that are older than 24 hours or missing. Error text, HTTP status, latency, and timestamps are displayed for maintainer investigation. These labels are operational signals only and never mutate catalogue availability, verification status, evidence, or publication state. See [GO_VERIFIER.md](GO_VERIFIER.md).
