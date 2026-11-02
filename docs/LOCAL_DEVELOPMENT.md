@@ -73,7 +73,7 @@ npm run typecheck
 npm run build
 ```
 
-See [TESTING.md](TESTING.md) for current coverage, test strategy, and known gaps. Unit tests do not replace database integration, authorization, or browser-based end-to-end tests.
+See [TESTING.md](TESTING.md) for current coverage, test strategy, and known gaps. To run browser E2E locally, install Playwright with `npm install --no-save @playwright/test@1.56.1`, install Chromium with `npx playwright install chromium`, and run `npx playwright test` against a disposable seeded database. Unit tests do not replace database integration, authorization, or browser-based end-to-end tests.
 
 ## Optional Go verifier worker
 

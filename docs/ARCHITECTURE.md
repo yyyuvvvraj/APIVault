@@ -65,6 +65,7 @@ The browser never talks directly to PostgreSQL. Route handlers expose explicit p
 - `src/lib/db.ts`: server-only Prisma client lifecycle.
 - `prisma/`: canonical database schema, migrations, and seed data.
 - `tests/unit/`, `tests/integration/`, and `services/verifier/`: policy/validation tests, PostgreSQL-backed persistence tests, and the independent Go health-check worker.
+- `tests/unit/`, `tests/integration/`, and `tests/e2e/`: policy/validation tests, PostgreSQL-backed persistence tests, and Playwright browser workflows.
 - `docs/`: product and engineering decisions.
 
 ## Authentication and administrator authorization

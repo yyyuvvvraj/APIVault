@@ -9,6 +9,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ### Added
 - Optional Go API homepage verifier worker with authenticated internal job/result endpoints, SSRF protections, health-check history, and Alpine container image.
 - PostgreSQL integration coverage for verifier health observation persistence and the invariant that health checks do not verify or publish catalogue entries.
+- Playwright Chromium browser tests and a dedicated CI workflow for admin login, protected-route access, API creation/verification/publication, and submission moderation.
 - Verification and publication integration tests for official homepage evidence, category/auth requirements, revision history, and stale-evidence unpublishing.
 - PostgreSQL integration coverage for submission rejection, invalid state transitions, atomic CREATE approval, evidence/revision persistence, and approval rollback.
 - Shared submission review and approval services so server actions and integration tests exercise the same transaction logic.
