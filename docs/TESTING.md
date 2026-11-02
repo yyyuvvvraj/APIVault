@@ -65,3 +65,10 @@ Browser tests will exercise real sign-in, role-based route protection, API lifec
 ## Pull request expectations
 
 Add or update tests and documentation in the same pull request as the behaviour they cover. If a change cannot reasonably be tested, explain why and record the remaining risk.
+
+
+## Verifier health administration
+
+The protected `/admin/health` page reads the latest five persisted observations for each non-archived API. It flags a latest failed observation as unreachable and flags missing or older-than-24-hour observations as stale. These are read-only operational indicators; they must not alter verification or publication state. The existing `verifier-health-check.test.ts` integration test verifies that health observations persist independently of verification and publication fields.
+
+The Go Verifier CI workflow checks `gofmt -l .`, runs `go test -race -cover ./...`, runs `go vet ./...`, builds the Linux binary, and builds and smoke-tests the Alpine worker image.
