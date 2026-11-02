@@ -136,7 +136,7 @@ export function AdminCreateApiForm({ categories }: { categories: CategoryOption[
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {authOptions.map(([value, label]) => (
               <label key={value} className="flex items-center gap-2 rounded-lg border border-white/[0.07] bg-black/10 px-3 py-2.5 text-xs text-slate-300">
-                <input type="checkbox" name="authMethods" value={value} defaultChecked={value === "UNKNOWN"} className="accent-rose-500" />
+                <input type="checkbox" name="authMethods" value={value} className="accent-rose-500" />
                 {label}
               </label>
             ))}
