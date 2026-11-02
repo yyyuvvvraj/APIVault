@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 export function AdminLoginForm({ accessError }: { accessError: boolean }) {
@@ -36,7 +36,6 @@ export function AdminLoginForm({ accessError }: { accessError: boolean }) {
       setLoading(false);
     }
   }
-
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
