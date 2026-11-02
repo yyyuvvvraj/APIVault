@@ -7,6 +7,8 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Added
+- PostgreSQL-backed integration tests for catalogue persistence, public visibility rules, and transaction rollback.
+- Administrator role-policy tests using the server-side authorization helper.
 - Initial repository governance, contribution documentation, issue and pull request templates, MIT license, and automated repository hygiene checks.
 - Initial Next.js application scaffold, PostgreSQL / Prisma canonical catalogue, category seed, and local Docker environment.
 - Public catalogue browsing, search, filtering, API detail pages, and read-only versioned REST routes.
