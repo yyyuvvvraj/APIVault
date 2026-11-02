@@ -1,5 +1,6 @@
 import { getPrisma } from "@/lib/db";
 import { AdminSubmissionReviewActions } from "@/components/admin-submission-review-actions";
+import { AdminSubmissionApprovalButton } from "@/components/admin-submission-approval-button";
 
 export const metadata = { title: "Community submissions" };
 
@@ -54,6 +55,7 @@ export default async function AdminSubmissionsPage() {
             </div>
             {submission.reviewNote && <p className="mt-3 text-xs text-slate-400">Review note: {submission.reviewNote}</p>}
             <AdminSubmissionReviewActions submissionId={submission.id} currentStatus={submission.status}/>
+            <AdminSubmissionApprovalButton submissionId={submission.id} currentStatus={submission.status}/>
           </article>
         ))}
         {!submissions.length && <div className="rounded-2xl border border-dashed border-white/10 px-6 py-16 text-center"><p className="text-sm font-bold text-slate-300">Your review queue is clear.</p><p className="mt-2 text-xs text-slate-500">New community submissions will appear here.</p></div>}
