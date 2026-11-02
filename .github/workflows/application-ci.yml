@@ -45,4 +45,6 @@ jobs:
       - name: Build
         env:
           DATABASE_URL: postgresql://apivault@localhost:5432/apivault?schema=public
+          BETTER_AUTH_SECRET: ci-only-secret-not-used-for-real-sessions-1234567890
+          BETTER_AUTH_URL: http://localhost:3000
         run: npm run build
