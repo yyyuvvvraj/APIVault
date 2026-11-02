@@ -32,7 +32,7 @@ func publicIP(ip net.IP) bool {
 	}
 	blocked := []string{
 		"0.0.0.0/8", "100.64.0.0/10", "192.0.0.0/24", "192.0.2.0/24",
-		"198.18.0.0/15", "198.51.100.0/24", "203.0.113.0/24", "240.0.0.0/4",
+		"198.18.0.0/15", "198.51.100.0/24", "203.0.113.0/24", "192.88.99.0/24", "192.31.196.0/24", "192.52.193.0/24", "192.175.48.0/24", "240.0.0.0/4",
 		"2001:db8::/32", "2001::/23", "2002::/16",
 	}
 	for _, raw := range blocked {
@@ -59,6 +59,9 @@ func validateTarget(raw string) (*url.URL, error) {
 		value, err := strconv.Atoi(port)
 		if err != nil || value < 1 || value > 65535 {
 			return nil, errors.New("invalid URL port")
+		}
+		if (parsed.Scheme == "http" && value != 80) || (parsed.Scheme == "https" && value != 443) {
+			return nil, errors.New("only standard HTTP and HTTPS ports are allowed")
 		}
 	}
 	if ip := net.ParseIP(parsed.Hostname()); ip != nil && !publicIP(ip) {
