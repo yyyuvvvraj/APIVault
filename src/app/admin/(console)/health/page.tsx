@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ApiStatus, VerificationStatus } from "@/generated/prisma/client";
+import { ApiStatus } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
 
 export const metadata = { title: "Verifier health" };
@@ -52,7 +52,6 @@ export default async function AdminHealthPage() {
   });
 
   const now = Date.now();
-  const latestChecks = apis.map((api) => api.healthChecks[0]).filter(Boolean);
   const unreachable = apis.filter((api) => api.healthChecks[0]?.isReachable === false);
   const stale = apis.filter((api) => {
     const latest = api.healthChecks[0];
