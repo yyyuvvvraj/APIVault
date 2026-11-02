@@ -32,7 +32,13 @@ Do not commit `.env` or share the secret. For production, set a different secret
 The Better Auth Prisma adapter uses the existing Prisma 7 client and PostgreSQL database. Generate the required `User`, `Session`, `Account`, and `Verification` models, including the admin plugin fields:
 
 ```bash
+# Generate the current application client so the auth config can load
+npm run db:generate
+
+# Generate Better Auth's User, Session, Account, and Verification models
 npx auth@latest generate --adapter prisma --dialect postgresql --config ./src/lib/auth.ts
+
+# Regenerate the client with the authentication models included
 npm run db:generate
 ```
 
