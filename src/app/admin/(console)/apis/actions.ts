@@ -28,14 +28,14 @@ function formStringArray(formData: FormData, key: string) {
   return formData.getAll(key).filter((value): value is string => typeof value === "string");
 }
 
-function slugify(value: string) {
+function slugify(value: string, maxLength = 160) {
   return value
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 150);
+    .slice(0, maxLength);
 }
 
 export async function createApiAction(
@@ -68,7 +68,7 @@ export async function createApiAction(
 
   const input = parsed.data;
   const apiBaseSlug = slugify(input.name) || "api";
-  const providerBaseSlug = slugify(input.providerName) || "provider";
+  const providerBaseSlug = slugify(input.providerName, 120) || "provider";
 
   try {
     const created = await getPrisma().$transaction(async (tx) => {
@@ -90,7 +90,8 @@ export async function createApiAction(
         let suffix = 2;
 
         while (await tx.apiProvider.findUnique({ where: { slug: providerSlug }, select: { id: true } })) {
-          providerSlug = `${providerBaseSlug}-${suffix++}`;
+          const suffixText = `-${suffix++}`;
+          providerSlug = `${providerBaseSlug.slice(0, 120 - suffixText.length)}${suffixText}`;
         }
 
         provider = await tx.apiProvider.create({
@@ -106,7 +107,8 @@ export async function createApiAction(
       let suffix = 2;
 
       while (await tx.api.findUnique({ where: { slug: apiSlug }, select: { id: true } })) {
-        apiSlug = `${apiBaseSlug}-${suffix++}`;
+        const suffixText = `-${suffix++}`;
+        apiSlug = `${apiBaseSlug.slice(0, 160 - suffixText.length)}${suffixText}`;
       }
 
       const sources = [
