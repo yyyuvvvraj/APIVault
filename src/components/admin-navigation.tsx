@@ -53,7 +53,7 @@ export function AdminNavigation({ name, email }: { name: string; email: string }
         </nav>
       </div>
 
-      <div className="mt-auto hidden border-t border-white/10 p-4 lg:block">
+      <div className="mt-auto border-t border-white/10 p-4">
         <div className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-500/15 text-sm font-black text-rose-300">
             {name.slice(0, 1).toUpperCase()}
