@@ -4,9 +4,8 @@ import { useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
-export function AdminLoginForm() {
+export function AdminLoginForm({ accessError }: { accessError: boolean }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -38,7 +37,6 @@ export function AdminLoginForm() {
     }
   }
 
-  const accessError = searchParams.get("error") === "not-authorized";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
