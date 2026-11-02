@@ -75,6 +75,16 @@ npm run build
 
 See [TESTING.md](TESTING.md) for current coverage, test strategy, and known gaps. Unit tests do not replace database integration, authorization, or browser-based end-to-end tests.
 
+## Optional Go verifier worker
+
+Configure `VERIFIER_SHARED_SECRET` (at least 32 random characters) and `APIVAULT_INTERNAL_URL` in `.env`, start Next.js and PostgreSQL, then run:
+
+```bash
+docker compose --profile workers up --build verifier
+```
+
+See [GO_VERIFIER.md](GO_VERIFIER.md) for security behavior and Go unit-test commands.
+
 ## Database tools
 
 ```bash
