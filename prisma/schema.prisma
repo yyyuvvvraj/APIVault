@@ -122,6 +122,7 @@ model Api {
   pricingPlans       ApiPricingPlan[]
   submissions        ApiSubmission[]
   revisions          ApiRevision[]
+  healthChecks       ApiHealthCheck[]
   createdAt          DateTime           @default(now()) @db.Timestamptz(6)
   updatedAt          DateTime           @updatedAt @db.Timestamptz(6)
 
@@ -353,4 +354,17 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model ApiHealthCheck {
+  id           String   @id @default(uuid()) @db.Uuid
+  apiId        String   @db.Uuid
+  api          Api      @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  isReachable  Boolean
+  statusCode   Int?
+  latencyMs    Int
+  errorMessage String?  @db.VarChar(500)
+  checkedAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([apiId, checkedAt])
 }
