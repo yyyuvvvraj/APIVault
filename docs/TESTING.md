@@ -31,6 +31,19 @@ npm run test:integration
 
 The initial database suite verifies relational persistence, the public query boundary (only `ACTIVE + VERIFIED` records are returned), detail lookup visibility, and rollback of multiple writes when a transaction fails. CI provisions an ephemeral PostgreSQL service, applies migrations, and runs this suite. The tests use unique fixture slugs and clean up their records.
 
+## Go verifier tests
+
+The independent worker uses Go's standard test runner and has no third-party Go module dependencies:
+
+```bash
+cd services/verifier
+go test -race -cover ./...
+go vet ./...
+go build ./cmd/verifier
+```
+
+Tests cover unsafe URL rejection, public/private IP classification, and the authenticated jobs/results contract. Go Verifier CI runs tests, vet, binary compilation, and an Alpine container build.
+
 ## Continuous integration
 
 Application CI runs the unit test suite after Prisma client generation and before lint, type checking, and the production build. A pull request must pass the complete application validation workflow.
