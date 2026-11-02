@@ -2,7 +2,7 @@ name: Application CI
 
 on:
   pull_request:
-    branches: [dev, stable, "feature/**"]
+    branches: [dev, stable, "feature/**", "test/**"]
   push:
     branches: [dev, stable, "feature/**"]
   workflow_dispatch:
@@ -18,6 +18,22 @@ jobs:
   validate:
     name: Test, lint, typecheck, and build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_USER: apivault
+          POSTGRES_PASSWORD: apivault
+          POSTGRES_DB: apivault
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U apivault -d apivault"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://apivault:apivault@localhost:5432/apivault?schema=public
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -48,8 +64,14 @@ jobs:
           DATABASE_URL: postgresql://apivault@localhost:5432/apivault?schema=public
         run: npm run db:generate
 
+      - name: Apply database migrations
+        run: npm run db:deploy
+
       - name: Unit tests
         run: npm test
+
+      - name: Database integration tests
+        run: npm run test:integration
 
       - name: Lint
         run: npm run lint
