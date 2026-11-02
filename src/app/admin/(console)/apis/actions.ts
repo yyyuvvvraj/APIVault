@@ -98,9 +98,20 @@ export async function createApiAction(
           data: {
             slug: providerSlug,
             name: input.providerName,
-            homepageUrl: input.homepageUrl,
           },
         });
+      }
+
+      const duplicateApi = await tx.api.findFirst({
+        where: {
+          name: { equals: input.name, mode: "insensitive" },
+          providerId: provider.id,
+        },
+        select: { slug: true },
+      });
+
+      if (duplicateApi) {
+        throw new Error(`An API with this name already exists for this provider (/${duplicateApi.slug}). Use the existing record instead.`);
       }
 
       let apiSlug = apiBaseSlug;
