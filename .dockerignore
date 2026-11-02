@@ -1,0 +1,27 @@
+# Git and local tooling
+.git
+.github
+.DS_Store
+.vscode
+.idea
+
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and generated build output
+node_modules
+.next
+out
+dist
+coverage
+src/generated/prisma
+
+# Logs and temporary files
+*.log
+tmp
+.temp
+.cache
