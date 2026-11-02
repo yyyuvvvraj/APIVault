@@ -33,9 +33,9 @@ export default async function ApiDetailPage({ params }: PageProps) {
   if (result.databaseStatus === "missing") {
     return (
       <div className="mx-auto max-w-4xl px-5 py-20 sm:px-8">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <h1 className="text-xl font-extrabold text-amber-950">Catalogue database not configured</h1>
-          <p className="mt-2 text-sm text-amber-900">Follow the local development guide to start PostgreSQL and apply the initial schema.</p>
+        <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-6">
+          <h1 className="text-xl font-extrabold text-amber-200">Catalogue database not configured</h1>
+          <p className="mt-2 text-sm text-amber-100/70">Follow the local development guide to start PostgreSQL and apply the initial schema.</p>
           <a href="https://github.com/yyyuvvvraj/APIVault/blob/dev/docs/LOCAL_DEVELOPMENT.md" className="mt-3 inline-block text-sm font-bold underline">Local setup guide ↗</a>
         </div>
       </div>
@@ -62,8 +62,8 @@ export default async function ApiDetailPage({ params }: PageProps) {
         <p className="mt-7 max-w-3xl text-base leading-8 text-slate-300">{api.summary}</p>
         {api.description && <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-300">{api.description}</p>}
         <div className="mt-7 flex flex-wrap gap-3">
-          <a href={api.homepageUrl} target="_blank" rel="noreferrer" className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">Official website ↗</a>
-          {api.documentationUrl && <a href={api.documentationUrl} target="_blank" rel="noreferrer" className="rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm font-bold text-slate-200 hover:bg-slate-50">Documentation ↗</a>}
+          <a href={api.homepageUrl} target="_blank" rel="noreferrer" className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-500">Official website ↗</a>
+          {api.documentationUrl && <a href={api.documentationUrl} target="_blank" rel="noreferrer" className="rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm font-bold text-slate-200 hover:bg-white/5">Documentation ↗</a>}
         </div>
       </div>
 
