@@ -32,7 +32,7 @@ Do not commit `.env` or share the secret. For production, set a different secret
 The Better Auth Prisma adapter uses the existing Prisma 7 client and PostgreSQL database. Generate the required `User`, `Session`, `Account`, and `Verification` models, including the admin plugin fields:
 
 ```bash
-npx auth@latest generate
+npx auth@latest generate --adapter prisma --dialect postgresql --config ./src/lib/auth.ts
 npm run db:generate
 ```
 
@@ -49,7 +49,7 @@ Commit the updated schema and the generated `prisma/migrations` directory in a P
 The Better Auth CLI can provision the first admin account:
 
 ```bash
-npx auth@latest create-admin --email you@example.com --name "APIVault Admin" --role admin
+npx auth@latest create-admin --email you@example.com --name "APIVault Admin" --role admin --config ./src/lib/auth.ts
 ```
 
 Follow the CLI prompts to set the password. Use a unique password of at least 12 characters. There is no public sign-up route.
