@@ -101,8 +101,7 @@ func Check(ctx context.Context, apiID, rawURL string) Result {
 	started := time.Now()
 	parsed, err := validateTarget(rawURL)
 	if err != nil {
-		message := err.Error()
-		result.ErrorMessage = &message
+		result.ErrorMessage = NormalizeError(err.Error())
 		result.LatencyMs = time.Since(started).Milliseconds()
 		return result
 	}
@@ -114,10 +113,10 @@ func Check(ctx context.Context, apiID, rawURL string) Result {
 			return http.ErrUseLastResponse
 		},
 	}
+	defer client.CloseIdleConnections()
 	request, err := http.NewRequestWithContext(ctx, http.MethodHead, parsed.String(), nil)
 	if err != nil {
-		message := err.Error()
-		result.ErrorMessage = &message
+		result.ErrorMessage = NormalizeError(err.Error())
 		result.LatencyMs = time.Since(started).Milliseconds()
 		return result
 	}
@@ -131,8 +130,7 @@ func Check(ctx context.Context, apiID, rawURL string) Result {
 		response, err = client.Do(request)
 	}
 	if err != nil {
-		message := err.Error()
-		result.ErrorMessage = &message
+		result.ErrorMessage = NormalizeError(err.Error())
 		result.LatencyMs = time.Since(started).Milliseconds()
 		return result
 	}
@@ -143,8 +141,7 @@ func Check(ctx context.Context, apiID, rawURL string) Result {
 	result.IsReachable = status < 500
 	result.LatencyMs = time.Since(started).Milliseconds()
 	if !result.IsReachable {
-		message := fmt.Sprintf("remote server returned HTTP %d", status)
-		result.ErrorMessage = &message
+		result.ErrorMessage = NormalizeError(fmt.Sprintf("remote server returned HTTP %d", status))
 	}
 	return result
 }
