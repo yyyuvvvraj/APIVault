@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Added
+- Verification and publication integration tests for official homepage evidence, category/auth requirements, revision history, and stale-evidence unpublishing.
 - PostgreSQL-backed integration tests for catalogue persistence, public visibility rules, and transaction rollback.
 - Administrator role-policy tests using the server-side authorization helper.
 - Initial repository governance, contribution documentation, issue and pull request templates, MIT license, and automated repository hygiene checks.
