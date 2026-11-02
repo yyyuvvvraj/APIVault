@@ -29,8 +29,10 @@ jobs:
         with:
           persist-credentials: false
 
+      # ARM emulation is only needed for stable/versioned multi-platform releases.
+      # Keep dev builds native amd64 so the frequent integration pipeline stays fast.
       - name: Set up QEMU
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/stable' || startsWith(github.ref, 'refs/tags/v'))
         uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
@@ -61,15 +63,17 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
+          # PRs and dev use amd64. Stable and v* tags retain amd64 + arm64.
+          platforms: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/stable' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
           load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: ${{ github.event_name != 'pull_request' }}
-          sbom: ${{ github.event_name != 'pull_request' }}
+          # Generate attestations for release images; omit them from fast-moving dev images.
+          provenance: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/stable' || startsWith(github.ref, 'refs/tags/v')) }}
+          sbom: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/stable' || startsWith(github.ref, 'refs/tags/v')) }}
 
       - name: Smoke-test the container
         if: github.event_name == 'pull_request'
