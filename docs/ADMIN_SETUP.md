@@ -4,7 +4,7 @@ The admin console uses Better Auth with PostgreSQL through the Prisma adapter. I
 
 ## 1. Install dependencies
 
-After checking out the admin-console branch:
+After checking out the current `dev` branch:
 
 ```bash
 npm install
@@ -70,4 +70,13 @@ Visit [http://localhost:3000/admin/login](http://localhost:3000/admin/login), si
 
 ## Admin console scope
 
-The first console release includes protected dashboard metrics, read-only API and category tables, and a submission inbox. API creation/editing, approval/rejection actions, and audit workflows are the next implementation slice; no moderation action is exposed until it is backed by a server-side authorization check and audit record.
+The console currently includes:
+
+- Protected dashboard metrics.
+- A read-only API catalogue with an admin-only **Add API** workflow.
+- Read-only category management.
+- A read-only community submission inbox.
+
+New APIs created in the admin console are saved as `PENDING_REVIEW`, receive homepage/documentation source records, and get a `CREATED` revision snapshot in the same database transaction. They are deliberately excluded from public catalogue queries until a maintainer verifies them.
+
+API editing, controlled verification/publishing, category CRUD, and submission approval/rejection remain separate implementation tasks. Do not mark an API verified merely to make it appear publicly; follow the review steps in [VERIFICATION_POLICY.md](VERIFICATION_POLICY.md).
