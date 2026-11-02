@@ -29,7 +29,7 @@ npm run db:deploy
 npm run test:integration
 ```
 
-The initial database suite verifies relational persistence, the public query boundary (only `ACTIVE + VERIFIED` records are returned), detail lookup visibility, and rollback of multiple writes when a transaction fails. CI provisions an ephemeral PostgreSQL service, applies migrations, and runs this suite. The tests use unique fixture slugs and clean up their records.
+The PostgreSQL suite also verifies persisted Go verifier health observations, cascade cleanup, and that a health observation does not alter verification or publication state. It verifies relational persistence, the public query boundary (only `ACTIVE + VERIFIED` records are returned), detail lookup visibility, and rollback of multiple writes when a transaction fails. CI provisions an ephemeral PostgreSQL service, applies migrations, and runs this suite. The tests use unique fixture slugs and clean up their records.
 
 ## Go verifier tests
 
