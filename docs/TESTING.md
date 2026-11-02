@@ -41,6 +41,19 @@ npx playwright test
 
 The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds a disposable administrator and submission fixture, builds and starts the app, then exercises unauthenticated admin denial, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. Credentials are test-only CI values and must never be reused outside disposable environments.
 
+## Go verifier tests
+
+The independent worker uses Go's standard test runner and has no third-party Go module dependencies:
+
+```bash
+cd services/verifier
+go test -race -cover ./...
+go vet ./...
+go build ./cmd/verifier
+```
+
+Tests cover unsafe URL rejection, standard-port restrictions, public/private IP classification, and the authenticated jobs/results contract. Go Verifier CI runs tests, vet, binary compilation, and an Alpine container build and smoke test.
+
 ## Continuous integration
 
 Application CI provisions a disposable PostgreSQL 18 service, applies committed migrations, runs unit tests and database integration tests, then runs lint, type checking, and the production build. Never run these tests against production.
