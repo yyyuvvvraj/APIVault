@@ -16,6 +16,7 @@ APIVault is a web application backed by one canonical PostgreSQL catalogue. The 
 | ORM | Prisma ORM 7 | Typed queries and versioned schema migrations |
 | Validation | Zod 4 | Runtime validation at untrusted input boundaries |
 | Authentication | Better Auth | Session-based authentication and administrator roles |
+| Background worker | Go 1.25 | Concurrent external API homepage checks through authenticated internal endpoints |
 | Local database | Docker Compose | Repeatable PostgreSQL development environment |
 | CI | GitHub Actions | Unit tests, lint, type-check, schema generation, and production build |
 
