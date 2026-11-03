@@ -6,11 +6,28 @@ export function createEtag(payload: unknown): string {
   return `"${digest}"`;
 }
 
+/** Split an entity-tag list without treating commas inside quoted tags as separators. */
+function splitEntityTagList(header: string): string[] {
+  const values: string[] = [];
+  let start = 0;
+  let insideQuotes = false;
+  for (let index = 0; index < header.length; index += 1) {
+    if (header[index] === '"') insideQuotes = !insideQuotes;
+    else if (header[index] === "," && !insideQuotes) {
+      values.push(header.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  values.push(header.slice(start).trim());
+  return values.filter(Boolean);
+}
+
 /** Implements the weak comparison required for If-None-Match on GET/HEAD. */
 export function matchesIfNoneMatch(header: string | null, etag: string): boolean {
   if (!header) return false;
-  return header.split(",").some((candidate) => {
-    const value = candidate.trim();
-    return value === "*" || value === etag || value.replace(/^W\//, "") === etag;
+  return splitEntityTagList(header).some((candidate) => {
+    if (candidate === "*") return true;
+    const validator = candidate.startsWith("W/") ? candidate.slice(2) : candidate;
+    return validator === etag;
   });
 }
