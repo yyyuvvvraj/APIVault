@@ -31,6 +31,10 @@ export async function updateApiLifecycleAction(
   const nextVerification = verificationStatus as VerificationStatus;
   const nextStatus = status as ApiStatus;
 
+  if (nextVerification === VerificationStatus.VERIFIED && !note) {
+    return { status: "error", message: "A review note is required when verifying an API. Describe the official evidence you checked." };
+  }
+
   try {
     const slug = await getPrisma().$transaction((tx) =>
       updateApiLifecycle(tx, apiId, nextVerification, nextStatus, note),
@@ -39,13 +43,14 @@ export async function updateApiLifecycleAction(
     revalidatePath("/admin");
     revalidatePath("/admin/apis");
     revalidatePath(`/admin/apis/${slug}/review`);
+    revalidatePath(`/admin/apis/${slug}/history`);
     revalidatePath("/");
     revalidatePath(`/apis/${slug}`);
 
     return {
       status: "success",
       message: nextStatus === ApiStatus.ACTIVE && nextVerification === VerificationStatus.VERIFIED
-        ? "API verified and published to the public catalogue."
+        ? "API verified and published. Evidence check dates and the review note were recorded."
         : "API lifecycle updated. This record is hidden unless it is both ACTIVE and VERIFIED.",
     };
   } catch (error) {
