@@ -1,11 +1,9 @@
 # APIVault application architecture
 
 ## Architecture decision
-
 APIVault is a web application backed by one canonical PostgreSQL catalogue. The website and the public REST API read from the same application/domain layer and the same database records.
 
 ## Selected stack
-
 | Layer | Choice | Why |
 |---|---|---|
 | Runtime | Node.js 24 LTS | Supported LTS line and broad ecosystem compatibility |
@@ -20,18 +18,16 @@ APIVault is a web application backed by one canonical PostgreSQL catalogue. The 
 | Local database | Docker Compose | Repeatable PostgreSQL development environment |
 | CI | GitHub Actions | Unit tests, lint, type-check, schema generation, and production build |
 
-Prisma ORM 7 is intentionally selected instead of the Prisma 8 release candidate so the foundation uses a generally available ORM version. Prisma 7 requires a PostgreSQL driver adapter and an ESM project; this repository uses `@prisma/adapter-pg`.
+Prisma ORM 7 uses the PostgreSQL driver adapter and an ESM project through @prisma/adapter-pg.
 
 ## Logical architecture
-
 ```text
 Browser
   |
   v
 Next.js App Router
-  |-- Public pages: home, API search, API details
-  |-- Admin pages: dashboard, API management, verification, categories, submissions, history
-  |-- Route handlers: /api/v1/*
+  |-- Public pages and admin console
+  |-- Versioned REST route handlers
   |-- Better Auth route handler and session client
   |
   v
@@ -40,99 +36,59 @@ Server-side application/domain layer
   |-- Admin server actions with requireAdmin authorization
   |-- Submission validation and moderation state transitions
   |-- Verification and publication rules
+  |-- PostgreSQL-backed public API rate limiter
   |
   v
 Prisma Client + PostgreSQL driver adapter
   |
   v
 PostgreSQL
-  |-- Providers and APIs
-  |-- Categories, tags, authentication methods
-  |-- Sources, pricing plans, rate limits
-  |-- Better Auth users, sessions, accounts, verification
-  |-- Submissions and revision history
+  |-- Catalogue, users, sessions, submissions, and revisions
+  |-- Atomic API rate-limit buckets
 ```
 
 The browser never talks directly to PostgreSQL. Route handlers expose explicit public DTOs; do not return raw Prisma records.
 
 ## Application boundaries
-
-- `src/app`: routes, layouts, pages, server actions, and HTTP route handlers.
-- `src/components`: reusable presentation components.
-- `src/lib/catalogue`: shared search, query, and serialization logic.
-- `src/lib/validation`: Zod schemas for untrusted data.
-- `src/lib/admin-auth.ts`: server-side administrator session and role enforcement.
-- `src/lib/auth.ts` and `src/lib/auth-client.ts`: Better Auth server and client configuration.
-- `src/lib/db.ts`: server-only Prisma client lifecycle.
-- `prisma/`: canonical database schema, migrations, and seed data.
-- `tests/unit/`, `tests/integration/`, `tests/e2e/`, and `services/verifier/`: policy/validation tests, PostgreSQL-backed persistence tests, Playwright browser workflows, and the independent Go health-check worker.
-- `docs/`: product and engineering decisions.
+- src/app: routes, layouts, pages, server actions, and HTTP route handlers.
+- src/components: reusable presentation components.
+- src/lib/catalogue: shared search, query, and serialization logic.
+- src/lib/validation: Zod schemas for untrusted data.
+- src/lib/admin-auth.ts: server-side administrator session and role enforcement.
+- src/lib/db.ts: server-only Prisma client lifecycle.
+- src/lib/api-rate-limit.ts: shared PostgreSQL fixed-window limiter; client IPs are SHA-256 hashed before persistence.
+- prisma/: canonical database schema, migrations, and seed data.
+- tests/unit, tests/integration, tests/e2e, and services/verifier: validation, PostgreSQL persistence, browser workflows, and the independent Go worker.
+- docs/: product and engineering decisions.
 
 ## HTTP security headers
-
 Next.js applies baseline response headers globally: MIME sniffing is disabled, framing is denied, referrer information is restricted to the origin on cross-origin requests, and camera, microphone, and geolocation browser permissions are disabled. These defaults do not replace a future Content Security Policy, transport-security configuration at the hosting edge, or application-specific security review.
 
 ## Authentication and administrator authorization
-
-Public registration is disabled. The initial administrator is provisioned through the documented Better Auth CLI workflow. The admin console layout checks the session and administrator role before rendering protected pages.
-
-Every admin server action must independently call `requireAdmin()`; layout protection and UI visibility are not substitutes for action-level authorization. Validate all submitted values on the server. Never trust role values, identifiers, lifecycle states, or payloads supplied by the browser.
+Public registration is disabled. The initial administrator is provisioned through the documented Better Auth CLI workflow. The admin console layout checks the session and administrator role before rendering protected pages. Every admin server action must independently call requireAdmin(); layout protection and UI visibility are not substitutes for action-level authorization.
 
 ## Catalogue search and filtering
-
-The initial implementation uses case-insensitive PostgreSQL substring matching over API name, summary, description, provider name, and tags, with relational filters for category, price model, and authentication method.
-
-When catalogue volume or latency justifies it, introduce a measured search upgrade:
-1. PostgreSQL full-text search with a weighted `tsvector` index for name, summary, and description.
-2. Trigram indexes for typo-tolerant matching.
-3. Relevance ranking and query analytics.
-4. A dedicated search service only if PostgreSQL is no longer sufficient.
-
-Do not add Elasticsearch or another service before measurement demonstrates a need.
+The initial implementation uses case-insensitive PostgreSQL substring matching over API name, summary, description, provider name, and tags, with relational filters for category, price model, and authentication method. Prefer measured PostgreSQL full-text and trigram indexes before introducing a dedicated search service.
 
 ## Public REST API
+The read-only routes are GET /api/v1/apis, GET /api/v1/apis/{slug}, and GET /api/v1/categories. Responses contain only active, verified catalogue entries, use explicit serializers, and are described by the OpenAPI 3.1 contract at openapi.json.
 
-The current read-only routes are:
-
-- `GET /api/v1/apis`
-- `GET /api/v1/apis/{slug}`
-- `GET /api/v1/categories`
-
-Responses contain only active, verified catalogue entries. The routes are versioned, apply bounded pagination, and use explicit serializers. The OpenAPI 3.1 contract is published at [openapi.json](openapi.json). The error envelope and bounded query parameters are documented there. Rate limiting, production observability, and a published usage policy remain release-readiness requirements.
+All public routes enforce a shared fixed-window limit of 120 requests per client IP per 60 seconds. PostgreSQL atomic upserts keep decisions consistent across application instances. Client IPs are SHA-256 hashed before storage; the reverse proxy must set a trustworthy X-Real-IP header. Rejected requests receive HTTP 429, Retry-After, and X-RateLimit headers. If the limiter database operation fails, requests fail closed with HTTP 503. Expired buckets are opportunistically cleaned.
 
 ## Admin catalogue lifecycle
-
-Admin API creation and editing use server-side Zod validation and database transactions. Creation starts in `PENDING_REVIEW`; ordinary edits preserve verification state. Explicit lifecycle actions control availability and verification. An API is publicly discoverable only when both its status is `ACTIVE` and verification status is `VERIFIED`.
-
-Verification is evidence-gated: the official homepage source must match the canonical homepage URL, and the API must have category and authentication classifications. Lifecycle changes and catalogue mutations create revision snapshots so maintainers can inspect prior states.
+Admin API creation and editing use server-side Zod validation and database transactions. Creation starts in PENDING_REVIEW; ordinary edits preserve verification state. An API is publicly discoverable only when both its status is ACTIVE and verification status is VERIFIED. Verification is evidence-gated and lifecycle changes create revision snapshots.
 
 ## Community submission moderation
-
-Community CREATE and UPDATE proposals are stored separately from canonical API records. Admin review actions enforce the allowed status transitions server-side. Approval revalidates the stored JSON payload, resolves providers and categories, applies the change to the canonical record, writes an API revision, and marks the submission approved in one transaction.
-
-Applying a community submission never directly publishes an API. New or materially updated records return to pending verification and must pass the independent verification process.
+Community CREATE and UPDATE proposals are stored separately from canonical API records. Approval revalidates the stored JSON payload, applies the change, writes a revision, and marks the submission approved in one transaction. Applying a community submission never directly publishes an API.
 
 ## Testing architecture
-
-Unit tests use Node.js's built-in test runner through the existing `tsx` dependency. The initial suite covers catalogue filter parsing and the Zod schemas used by admin API creation and community submissions. Application CI runs `npm test` before lint, type checking, and build.
-
-PostgreSQL integration tests now cover catalogue persistence, public visibility, transaction rollback, submission review transitions, rejection, and atomic CREATE approval. Session-backed authorization, UPDATE approval edge cases, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
+Unit tests use Node.js's built-in test runner through tsx. PostgreSQL integration tests cover catalogue persistence, submission workflows, concurrent-reviewer protection, and atomic API rate-limit consumption. See TESTING.md for current commands and coverage.
 
 ## Readiness endpoint
-
-`GET /api/health/ready` performs a lightweight database query and returns HTTP 200 only when PostgreSQL is reachable; otherwise it returns HTTP 503 with a sanitized status. Responses are marked `Cache-Control: no-store`. This is a readiness signal for deployment health checks, not a liveness probe and not a substitute for application-level smoke tests.
+GET /api/health/ready performs a lightweight database query and returns HTTP 200 only when PostgreSQL is reachable; otherwise it returns HTTP 503 with a sanitized status. This is a readiness signal, not a liveness probe.
 
 ## Go verifier worker
-
-The optional Go verifier is a separate worker, not a replacement for Next.js route handlers or the catalogue domain layer. It obtains bounded health-check jobs and submits observations through authenticated internal Next.js endpoints. It has no direct database credentials and cannot change verification or publication state.
-
-The `ApiHealthCheck` table stores timestamped reachability observations, HTTP status, latency, and bounded error details. Health checks are operational signals only; maintainer evidence review remains the sole path to VERIFIED and public publication. See [GO_VERIFIER.md](GO_VERIFIER.md) for its SSRF boundary, configuration, and operations.
+The optional Go verifier is a separate worker with authenticated internal job/result endpoints and SSRF protections. It has no direct database credentials and cannot change verification or publication state. Health observations remain operational signals only.
 
 ## Deployment boundary
-
-The project can run locally with Docker Compose and any PostgreSQL 18-compatible hosted service. Deployment provider, secrets management, backups, and production observability remain deployment decisions; no cloud vendor is assumed in the application code. No production deployment is implied by the current development workflow.
-
-
-## Admin verifier health operations
-
-The protected `/admin/health` route reads the latest five health observations for each non-archived API. It summarizes the latest unreachable check, any failure in the recent history, and observations that are older than 24 hours or missing. Error text, HTTP status, latency, and timestamps are displayed for maintainer investigation. These labels are operational signals only and never mutate catalogue availability, verification status, evidence, or publication state. See [GO_VERIFIER.md](GO_VERIFIER.md).
+The project can run locally with Docker Compose and any PostgreSQL 18-compatible hosted service. Deployment provider, secrets management, backups, and production observability remain deployment decisions. No production deployment is implied by the current development workflow.
