@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { listCategories } from "@/lib/catalogue/queries";
 import { enforcePublicApiRateLimit } from "@/lib/api-rate-limit";
+import { createEtag, matchesIfNoneMatch } from "@/lib/http-etag";
 
 export async function GET(request: Request) {
   let rateLimit: Awaited<ReturnType<typeof enforcePublicApiRateLimit>>;
@@ -20,10 +21,16 @@ export async function GET(request: Request) {
         { status: 503, headers: rateLimit.headers },
       );
     }
-    return NextResponse.json(
-      { data: result.categories },
-      { headers: { ...rateLimit.headers, "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=900" } },
-    );
+    const payload = { data: result.categories };
+    const headers = {
+      ...rateLimit.headers,
+      "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=900",
+      ETag: createEtag(payload),
+    };
+    if (matchesIfNoneMatch(request.headers.get("if-none-match"), headers.ETag)) {
+      return new NextResponse(null, { status: 304, headers });
+    }
+    return NextResponse.json(payload, { headers });
   } catch (error) {
     console.error("GET /api/v1/categories failed:", error);
     return NextResponse.json(
