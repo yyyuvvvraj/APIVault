@@ -11,6 +11,7 @@ on:
     branches: [dev, stable]
     paths:
       - "services/verifier/**"
+      - "services/catalogue-importer/**"
       - ".github/workflows/verifier-ci.yml"
   workflow_dispatch:
 
