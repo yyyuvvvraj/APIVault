@@ -24,7 +24,7 @@ test("catalogue filters normalize and retain supported values", () => {
       category: " WEATHER-ENVIRONMENT ",
       pricing: "FREEMIUM",
       auth: "API_KEY",
-      sort: "recent",
+      sort: "verified",
       page: "4",
       limit: "50",
     }),
@@ -33,7 +33,7 @@ test("catalogue filters normalize and retain supported values", () => {
       category: "weather-environment",
       pricing: "FREEMIUM",
       auth: "API_KEY",
-      sort: "recent",
+      sort: "verified",
       page: 4,
       limit: 50,
     },
@@ -69,4 +69,14 @@ test("catalogue filters fall back for invalid pagination", () => {
 
   assert.equal(filters.page, 1);
   assert.equal(filters.limit, 20);
+});
+
+test("catalogue filters accept all supported discovery sorts", () => {
+  for (const sort of ["relevance", "recent", "verified", "newest", "name"]) {
+    assert.equal(parseCatalogueFilters({ sort }).sort, sort);
+  }
+});
+
+test("catalogue filters reject unsupported sort values", () => {
+  assert.equal(parseCatalogueFilters({ sort: "random" }).sort, "relevance");
 });
