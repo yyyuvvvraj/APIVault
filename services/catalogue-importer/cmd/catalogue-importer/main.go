@@ -42,9 +42,12 @@ func main() {
 		return
 	}
 
-	databaseURL := os.Getenv("DATABASE_URL")
+	databaseURL := os.Getenv("DATABASE_URL_UNPOOLED")
 	if databaseURL == "" {
-		fatalf("DATABASE_URL is required when -apply is used")
+		databaseURL = os.Getenv("DATABASE_URL")
+	}
+	if databaseURL == "" {
+		fatalf("DATABASE_URL_UNPOOLED or DATABASE_URL is required when -apply is used")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
