@@ -74,7 +74,7 @@ jobs:
         run: npx playwright test
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: apivault-playwright-report
           path: |
