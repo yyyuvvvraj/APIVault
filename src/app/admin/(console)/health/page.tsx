@@ -90,7 +90,7 @@ export default async function AdminHealthPage() {
           <div className="divide-y divide-white/[0.06]">
             {apis.map((api) => {
               const latest = api.healthChecks[0];
-              const isStale = !latest || now - latest.checkedAt.getTime() > STALE_AFTER_MS;
+              const isStale = !latest || nowMs - latest.checkedAt.getTime() > STALE_AFTER_MS;
               const hasRecentFailure = api.healthChecks.some((check) => !check.isReachable);
               return (
                 <article key={api.id} className="px-5 py-5">
