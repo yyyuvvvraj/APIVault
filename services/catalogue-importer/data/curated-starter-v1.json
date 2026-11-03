@@ -39,6 +39,13 @@
           "title": "Open-Meteo API documentation",
           "isOfficial": true,
           "notes": "Forecast API parameters, response formats, and endpoint documentation."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://open-meteo.com/en/pricing",
+          "title": "Open-Meteo commercial pricing and usage",
+          "isOfficial": true,
+          "notes": "Official pricing details, API-call accounting, commercial subscription options, and attribution requirements."
         }
       ]
     },
@@ -81,6 +88,13 @@
           "title": "NASA Open APIs portal",
           "isOfficial": true,
           "notes": "API catalogue, authentication guidance, key registration, and service-specific documentation."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://api.nasa.gov/assets/html/authentication.html",
+          "title": "NASA API authentication and rate limits",
+          "isOfficial": true,
+          "notes": "Official API-key guidance, DEMO_KEY limits, default hourly limit, and rate-limit response headers."
         }
       ]
     },
