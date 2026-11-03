@@ -17,7 +17,7 @@ npm run db:deploy
 npm run test:integration
 ```
 
-Coverage currently includes catalogue filter parsing, admin API and community submission validation, administrator role policy, database relation persistence, public visibility filtering, transaction rollback, submission review transitions, rejection persistence, atomic CREATE-submission approval, and a source-level guard requiring every current admin server-action module to authorize before processing form input or accessing the database.
+Coverage currently includes catalogue filter parsing, admin API and community submission validation, administrator role policy, database relation persistence, public visibility filtering, transaction rollback, submission review transitions, concurrent-reviewer compare-and-set protection, rejection persistence, atomic CREATE-submission approval, and a source-level guard requiring every current admin server-action module to authorize before processing form input or accessing the database.
 
 ## Administrator authorization coverage
 
