@@ -2,7 +2,6 @@ name: Docker build and publish
 
 on:
   pull_request:
-    branches: [dev, stable, "feature/**"]
   push:
     branches: [dev, "feature/**"]
     tags: ["v1.*"]
