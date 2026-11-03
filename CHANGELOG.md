@@ -15,6 +15,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 - Clear the previous verification timestamp when an approved community UPDATE returns an API to pending verification.
 
 ### Added
+- Enable the initial `v0.0.1` release tag to pass stable-branch ancestry validation and publish a multi-platform GHCR image.
 - Run application, browser E2E, Docker smoke-test, and repository-hygiene workflows for pull requests targeting any branch, including stacked PR bases.
 - Database-backed `/api/health/ready` endpoint with sanitized 200/503 responses and unit coverage for healthy and unavailable database states.
 - Global baseline HTTP security headers for MIME sniffing, framing, referrer policy, and unused browser permissions, with automated configuration tests.
