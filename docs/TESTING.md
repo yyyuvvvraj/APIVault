@@ -49,7 +49,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds a disposable administrator and submission fixture, builds and starts the app, then exercises unauthenticated admin denial, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. Credentials are test-only CI values and must never be reused outside disposable environments.
+The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds disposable administrator and ordinary-user credential accounts plus a submission fixture, builds and starts the app, then exercises unauthenticated admin denial, authenticated non-admin denial across protected admin pages, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. The standard-user fixture has no admin role and uses a CI-only password hash created through Better Auth's password hasher. Credentials are test-only CI values and must never be reused outside disposable environments.
 
 ## Operational readiness tests
 
