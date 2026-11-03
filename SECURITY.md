@@ -16,3 +16,9 @@ Please allow maintainers reasonable time to investigate and coordinate a fix bef
 
 ## Scope
 Do not test against third-party APIs or infrastructure without authorization. Never include live credentials, access tokens, private keys, or personal data in a report.
+
+## Dependency vulnerability monitoring
+
+Dependabot is configured through `.github/dependabot.yml` to check the root npm dependencies, the Go verifier module, both Docker build directories, and GitHub Actions weekly. It opens dependency update pull requests and groups compatible npm updates to reduce review noise.
+
+Review Dependabot pull requests like other code changes: inspect the changelog and release notes, run the relevant CI workflows, and verify application and container behavior before merging. Security alerts and Dependabot pull requests are signals for maintainer review; they do not replace code review, lockfile integrity checks, or vulnerability triage.
