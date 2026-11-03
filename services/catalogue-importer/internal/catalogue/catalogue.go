@@ -146,6 +146,9 @@ func validateAPI(api API, prefix string) error {
 			return fmt.Errorf("%s.verificationStatus %q is not allowed; imports cannot mark records VERIFIED", prefix, api.VerificationStatus)
 		}
 	}
+	if api.Featured {
+		return fmt.Errorf("%s.featured cannot be true for imported, unverified records", prefix)
+	}
 
 	if len(api.Categories) == 0 {
 		return fmt.Errorf("%s.categories must contain at least one existing category slug", prefix)
