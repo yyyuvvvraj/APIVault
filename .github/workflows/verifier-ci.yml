@@ -97,6 +97,9 @@ jobs:
       - name: Run Go tests
         working-directory: services/catalogue-importer
         run: go test -race -cover ./...
+      - name: Validate curated starter catalogue (dry run)
+        working-directory: services/catalogue-importer
+        run: go run ./cmd/catalogue-importer -input data/curated-starter-v1.json
       - name: Run go vet
         working-directory: services/catalogue-importer
         run: go vet ./...
