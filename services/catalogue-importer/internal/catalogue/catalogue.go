@@ -1,6 +1,7 @@
 package catalogue
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -69,7 +70,16 @@ func valueSet(values ...string) map[string]struct{} {
 }
 
 func Decode(reader io.Reader) (File, error) {
-	decoder := json.NewDecoder(io.LimitReader(reader, 5<<20))
+	const maxInputBytes = 5 << 20
+	raw, err := io.ReadAll(io.LimitReader(reader, maxInputBytes+1))
+	if err != nil {
+		return File{}, fmt.Errorf("read catalogue JSON: %w", err)
+	}
+	if len(raw) > maxInputBytes {
+		return File{}, fmt.Errorf("catalogue JSON exceeds the 5 MiB input limit")
+	}
+
+	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
 
 	var file File
