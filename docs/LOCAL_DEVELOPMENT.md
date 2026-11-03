@@ -2,8 +2,9 @@
 
 ## Requirements
 
-- Node.js 24 LTS (see `.nvmrc`).
-- npm 10 or newer.
+- Node.js 24.x LTS (see `.nvmrc`); Node 26 is not supported by the package engine range.
+- npm bundled with Node 24 (npm 10 or newer).
+- For a first-time setup, follow the more detailed [SETUP.md](SETUP.md) guide.
 - Docker Desktop or Docker Engine with Compose.
 - Git.
 
@@ -23,19 +24,19 @@ docker compose up -d
 docker compose ps
 ```
 
-Before starting PostgreSQL, set `POSTGRES_PASSWORD` in `.env` to a strong local-only password. Add the same password to the `DATABASE_URL` value, for example `postgresql://apivault:<your-password>@localhost:5432/apivault?schema=public`. These credentials are for local development only. Do not reuse them in production. Keep the `.env` file untracked.
+The local `POSTGRES_PASSWORD` and the password in `DATABASE_URL` must match. Use local-only credentials and keep `.env` untracked. See [SETUP.md](SETUP.md) for a complete example and troubleshooting.
 
 ## 3. Install dependencies and generate Prisma Client
 
 ```bash
-npm install
+npm ci
 npm run db:generate
 ```
 
 ## 4. Create the database schema
 
 ```bash
-npm run db:migrate -- --name init
+npm run db:deploy
 ```
 
 Commit the generated `prisma/migrations` directory with your schema changes. Do not edit an already-applied migration; create a new migration for follow-up changes.
