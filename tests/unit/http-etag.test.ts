@@ -16,3 +16,16 @@ test("If-None-Match supports strong, weak, wildcard, and multiple validators", (
   assert.equal(matchesIfNoneMatch('"other"', etag), false);
   assert.equal(matchesIfNoneMatch(null, etag), false);
 });
+
+test("If-None-Match does not split commas inside quoted opaque tags", () => {
+  const etag = '"opaque,tag"';
+  assert.equal(matchesIfNoneMatch('"other", W/"opaque,tag"', etag), true);
+  assert.equal(matchesIfNoneMatch('"opaque,tag"', etag), true);
+  assert.equal(matchesIfNoneMatch('"opaque", "tag"', etag), false);
+});
+
+test("If-None-Match ignores empty list members and compares weak validators", () => {
+  assert.equal(matchesIfNoneMatch(' , "current", ', '"current"'), true);
+  assert.equal(matchesIfNoneMatch('W/"different"', '"current"'), false);
+  assert.equal(matchesIfNoneMatch('W/"current"', '"current"'), true);
+});

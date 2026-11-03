@@ -91,11 +91,50 @@
               "minimum": 1,
               "maximum": 50
             }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Optional entity-tag validator. A matching validator returns 304 Not Modified.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "API cards with page, limit, total and totalPages pagination."
+            "description": "API cards with page, limit, total and totalPages pagination.",
+            "headers": {
+              "ETag": {
+                "description": "Entity tag for the returned representation.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Response caching directives.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The representation has not changed; reuse the previously cached response body.",
+            "headers": {
+              "ETag": {
+                "description": "Current entity tag.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Response caching directives.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -121,11 +160,50 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Optional entity-tag validator. A matching validator returns 304 Not Modified.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "API detail object."
+            "description": "API detail object.",
+            "headers": {
+              "ETag": {
+                "description": "Entity tag for the returned representation.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Response caching directives.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The representation has not changed; reuse the previously cached response body.",
+            "headers": {
+              "ETag": {
+                "description": "Current entity tag.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Response caching directives.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
             "$ref": "#/components/responses/Error"
@@ -148,7 +226,38 @@
         "summary": "List categories",
         "responses": {
           "200": {
-            "description": "Array of category name and slug objects."
+            "description": "Array of category name and slug objects.",
+            "headers": {
+              "ETag": {
+                "description": "Entity tag for the returned representation.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Response caching directives.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The representation has not changed; reuse the previously cached response body.",
+            "headers": {
+              "ETag": {
+                "description": "Current entity tag.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "Response caching directives.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -159,7 +268,17 @@
           "503": {
             "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Optional entity-tag validator. A matching validator returns 304 Not Modified.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     }
   },

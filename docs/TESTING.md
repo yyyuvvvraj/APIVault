@@ -21,7 +21,7 @@ Coverage includes an OpenAPI JSON parse and route-presence check for the publish
 
 ## API rate-limit tests
 
-The unit suite covers reverse-proxy client address extraction, one-way address hashing, and rate-limit headers. The PostgreSQL integration test races concurrent requests against a disposable database bucket and verifies that exactly the configured number are admitted, excess requests are rejected, and a new fixed window admits requests again. Run integration tests only against a disposable database.
+The unit suite covers reverse-proxy client address extraction, one-way address hashing, rate-limit headers, ETag generation, and If-None-Match parsing including weak validators, wildcard requests, and commas inside quoted entity tags. The OpenAPI contract tests require every public GET route to document its conditional request header, 304 response, and ETag response header. The PostgreSQL integration test races concurrent requests against a disposable database bucket and verifies that exactly the configured number are admitted, excess requests are rejected, and a new fixed window admits requests again. Run integration tests only against a disposable database.
 
 ## Administrator authorization coverage
 
