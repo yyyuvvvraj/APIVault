@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { getPrisma } from "../src/lib/db";
 import { auth } from "../src/lib/auth";
 import { SubmissionKind, SubmissionStatus, SourceKind } from "../src/generated/prisma/client";
@@ -43,40 +42,27 @@ async function main() {
   const password = process.env.E2E_USER_PASSWORD;
   if (!email || !password) throw new Error("E2E_USER_EMAIL and E2E_USER_PASSWORD are required.");
 
-  // Create a real Better Auth credential account with the ordinary user role.
+  // Recreate this isolated fixture through Better Auth's own adapter so the
+  // credential account is shaped exactly as the installed auth version expects.
+  await prisma.user.deleteMany({ where: { email } });
   const context = await auth.$context;
-  const hashedPassword = await context.password.hash(password);
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: { name: "APIVault E2E Standard User", role: null, banned: false },
-    create: {
-      id: randomUUID(),
+  const user = await context.internalAdapter.createUser(
+    {
       name: "APIVault E2E Standard User",
       email,
       emailVerified: true,
-      role: null,
+      role: "user",
+      banned: false,
     },
+    { method: "test" },
+  );
+  const hashedPassword = await context.password.hash(password);
+  await context.internalAdapter.createAccount({
+    userId: user.id,
+    providerId: "credential",
+    accountId: user.id,
+    password: hashedPassword,
   });
-  const credentialAccount = await prisma.account.findFirst({
-    where: { userId: user.id, providerId: "credential" },
-    select: { id: true },
-  });
-  if (credentialAccount) {
-    await prisma.account.update({
-      where: { id: credentialAccount.id },
-      data: { accountId: user.id, password: hashedPassword },
-    });
-  } else {
-    await prisma.account.create({
-      data: {
-        id: randomUUID(),
-        accountId: user.id,
-        providerId: "credential",
-        userId: user.id,
-        password: hashedPassword,
-      },
-    });
-  }
 }
 
 main()
