@@ -23,7 +23,9 @@ Prisma remains the owner of database schema and migrations. This service only wr
 
 ## Input format
 
-See [examples/catalogue.example.json](examples/catalogue.example.json). Replace all placeholder URLs and descriptions with reviewed, official information before importing.
+- [Placeholder format example](examples/catalogue.example.json) shows the JSON shape only. It contains reserved `example.com` URLs and must never be applied to a real database.
+- [Curated starter dataset](data/curated-starter-v1.json) contains five real API records with official source references. They are imported as `PENDING_REVIEW`, not verified.
+- See the [catalogue curation guide](../../docs/CATALOGUE_CURATION.md) for evidence and review requirements.
 
 Each API requires:
 - a unique lowercase hyphenated `slug`
@@ -41,25 +43,24 @@ From the repository root:
 
 ```bash
 cd services/catalogue-importer
-go mod tidy
 go test ./...
-go run ./cmd/catalogue-importer -input examples/catalogue.example.json
+go run ./cmd/catalogue-importer -input data/curated-starter-v1.json
 ```
 
 Dry-run mode is the default. It validates the complete file and performs no database connection or writes.
 
 ## Apply an import
 
-From the repository root, ensure `DATABASE_URL_UNPOOLED` points to the intended APIVault database. The importer prefers this direct URL for its transactional batch write and falls back to `DATABASE_URL` for local development. Keep the pooled Neon `DATABASE_URL` for the application runtime.
+Only after a maintainer has reviewed the source links and confirmed the target database, ensure `DATABASE_URL_UNPOOLED` points to that intended APIVault database. The importer prefers this direct URL for its transactional batch write and falls back to `DATABASE_URL` for local development. Keep the pooled Neon `DATABASE_URL` for the application runtime.
 
 ```bash
 cd services/catalogue-importer
-go run ./cmd/catalogue-importer -input examples/catalogue.example.json -apply
+go run ./cmd/catalogue-importer -input data/curated-starter-v1.json -apply
 ```
 
 The importer prints only the database host and database name, never the connection string or credentials. It processes at most 500 APIs per file and uses a two-minute operation timeout.
 
-Do not use the placeholder example file against a real database. Prepare and review a real catalogue file first.
+Do not use the placeholder example file against a real database.
 
 ## Data integrity
 
