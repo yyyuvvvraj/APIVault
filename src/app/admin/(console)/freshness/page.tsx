@@ -62,7 +62,7 @@ export default async function AdminCatalogueFreshnessPage() {
           </div>
         ) : <div className="px-5 py-14 text-center"><p className="text-sm font-bold text-emerald-300">All verified catalogue entries are within the review window.</p><p className="mt-2 text-xs text-slate-500">No records were changed by this report.</p></div>}
       </section>
-      <p className="mt-4 text-[11px] leading-5 text-slate-500">Scope: verified APIs in ACTIVE, DEPRECATED, or UNAVAILABLE states. Unverified and archived records are excluded. A review timestamp is an administrator attestation, not an automated reachability check.</p>
+      <p className="mt-4 text-[11px] leading-5 text-slate-500">Scope: verified APIs in ACTIVE, DEPRECATED, or UNAVAILABLE states. Unverified and archived records are excluded. A review timestamp is an administrator&apos;s attestation, not an automated reachability check.</p>
     </>
   );
 }

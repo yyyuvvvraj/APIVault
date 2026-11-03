@@ -4,7 +4,6 @@ import { randomUUID } from "node:crypto";
 import {
   ApiStatus,
   AuthMethod,
-  PricingModel,
   SourceKind,
   VerificationStatus,
 } from "../../src/generated/prisma/client";
