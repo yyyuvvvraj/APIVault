@@ -13,7 +13,7 @@ services:
     region: singapore
     plan: free
     branch: dev
-    buildCommand: npm ci --no-audit --no-fund && npm run build
+    buildCommand: npm ci --include=dev --no-audit --no-fund && npm run build
     startCommand: npm run db:deploy && npm run start
     healthCheckPath: /api/health/ready
     envVars:
