@@ -11,6 +11,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 - Make the PostgreSQL Compose healthcheck use the configured database user and database name instead of hard-coded defaults.
 
 ### Added
+- Run application, browser E2E, Docker smoke-test, and repository-hygiene workflows for pull requests targeting any branch, including stacked PR bases.
 - Weekly Dependabot monitoring for npm, Go modules, Docker images, and GitHub Actions, with grouped npm update pull requests.
 - Admin verifier health page with recent per-API check history, failure details, and stale-observation warnings; health observations remain separate from verification and publication decisions.
 - GitHub Actions Go verifier checks for gofmt formatting, race-enabled tests, go vet, Linux binary compilation, and Alpine container smoke testing.
