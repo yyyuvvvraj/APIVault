@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 
 ## [Unreleased]
 
+### Fixed
+- Align every Next.js Docker build and runtime stage with the supported Node.js 24 engine range.
+- Make the PostgreSQL Compose healthcheck use the configured database user and database name instead of hard-coded defaults.
+
+
 ### Added
 - Weekly Dependabot monitoring for npm, Go modules, Docker images, and GitHub Actions, with grouped npm update pull requests.
 - Admin verifier health page with recent per-API check history, failure details, and stale-observation warnings; health observations remain separate from verification and publication decisions.
