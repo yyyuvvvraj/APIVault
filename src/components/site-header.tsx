@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const links = [
   { href: "/apis", label: "Explore APIs" },
+  { href: "/docs", label: "API Docs" },
   { href: "https://github.com/yyyuvvvraj/APIVault/discussions", label: "Community", external: true },
 ];
 
