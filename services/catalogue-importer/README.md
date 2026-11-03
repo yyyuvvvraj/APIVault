@@ -50,11 +50,11 @@ Dry-run mode is the default. It validates the complete file and performs no data
 
 ## Apply an import
 
-From the repository root, ensure `DATABASE_URL` points to the intended APIVault database. Use the pooled Neon URL for ordinary runtime operations.
+From the repository root, ensure `DATABASE_URL_UNPOOLED` points to the intended APIVault database. The importer prefers this direct URL for its transactional batch write and falls back to `DATABASE_URL` for local development. Keep the pooled Neon `DATABASE_URL` for the application runtime.
 
 ```bash
 cd services/catalogue-importer
-DATABASE_URL="$DATABASE_URL" go run ./cmd/catalogue-importer -input examples/catalogue.example.json -apply
+go run ./cmd/catalogue-importer -input examples/catalogue.example.json -apply
 ```
 
 The importer prints only the database host and database name, never the connection string or credentials. It processes at most 500 APIs per file and uses a two-minute operation timeout.
