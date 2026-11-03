@@ -1,6 +1,14 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { ApiStatus, RevisionAction, VerificationStatus } from "@/generated/prisma/client";
 
+export function verificationReviewNoteError(note: string): string | null {
+  const normalized = note.trim();
+  if (!normalized) return "A review note is required before verifying an API.";
+  if (normalized.length < 5) return "The review note must contain at least 5 characters.";
+  if (normalized.length > 500) return "The review note must be 500 characters or fewer.";
+  return null;
+}
+
 export async function updateApiLifecycle(
   tx: Prisma.TransactionClient,
   apiId: string,
