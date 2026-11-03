@@ -78,7 +78,7 @@ export function ApiPlayground() {
       setResult({
         status: response.status,
         durationMs,
-        headers: headers.map(([name, value]) => [name, value]),
+        headers: headers.map(([name, value]) => [name, value] as [string, string]),
         body: body ? formatJson(body) : "(empty response body)",
       });
     } catch {
