@@ -38,10 +38,14 @@ function buildWhere(filters: CatalogueFilters): Prisma.ApiWhereInput {
       ? {
           OR: [
             { name: { contains: query, mode: "insensitive" } },
+            { slug: { contains: query, mode: "insensitive" } },
             { summary: { contains: query, mode: "insensitive" } },
             { description: { contains: query, mode: "insensitive" } },
             { provider: { is: { name: { contains: query, mode: "insensitive" } } } },
+            { provider: { is: { slug: { contains: query, mode: "insensitive" } } } },
             { tags: { some: { tag: { name: { contains: query, mode: "insensitive" } } } } },
+            { tags: { some: { tag: { slug: { contains: query, mode: "insensitive" } } } } },
+            { categories: { some: { category: { name: { contains: query, mode: "insensitive" } } } } },
           ],
         }
       : {}),
@@ -66,10 +70,14 @@ export async function listApis(filters: CatalogueFilters) {
   const where = buildWhere(filters);
   const orderBy: Prisma.ApiOrderByWithRelationInput[] =
     filters.sort === "name"
-      ? [{ name: "asc" }]
-      : filters.sort === "recent"
-        ? [{ updatedAt: "desc" }]
-        : [{ featured: "desc" }, { updatedAt: "desc" }];
+      ? [{ name: "asc" }, { slug: "asc" }]
+      : filters.sort === "verified"
+        ? [{ verifiedAt: "desc" }, { name: "asc" }]
+        : filters.sort === "newest"
+          ? [{ createdAt: "desc" }, { name: "asc" }]
+          : filters.sort === "recent"
+            ? [{ updatedAt: "desc" }, { name: "asc" }]
+            : [{ featured: "desc" }, { updatedAt: "desc" }, { name: "asc" }];
 
   const [items, total] = await Promise.all([
     prisma.api.findMany({
