@@ -44,3 +44,20 @@ test("administrator can sign in, create and verify an API, and moderate a submis
   await submission.getByRole("button", { name: "Save review decision" }).click();
   await expect(submission).toContainText("REJECTED");
 });
+
+test("authenticated non-admin users are denied admin pages", async ({ page }) => {
+  const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+
+  await page.goto("/admin/login");
+  await page.getByLabel("Email address").fill(userEmail);
+  await page.getByLabel("Password").fill(userPassword);
+  await page.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(page).toHaveURL(/\/(?:$|admin\/login)/);
+
+  for (const protectedPath of ["/admin", "/admin/apis/new", "/admin/submissions"]) {
+    await page.goto(protectedPath);
+    await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
+    await expect(page.getByRole("heading", { name: "Welcome back." })).toBeVisible();
+  }
+});

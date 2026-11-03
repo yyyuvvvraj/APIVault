@@ -35,6 +35,8 @@ jobs:
       BETTER_AUTH_URL: http://127.0.0.1:3000
       E2E_ADMIN_EMAIL: apivault-e2e@example.test
       E2E_ADMIN_PASSWORD: E2E-only-password-12345
+      E2E_USER_EMAIL: apivault-user-e2e@example.test
+      E2E_USER_PASSWORD: E2E-user-only-password-12345
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
     steps:
       - uses: actions/checkout@v7
