@@ -14,10 +14,10 @@ import (
 )
 
 type Result struct {
-	APIID       string `json:"apiId"`
-	IsReachable bool   `json:"isReachable"`
-	StatusCode  *int   `json:"statusCode"`
-	LatencyMs   int64  `json:"latencyMs"`
+	APIID        string  `json:"apiId"`
+	IsReachable  bool    `json:"isReachable"`
+	StatusCode   *int    `json:"statusCode"`
+	LatencyMs    int64   `json:"latencyMs"`
 	ErrorMessage *string `json:"errorMessage"`
 }
 
@@ -93,9 +93,9 @@ func safeTransport() *http.Transport {
 			}
 			return dialer.DialContext(ctx, network, net.JoinHostPort(ips[0].String(), port))
 		},
-		TLSHandshakeTimeout: 5 * time.Second,
+		TLSHandshakeTimeout:   5 * time.Second,
 		ResponseHeaderTimeout: 7 * time.Second,
-		IdleConnTimeout: 30 * time.Second,
+		IdleConnTimeout:       30 * time.Second,
 	}
 }
 
@@ -111,7 +111,7 @@ func Check(ctx context.Context, apiID, rawURL string) Result {
 
 	client := &http.Client{
 		Transport: safeTransport(),
-		Timeout: 10 * time.Second,
+		Timeout:   10 * time.Second,
 		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
 			return http.ErrUseLastResponse
 		},

@@ -2,7 +2,7 @@ name: Go Verifier CI
 
 on:
   pull_request:
-    branches: [dev, stable, "feature/**"]
+    branches: [dev, stable]
     paths:
       - "services/verifier/**"
       - ".github/workflows/verifier-ci.yml"
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   verify:
-    name: Test and build Go verifier
+    name: Format, test, and build Go verifier
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -26,15 +26,25 @@ jobs:
         with:
           go-version-file: services/verifier/go.mod
           cache-dependency-path: services/verifier/go.mod
-      - name: Run unit tests
+      - name: Verify gofmt formatting
+        working-directory: services/verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then
+            printf 'Go files need gofmt:\n%s\n' "$unformatted"
+            exit 1
+          fi
+      - name: Run Go tests
         working-directory: services/verifier
         run: go test -race -cover ./...
-      - name: Static analysis
+      - name: Run go vet
         working-directory: services/verifier
         run: go vet ./...
-      - name: Build Linux binary
+      - name: Build Linux verifier binary
         working-directory: services/verifier
-        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" ./cmd/verifier
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /tmp/apivault-verifier ./cmd/verifier
       - name: Build Alpine container
         run: docker build -t apivault-verifier -f services/verifier/Dockerfile services/verifier
       - name: Smoke-test verifier health endpoint

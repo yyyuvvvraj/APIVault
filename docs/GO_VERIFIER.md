@@ -17,6 +17,14 @@ The worker sends HTTP HEAD requests to official homepage URLs and falls back to 
 
 A health observation is not verification evidence. A successful HTTP response never automatically verifies or publishes an API. Maintainers continue to review official sources through the existing admin lifecycle.
 
+## Admin health operations
+
+The protected `/admin/health` page shows the latest five observations for each non-archived API, including reachability, HTTP status, latency, check time, and bounded verifier error text. Summary metrics distinguish the latest failed check from any failure in the recent five observations.
+
+An observation is labelled stale when no observation exists or the latest observation is older than 24 hours. This is an operational warning only: the page does not change `ApiStatus`, `VerificationStatus`, `verifiedAt`, or `publishedAt`. Maintainers must investigate an unreachable or stale homepage and use the existing evidence-based lifecycle controls if a catalogue change is warranted.
+
+The page is available only inside the admin console, whose layout requires an administrator session. It reads health history from PostgreSQL; it does not expose a public health endpoint or provide controls to override verifier results.
+
 ## SSRF protections
 
 Catalogue URLs are untrusted input. The worker:
@@ -50,14 +58,18 @@ docker compose --profile workers up --build verifier
 
 The worker exposes a liveness endpoint at `http://localhost:8081/healthz`. It performs an initial scan at startup and repeats at the configured interval. Concurrency is limited to 1–32 workers.
 
-For local Go tests:
+For local Go tests and formatting:
 
 ```bash
 cd services/verifier
+gofmt -w .
+gofmt -l .
 go test -race -cover ./...
 go vet ./...
 go build ./cmd/verifier
 ```
+
+The GitHub Actions workflow enforces a clean `gofmt -l .` result, runs the race-enabled test suite, runs `go vet`, builds the Linux binary, and builds and smoke-tests the Alpine container.
 
 ## Container images
 

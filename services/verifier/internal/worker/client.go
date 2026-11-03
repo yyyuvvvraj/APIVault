@@ -33,10 +33,10 @@ type Client struct {
 
 func NewClient(baseURL, secret string, concurrency int) *Client {
 	return &Client{
-		baseURL: strings.TrimRight(baseURL, "/"),
-		secret: secret,
+		baseURL:     strings.TrimRight(baseURL, "/"),
+		secret:      secret,
 		concurrency: concurrency,
-		httpClient: &http.Client{Timeout: 15 * time.Second},
+		httpClient:  &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
