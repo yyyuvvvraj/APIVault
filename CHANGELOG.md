@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Added
+- Weekly Dependabot monitoring for npm, Go modules, Docker images, and GitHub Actions, with grouped npm update pull requests.
 - Admin verifier health page with recent per-API check history, failure details, and stale-observation warnings; health observations remain separate from verification and publication decisions.
 - GitHub Actions Go verifier checks for gofmt formatting, race-enabled tests, go vet, Linux binary compilation, and Alpine container smoke testing.
 - Optional Go API homepage verifier worker with authenticated internal job/result endpoints, SSRF protections, health-check history, and Alpine container image.
