@@ -46,7 +46,7 @@ export default async function AdminCatalogueFreshnessPage() {
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#10151e]">
-        <div className="border-b border-white/[0.07] px-5 py-4"><h2 className="text-sm font-extrabold text-white">Requires review ({due.length})</h2><p className="mt-1 text-xs text-slate-500">Review evidence manually and record the result from each API's review page.</p></div>
+        <div className="border-b border-white/[0.07] px-5 py-4"><h2 className="text-sm font-extrabold text-white">Requires review ({due.length})</h2><p className="mt-1 text-xs text-slate-500">Review evidence manually and record the result from each API&apos;s review page.</p></div>
         {due.length ? (
           <div className="divide-y divide-white/[0.06]">
             {due.map((api) => {
