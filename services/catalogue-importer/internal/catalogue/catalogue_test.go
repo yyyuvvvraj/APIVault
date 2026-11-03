@@ -64,3 +64,11 @@ func TestNormalizeAppliesSafeDefaults(t *testing.T) {
 		t.Fatalf("unexpected defaults: pricing=%s status=%s verification=%s", api.PricingModel, api.Status, api.VerificationStatus)
 	}
 }
+
+func TestValidateRejectsFeaturedImport(t *testing.T) {
+	file := validFile()
+	file.APIs[0].Featured = true
+	if err := file.Validate(); err == nil {
+		t.Fatal("Validate() accepted a featured, unverified import")
+	}
+}
