@@ -10,6 +10,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 - PostgreSQL-backed fixed-window rate limiting for all public v1 REST endpoints, with atomic cross-instance updates, hashed client identifiers, 429 responses, retry guidance, and opportunistic bucket cleanup.
 - Unit and PostgreSQL concurrency integration coverage for API rate-limit enforcement and window resets.
 - Enable the initial v0.0.1 release tag to pass stable-branch ancestry validation and publish a multi-platform GHCR image.
+- Add tag-driven GitHub Releases with stable-branch ancestry, package-version, and changelog validation.
 - Run application, browser E2E, Docker smoke-test, and repository-hygiene workflows for pull requests targeting any branch, including stacked PR bases.
 - Database-backed /api/health/ready endpoint with sanitized 200/503 responses and unit coverage for healthy and unavailable database states.
 - Global baseline HTTP security headers for MIME sniffing, framing, referrer policy, and unused browser permissions, with automated configuration tests.
