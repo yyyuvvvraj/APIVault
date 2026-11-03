@@ -1,0 +1,243 @@
+{
+  "apis": [
+    {
+      "slug": "open-meteo",
+      "name": "Open-Meteo Weather API",
+      "summary": "Global weather forecasts and historical weather data through a JSON API with no API key required for non-commercial use.",
+      "description": "Open-Meteo provides forecast, current conditions, historical weather, air quality, geocoding, and related environmental data. Its free hosted API is intended for non-commercial use; commercial use and higher request volumes require a subscription. Attribution is required for the underlying CC BY 4.0 data.",
+      "provider": {
+        "slug": "open-meteo",
+        "name": "Open-Meteo",
+        "homepageUrl": "https://open-meteo.com/"
+      },
+      "homepageUrl": "https://open-meteo.com/",
+      "documentationUrl": "https://open-meteo.com/en/docs",
+      "baseUrl": "https://api.open-meteo.com",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Free for non-commercial use within published fair-use limits; commercial use and higher volumes require a subscription. CC BY 4.0 attribution is required.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "weather-environment"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "No API key or sign-up is required for the public non-commercial forecast API."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://open-meteo.com/",
+          "title": "Open-Meteo official homepage and usage terms",
+          "isOfficial": true,
+          "notes": "Documents free non-commercial access, commercial subscriptions, attribution, and API overview."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://open-meteo.com/en/docs",
+          "title": "Open-Meteo API documentation",
+          "isOfficial": true,
+          "notes": "Forecast API parameters, response formats, and endpoint documentation."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://open-meteo.com/en/pricing",
+          "title": "Open-Meteo commercial pricing and usage",
+          "isOfficial": true,
+          "notes": "Official pricing details, API-call accounting, commercial subscription options, and attribution requirements."
+        }
+      ]
+    },
+    {
+      "slug": "nasa-open-apis",
+      "name": "NASA Open APIs",
+      "summary": "A collection of NASA data APIs covering astronomy, Earth science, space weather, and related public datasets.",
+      "description": "NASA's API portal provides developer access to selected NASA datasets and services. A key is available for regular use; the portal also provides a lower-limit DEMO_KEY for exploration. Limits can vary by service, and the portal documents a default key limit of 1,000 requests per hour.",
+      "provider": {
+        "slug": "nasa",
+        "name": "NASA",
+        "homepageUrl": "https://www.nasa.gov/"
+      },
+      "homepageUrl": "https://api.nasa.gov/",
+      "documentationUrl": "https://api.nasa.gov/",
+      "baseUrl": "https://api.nasa.gov",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "The portal offers developer API keys; no general API price is stated here. Request limits apply and vary by service.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Register for an api.data.gov key for regular use. DEMO_KEY is available for exploration with lower limits."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.nasa.gov/",
+          "title": "NASA official homepage",
+          "isOfficial": true,
+          "notes": "Provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://api.nasa.gov/",
+          "title": "NASA Open APIs portal",
+          "isOfficial": true,
+          "notes": "API catalogue, authentication guidance, key registration, and service-specific documentation."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://api.nasa.gov/assets/html/authentication.html",
+          "title": "NASA API authentication and rate limits",
+          "isOfficial": true,
+          "notes": "Official API-key guidance, DEMO_KEY limits, default hourly limit, and rate-limit response headers."
+        }
+      ]
+    },
+    {
+      "slug": "github-rest-api",
+      "name": "GitHub REST API",
+      "summary": "REST endpoints for accessing GitHub repositories, issues, pull requests, users, actions, and other platform resources.",
+      "description": "The GitHub REST API exposes GitHub platform resources over HTTP. Some public endpoints can be used without authentication; authenticated requests unlock additional endpoints and generally receive higher primary rate limits. Token permissions depend on the endpoint.",
+      "provider": {
+        "slug": "github",
+        "name": "GitHub",
+        "homepageUrl": "https://github.com/"
+      },
+      "homepageUrl": "https://github.com/",
+      "documentationUrl": "https://docs.github.com/en/rest",
+      "baseUrl": "https://api.github.com",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No separate API price is asserted here; access and rate limits depend on authentication method, endpoint, and account context.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "developer-tools"
+      ],
+      "authMethods": [
+        {
+          "method": "BEARER_TOKEN",
+          "details": "Personal access tokens, GitHub App tokens, and workflow GITHUB_TOKEN can be sent in the Authorization header. Some public endpoints do not require authentication."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://github.com/",
+          "title": "GitHub official homepage",
+          "isOfficial": true,
+          "notes": "Provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://docs.github.com/en/rest",
+          "title": "GitHub REST API documentation",
+          "isOfficial": true,
+          "notes": "REST API overview and endpoint reference."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api",
+          "title": "Authenticating to the REST API",
+          "isOfficial": true,
+          "notes": "Token types, Authorization header, and endpoint permissions."
+        },
+        {
+          "kind": "RATE_LIMITS",
+          "url": "https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api",
+          "title": "GitHub REST API rate limits",
+          "isOfficial": true,
+          "notes": "Primary and secondary rate-limit behaviour."
+        }
+      ]
+    },
+    {
+      "slug": "open-library-api",
+      "name": "Open Library APIs",
+      "summary": "Public APIs for searching and retrieving book, author, edition, work, subject, and library catalogue data.",
+      "description": "Open Library exposes bibliographic data in JSON, YAML, and RDF/XML formats. Its usage guidance prioritizes human-facing discovery and lookup, asks clients to cache responses and identify their application, and discourages bulk harvesting or use as high-traffic commercial infrastructure.",
+      "provider": {
+        "slug": "internet-archive",
+        "name": "Internet Archive",
+        "homepageUrl": "https://archive.org/"
+      },
+      "homepageUrl": "https://openlibrary.org/",
+      "documentationUrl": "https://openlibrary.org/developers/api",
+      "baseUrl": "https://openlibrary.org",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No general commercial pricing claim is made. Usage is subject to Open Library's published fair-use and rate-limit guidance.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education",
+        "data-analytics"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Public catalogue search and lookup endpoints are available without authentication; account-specific endpoints may require authentication."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://openlibrary.org/",
+          "title": "Open Library",
+          "isOfficial": true,
+          "notes": "Public book discovery and catalogue service."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://openlibrary.org/developers/api",
+          "title": "Open Library API documentation",
+          "isOfficial": true,
+          "notes": "API formats, endpoint index, usage guidelines, and rate limits."
+        }
+      ]
+    },
+    {
+      "slug": "frankfurter-exchange-rates",
+      "name": "Frankfurter Exchange Rates API",
+      "summary": "Free exchange-rate API covering 228 currencies with daily updates and historical rates dating back to 1948.",
+      "description": "Frankfurter provides latest, historical, and time-series exchange rates sourced from central banks and official institutions. Its public API requires no API key and the project is open source.",
+      "provider": {
+        "slug": "frankfurter",
+        "name": "Frankfurter",
+        "homepageUrl": "https://frankfurter.dev/"
+      },
+      "homepageUrl": "https://frankfurter.dev/",
+      "documentationUrl": "https://frankfurter.dev/",
+      "baseUrl": "https://api.frankfurter.dev",
+      "pricingModel": "FREE",
+      "pricingSummary": "Public API is free to use and does not require an API key; the project can also be self-hosted.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "finance"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "No API key or authentication is required for public exchange-rate endpoints."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://frankfurter.dev/",
+          "title": "Frankfurter exchange rates API",
+          "isOfficial": true,
+          "notes": "Documents supported currencies, public base URL, no-key access, historical data, and open-source availability."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://api.frankfurter.dev/v2/rates",
+          "title": "Frankfurter v2 rates endpoint",
+          "isOfficial": true,
+          "notes": "Official public endpoint for latest exchange rates; query parameters are documented on the project homepage."
+        }
+      ]
+    }
+  ]
+}

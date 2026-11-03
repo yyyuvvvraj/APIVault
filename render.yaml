@@ -1,0 +1,35 @@
+# Neon is the external PostgreSQL provider for the hosted beta.
+# Keep the temporary Render database resource declared until the Neon migration
+# has been verified; it is not wired into the application service.
+databases:
+  - name: apivault-beta-db
+    databaseName: apivault_beta
+    user: apivault_beta
+    region: singapore
+    plan: free
+    postgresMajorVersion: "18"
+
+services:
+  - type: web
+    name: apivault-beta
+    runtime: node
+    region: singapore
+    plan: free
+    branch: dev
+    buildCommand: npm ci --include=dev --no-audit --no-fund && npm run build
+    startCommand: npm run db:deploy && npm run start
+    healthCheckPath: /api/health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL
+        fromService:
+          name: apivault-beta
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL

@@ -1,0 +1,38 @@
+{
+  "apis": [
+    {
+      "slug": "example-weather-api",
+      "name": "Example Weather API",
+      "summary": "Illustrative record showing the catalogue import format.",
+      "description": "Replace this example with an API whose official information has been reviewed.",
+      "provider": {
+        "slug": "example-provider",
+        "name": "Example Provider",
+        "homepageUrl": "https://provider.example.com"
+      },
+      "homepageUrl": "https://api.example.com",
+      "documentationUrl": "https://api.example.com/docs",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "Not yet reviewed.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "weather-environment"
+      ],
+      "authMethods": [
+        {
+          "method": "UNKNOWN",
+          "details": "Confirm authentication requirements from official documentation."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://api.example.com/docs",
+          "title": "Example API documentation",
+          "isOfficial": true,
+          "notes": "Illustrative placeholder; replace before importing."
+        }
+      ]
+    }
+  ]
+}

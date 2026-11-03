@@ -1,0 +1,27 @@
+import { prismaAdapter } from "@better-auth/prisma-adapter";
+import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
+import { getPrisma } from "@/lib/db";
+
+const secret = process.env.BETTER_AUTH_SECRET;
+
+if (process.env.NODE_ENV === "production" && (!secret || secret.length < 32)) {
+  throw new Error("BETTER_AUTH_SECRET must be set to a high-entropy value of at least 32 characters.");
+}
+
+export const auth = betterAuth({
+  appName: "APIVault",
+  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+  secret,
+  database: prismaAdapter(getPrisma(), {
+    provider: "postgresql",
+  }),
+  emailAndPassword: {
+    enabled: true,
+    disableSignUp: true,
+    minPasswordLength: 12,
+    maxPasswordLength: 128,
+  },
+  plugins: [admin()],
+  trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000"],
+});

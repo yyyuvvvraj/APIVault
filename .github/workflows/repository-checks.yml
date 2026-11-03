@@ -1,0 +1,43 @@
+name: Repository checks
+
+on:
+  push:
+    branches: [dev, stable, "feature/**", "bugfix/**", "docs/**", "test/**", "refactor/**", "release/**", "hotfix/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check required community files
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            README.md
+            CONTRIBUTING.md
+            CODE_OF_CONDUCT.md
+            SECURITY.md
+            CHANGELOG.md
+            docs/DEVELOPMENT.md
+            docs/PROJECT_METRICS.md
+            .github/PULL_REQUEST_TEMPLATE.md
+          )
+          for file in "${required[@]}"; do
+            test -s "$file" || { echo "::error file=$file::Missing or empty required file"; exit 1; }
+            echo "OK: $file"
+          done

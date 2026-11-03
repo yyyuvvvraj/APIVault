@@ -1,0 +1,380 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ApiStatus {
+  ACTIVE
+  DEPRECATED
+  UNAVAILABLE
+  ARCHIVED
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING_REVIEW
+  VERIFIED
+  STALE
+}
+
+enum PricingModel {
+  FREE
+  FREEMIUM
+  PAID
+  OPEN_SOURCE
+  UNKNOWN
+}
+
+enum AuthMethod {
+  API_KEY
+  OAUTH2
+  BEARER_TOKEN
+  BASIC_AUTH
+  NONE
+  CUSTOM
+  UNKNOWN
+}
+
+enum SourceKind {
+  OFFICIAL_HOMEPAGE
+  DOCUMENTATION
+  PRICING
+  AUTHENTICATION
+  RATE_LIMITS
+  TERMS
+  STATUS
+  OTHER
+}
+
+enum BillingInterval {
+  ONE_TIME
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  USAGE
+  UNKNOWN
+}
+
+enum SubmissionKind {
+  CREATE
+  UPDATE
+}
+
+enum SubmissionStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum RevisionAction {
+  CREATED
+  UPDATED
+  VERIFIED
+  STATUS_CHANGED
+  ARCHIVED
+}
+
+model ApiProvider {
+  id          String   @id @default(uuid()) @db.Uuid
+  slug        String   @unique @db.VarChar(120)
+  name        String   @db.VarChar(160)
+  description String?  @db.Text
+  homepageUrl String?  @db.Text
+  apis        Api[]
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([name])
+}
+
+model Api {
+  id                 String             @id @default(uuid()) @db.Uuid
+  slug               String             @unique @db.VarChar(160)
+  name               String             @db.VarChar(180)
+  summary            String             @db.VarChar(280)
+  description        String?            @db.Text
+  providerId         String             @db.Uuid
+  provider           ApiProvider        @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  homepageUrl        String             @db.Text
+  documentationUrl   String?            @db.Text
+  baseUrl            String?            @db.Text
+  pricingModel       PricingModel       @default(UNKNOWN)
+  pricingSummary     String?            @db.Text
+  status             ApiStatus          @default(ACTIVE)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  featured           Boolean            @default(false)
+  verifiedAt         DateTime?          @db.Timestamptz(6)
+  lastCheckedAt      DateTime?          @db.Timestamptz(6)
+  publishedAt        DateTime?          @db.Timestamptz(6)
+  categories         ApiCategory[]
+  tags               ApiTag[]
+  authMethods        ApiAuthMethod[]
+  sources            ApiSource[]
+  rateLimits         ApiRateLimit[]
+  pricingPlans       ApiPricingPlan[]
+  submissions        ApiSubmission[]
+  revisions          ApiRevision[]
+  healthChecks       ApiHealthCheck[]
+  createdAt          DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime           @updatedAt @db.Timestamptz(6)
+
+  @@index([status, verificationStatus])
+  @@index([providerId])
+  @@index([pricingModel])
+  @@index([updatedAt])
+  @@index([featured, updatedAt])
+}
+
+model Category {
+  id          String        @id @default(uuid()) @db.Uuid
+  slug        String        @unique @db.VarChar(100)
+  name        String        @db.VarChar(120)
+  description String?       @db.Text
+  parentId    String?       @db.Uuid
+  parent      Category?     @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[]    @relation("CategoryHierarchy")
+  apis        ApiCategory[]
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(6)
+
+  @@index([parentId])
+  @@index([name])
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  slug      String   @unique @db.VarChar(100)
+  name      String   @db.VarChar(100)
+  apis      ApiTag[]
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([name])
+}
+
+model ApiCategory {
+  apiId      String   @db.Uuid
+  categoryId String   @db.Uuid
+  api        Api      @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([apiId, categoryId])
+  @@index([categoryId])
+}
+
+model ApiTag {
+  apiId String @db.Uuid
+  tagId String @db.Uuid
+  api   Api    @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([apiId, tagId])
+  @@index([tagId])
+}
+
+model ApiAuthMethod {
+  apiId   String     @db.Uuid
+  method  AuthMethod
+  details String?    @db.Text
+  api     Api        @relation(fields: [apiId], references: [id], onDelete: Cascade)
+
+  @@id([apiId, method])
+  @@index([method])
+}
+
+model ApiSource {
+  id           String           @id @default(uuid()) @db.Uuid
+  apiId        String           @db.Uuid
+  sourceKind   SourceKind
+  url          String           @db.Text
+  title        String?          @db.VarChar(240)
+  isOfficial   Boolean          @default(false)
+  notes        String?          @db.Text
+  checkedAt    DateTime?        @db.Timestamptz(6)
+  api          Api              @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  rateLimits   ApiRateLimit[]
+  pricingPlans ApiPricingPlan[]
+  createdAt    DateTime         @default(now()) @db.Timestamptz(6)
+
+  @@unique([apiId, url])
+  @@index([apiId, sourceKind])
+}
+
+model ApiRateLimit {
+  id            String     @id @default(uuid()) @db.Uuid
+  apiId         String     @db.Uuid
+  description   String     @db.Text
+  requestCount  Int?
+  windowSeconds Int?
+  scope         String?    @db.VarChar(160)
+  sourceId      String?    @db.Uuid
+  api           Api        @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  source        ApiSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime   @updatedAt @db.Timestamptz(6)
+
+  @@index([apiId])
+  @@index([sourceId])
+}
+
+model ApiPricingPlan {
+  id              String          @id @default(uuid()) @db.Uuid
+  apiId           String          @db.Uuid
+  name            String          @db.VarChar(160)
+  description     String?         @db.Text
+  priceAmount     Decimal?        @db.Decimal(14, 4)
+  currency        String?         @db.VarChar(3)
+  billingInterval BillingInterval @default(UNKNOWN)
+  isFreeTier      Boolean         @default(false)
+  sourceId        String?         @db.Uuid
+  api             Api             @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  source          ApiSource?      @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  createdAt       DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(6)
+
+  @@index([apiId])
+  @@index([sourceId])
+}
+
+model ApiSubmission {
+  id              String             @id @default(uuid()) @db.Uuid
+  kind            SubmissionKind
+  status          SubmissionStatus   @default(PENDING)
+  targetApiId     String?            @db.Uuid
+  payload         Json
+  submitterName   String?            @db.VarChar(120)
+  submitterGithub String?            @db.VarChar(80)
+  reviewerGithub  String?            @db.VarChar(80)
+  reviewNote      String?            @db.Text
+  reviewedAt      DateTime?          @db.Timestamptz(6)
+  targetApi       Api?               @relation(fields: [targetApiId], references: [id], onDelete: SetNull)
+  sources         SubmissionSource[]
+  createdAt       DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @db.Timestamptz(6)
+
+  @@index([status, createdAt])
+  @@index([targetApiId])
+}
+
+model SubmissionSource {
+  id           String        @id @default(uuid()) @db.Uuid
+  submissionId String        @db.Uuid
+  sourceKind   SourceKind
+  url          String        @db.Text
+  notes        String?       @db.Text
+  submission   ApiSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([submissionId])
+}
+
+model ApiRevision {
+  id          String         @id @default(uuid()) @db.Uuid
+  apiId       String         @db.Uuid
+  action      RevisionAction
+  actorGithub String?        @db.VarChar(80)
+  summary     String?        @db.Text
+  snapshot    Json
+  api         Api            @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now()) @db.Timestamptz(6)
+
+  @@index([apiId, createdAt])
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          String?
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model ApiHealthCheck {
+  id           String   @id @default(uuid()) @db.Uuid
+  apiId        String   @db.Uuid
+  api          Api      @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  isReachable  Boolean
+  statusCode   Int?
+  latencyMs    Int
+  errorMessage String?  @db.VarChar(500)
+  checkedAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([apiId, checkedAt])
+}
+
+model ApiRateLimitBucket {
+  key         String   @db.VarChar(64)
+  windowStart DateTime @db.Timestamptz(6)
+  count       Int
+  expiresAt   DateTime @db.Timestamptz(6)
+
+  @@id([key, windowStart])
+  @@index([expiresAt])
+}

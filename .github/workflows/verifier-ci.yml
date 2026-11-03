@@ -1,0 +1,108 @@
+name: Go Verifier CI
+
+on:
+  pull_request:
+    branches: [dev, stable]
+    paths:
+      - "services/verifier/**"
+      - "services/catalogue-importer/**"
+      - ".github/workflows/verifier-ci.yml"
+  push:
+    branches: [dev, stable]
+    paths:
+      - "services/verifier/**"
+      - "services/catalogue-importer/**"
+      - ".github/workflows/verifier-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Format, test, and build Go verifier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: services/verifier/go.mod
+          cache-dependency-path: services/verifier/go.mod
+      - name: Verify gofmt formatting
+        working-directory: services/verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then
+            printf 'Go files need gofmt:\n%s\n' "$unformatted"
+            exit 1
+          fi
+      - name: Run Go tests
+        working-directory: services/verifier
+        run: go test -race -cover ./...
+      - name: Run go vet
+        working-directory: services/verifier
+        run: go vet ./...
+      - name: Build Linux verifier binary
+        working-directory: services/verifier
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /tmp/apivault-verifier ./cmd/verifier
+      - name: Build Alpine container
+        run: docker build -t apivault-verifier -f services/verifier/Dockerfile services/verifier
+      - name: Smoke-test verifier health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name apivault-verifier-smoke --publish 8081:8081 \
+            --env API_BASE_URL=http://127.0.0.1:3000 \
+            --env VERIFIER_SHARED_SECRET=ci-only-verifier-secret-with-at-least-32-characters \
+            apivault-verifier
+          cleanup() {
+            docker logs apivault-verifier-smoke || true
+            docker rm --force apivault-verifier-smoke >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8081/healthz | grep -q ok; then
+              echo "Go verifier health endpoint responded successfully."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Go verifier did not become healthy."
+          exit 1
+
+  catalogue-importer:
+    name: Format, test, vet, and build Go catalogue importer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.mod
+      - name: Resolve importer dependencies and checksums
+        working-directory: services/catalogue-importer
+        run: go mod tidy
+      - name: Verify gofmt formatting
+        working-directory: services/catalogue-importer
+        shell: bash
+        run: |
+          set -euo pipefail
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then
+            printf 'Go files need gofmt:\\n%s\\n' "$unformatted"
+            exit 1
+          fi
+      - name: Run Go tests
+        working-directory: services/catalogue-importer
+        run: go test -race -cover ./...
+      - name: Validate curated starter catalogue (dry run)
+        working-directory: services/catalogue-importer
+        run: go run ./cmd/catalogue-importer -input data/curated-starter-v1.json
+      - name: Run go vet
+        working-directory: services/catalogue-importer
+        run: go vet ./...
+      - name: Build importer
+        working-directory: services/catalogue-importer
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /tmp/apivault-catalogue-importer ./cmd/catalogue-importer
