@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ApiCard } from "@/components/api-card";
-import { CATEGORY_DIRECTORY, AUTH_OPTIONS, PRICING_OPTIONS } from "@/lib/catalogue/constants";
+import { AUTH_OPTIONS, PRICING_OPTIONS } from "@/lib/catalogue/constants";
 import { parseCatalogueFilters } from "@/lib/catalogue/search";
-import { listApis } from "@/lib/catalogue/queries";
+import { listApis, listCategories } from "@/lib/catalogue/queries";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -12,7 +12,8 @@ export const metadata = { title: "Explore APIs" };
 
 export default async function ApisPage({ searchParams }: PageProps) {
   const filters = parseCatalogueFilters(await searchParams);
-  const result = await listApis(filters);
+  const [result, categoryResult] = await Promise.all([listApis(filters), listCategories()]);
+  const categories = categoryResult.databaseStatus === "ready" ? categoryResult.categories : [];
 
   return (
     <div className="min-h-screen bg-[#0b0c0f] px-5 py-12 text-slate-100 sm:px-8">
@@ -32,7 +33,7 @@ export default async function ApisPage({ searchParams }: PageProps) {
             <label htmlFor="category" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Category</label>
             <select id="category" name="category" defaultValue={filters.category} className="w-full rounded-lg border border-white/10 bg-[#0c0f14] px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-rose-400/50">
               <option value="">All categories</option>
-              {CATEGORY_DIRECTORY.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
+              {categories.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
             </select>
           </div>
           <div>
@@ -74,7 +75,9 @@ export default async function ApisPage({ searchParams }: PageProps) {
                 <select id="sort" name="sort" defaultValue={filters.sort} className="rounded-lg border border-white/10 bg-[#14171d] px-2 py-1.5 font-semibold text-slate-300">
                   <option value="relevance">Featured</option>
                   <option value="recent">Recently updated</option>
-                  <option value="name">Name</option>
+                  <option value="verified">Recently verified</option>
+                  <option value="newest">Newest added</option>
+                  <option value="name">Name (A–Z)</option>
                 </select>
                 <button type="submit" className="rounded-lg border border-white/10 px-3 py-1.5 text-[10px] font-bold text-slate-300 hover:bg-white/5">Sort</button>
               </form>
