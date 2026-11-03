@@ -41,6 +41,7 @@ From the repository root:
 
 ```bash
 cd services/catalogue-importer
+go mod tidy
 go test ./...
 go run ./cmd/catalogue-importer -input examples/catalogue.example.json
 ```
