@@ -29,7 +29,7 @@ The source-level check does not simulate Better Auth cookies, sessions, or a non
 
 The submission review service is shared by the server action and integration tests. Tests cover allowed and forbidden state transitions, required reviewer notes, rejection persistence, and transaction rollback.
 
-The approval service is also shared by the server action and integration tests. CREATE approval is verified to apply the canonical API, official homepage evidence, revision snapshot, and APPROVED status in one transaction. The API remains pending verification and unpublished. A missing-category failure verifies that provider creation and submission changes roll back. UPDATE approval and concurrent reviewer races remain additional coverage targets.
+The approval service is also shared by the server action and integration tests. CREATE approval is verified to apply the canonical API, official homepage evidence, revision snapshot, and APPROVED status in one transaction. The API remains pending verification and unpublished. A missing-category failure verifies that provider creation and submission changes roll back. UPDATE approval is covered for payload application, relation replacement, official homepage evidence, revision snapshots, and reset to pending verification. Concurrent reviewer races remain an additional coverage target.
 
 ## Verification and publication tests
 
