@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ApiStatus, VerificationStatus } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-auth";
-import { updateApiLifecycle } from "@/lib/catalogue/lifecycle-service";
+import { updateApiLifecycle, verificationReviewNoteError } from "@/lib/catalogue/lifecycle-service";
 
 const verificationValues = Object.values(VerificationStatus) as string[];
 const apiStatusValues = Object.values(ApiStatus) as string[];
@@ -31,6 +31,11 @@ export async function updateApiLifecycleAction(
   const nextVerification = verificationStatus as VerificationStatus;
   const nextStatus = status as ApiStatus;
 
+  if (nextVerification === VerificationStatus.VERIFIED) {
+    const noteError = verificationReviewNoteError(note);
+    if (noteError) return { status: "error", message: noteError };
+  }
+
   try {
     const slug = await getPrisma().$transaction((tx) =>
       updateApiLifecycle(tx, apiId, nextVerification, nextStatus, note),
@@ -39,13 +44,14 @@ export async function updateApiLifecycleAction(
     revalidatePath("/admin");
     revalidatePath("/admin/apis");
     revalidatePath(`/admin/apis/${slug}/review`);
+    revalidatePath(`/admin/apis/${slug}/history`);
     revalidatePath("/");
     revalidatePath(`/apis/${slug}`);
 
     return {
       status: "success",
       message: nextStatus === ApiStatus.ACTIVE && nextVerification === VerificationStatus.VERIFIED
-        ? "API verified and published to the public catalogue."
+        ? "API verified and published. Evidence check dates and the review note were recorded."
         : "API lifecycle updated. This record is hidden unless it is both ACTIVE and VERIFIED.",
     };
   } catch (error) {
