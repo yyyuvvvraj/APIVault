@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getApiBySlug } from "@/lib/catalogue/queries";
 import { toPublicApiDetail } from "@/lib/catalogue/serializers";
 import { enforcePublicApiRateLimit } from "@/lib/api-rate-limit";
+import { createEtag, matchesIfNoneMatch } from "@/lib/http-etag";
 
 type RouteContext = { params: Promise<{ slug: string }> };
 
@@ -30,10 +31,16 @@ export async function GET(request: Request, context: RouteContext) {
         { status: 404, headers: rateLimit.headers },
       );
     }
-    return NextResponse.json(
-      { data: toPublicApiDetail(result.api) },
-      { headers: { ...rateLimit.headers, "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300" } },
-    );
+    const payload = { data: toPublicApiDetail(result.api) };
+    const headers = {
+      ...rateLimit.headers,
+      "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+      ETag: createEtag(payload),
+    };
+    if (matchesIfNoneMatch(request.headers.get("if-none-match"), headers.ETag)) {
+      return new NextResponse(null, { status: 304, headers });
+    }
+    return NextResponse.json(payload, { headers });
   } catch (error) {
     console.error("GET /api/v1/apis/[slug] failed:", error);
     return NextResponse.json(

@@ -3,6 +3,7 @@ import { listApis } from "@/lib/catalogue/queries";
 import { parseCatalogueFilters } from "@/lib/catalogue/search";
 import { toPublicApiCard } from "@/lib/catalogue/serializers";
 import { enforcePublicApiRateLimit } from "@/lib/api-rate-limit";
+import { createEtag, matchesIfNoneMatch } from "@/lib/http-etag";
 
 export async function GET(request: NextRequest) {
   let rateLimit: Awaited<ReturnType<typeof enforcePublicApiRateLimit>>;
@@ -23,13 +24,19 @@ export async function GET(request: NextRequest) {
         { status: 503, headers: rateLimit.headers },
       );
     }
-    return NextResponse.json(
-      {
-        data: result.items.map(toPublicApiCard),
-        pagination: { page: filters.page, limit: filters.limit, total: result.total, totalPages: result.totalPages },
-      },
-      { headers: { ...rateLimit.headers, "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300" } },
-    );
+    const payload = {
+      data: result.items.map(toPublicApiCard),
+      pagination: { page: filters.page, limit: filters.limit, total: result.total, totalPages: result.totalPages },
+    };
+    const headers = {
+      ...rateLimit.headers,
+      "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+      ETag: createEtag(payload),
+    };
+    if (matchesIfNoneMatch(request.headers.get("if-none-match"), headers.ETag)) {
+      return new NextResponse(null, { status: 304, headers });
+    }
+    return NextResponse.json(payload, { headers });
   } catch (error) {
     console.error("GET /api/v1/apis failed:", error);
     return NextResponse.json(
