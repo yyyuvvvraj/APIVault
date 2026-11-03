@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { withRequestContext } from "@/lib/request-context";
 import { listCategories } from "@/lib/catalogue/queries";
 import { enforcePublicApiRateLimit } from "@/lib/api-rate-limit";
 import { createEtag, matchesIfNoneMatch } from "@/lib/http-etag";
 
-export async function GET(request: Request) {
+export const GET = withRequestContext("/api/v1/categories", async function GET(request: Request) {
   let rateLimit: Awaited<ReturnType<typeof enforcePublicApiRateLimit>>;
   try {
     rateLimit = await enforcePublicApiRateLimit(request);
@@ -38,4 +39,4 @@ export async function GET(request: Request) {
       { status: 500, headers: rateLimit.headers },
     );
   }
-}
+});
