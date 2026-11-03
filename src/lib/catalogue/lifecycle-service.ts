@@ -14,7 +14,7 @@ export async function updateApiLifecycle(
       provider: { select: { name: true } },
       categories: { include: { category: { select: { slug: true } } } },
       authMethods: { select: { method: true } },
-      sources: { select: { sourceKind: true, url: true, isOfficial: true } },
+      sources: { select: { sourceKind: true, url: true, isOfficial: true, checkedAt: true } },
     },
   });
   if (!api) throw new Error("The API record no longer exists.");
@@ -27,10 +27,22 @@ export async function updateApiLifecycle(
     if (api.categories.length === 0) throw new Error("Add at least one category before verifying this API.");
     if (api.authMethods.length === 0) throw new Error("Add at least one authentication classification before verifying this API.");
     if (nextStatus !== ApiStatus.ACTIVE) throw new Error("Set the API availability to ACTIVE before verifying and publishing it.");
+    if (!note.trim()) throw new Error("Add a review note describing the evidence checked before verifying this API.");
   }
 
   const now = new Date();
   const willBePublic = nextStatus === ApiStatus.ACTIVE && nextVerification === VerificationStatus.VERIFIED;
+
+  // A verification action is an explicit maintainer attestation that the linked
+  // evidence was reviewed now. Keep per-source timestamps as well as API-level
+  // timestamps so the review page and immutable revision agree on provenance.
+  if (nextVerification === VerificationStatus.VERIFIED) {
+    await tx.apiSource.updateMany({
+      where: { apiId },
+      data: { checkedAt: now },
+    });
+  }
+
   const updated = await tx.api.update({
     where: { id: apiId },
     data: {
@@ -44,7 +56,7 @@ export async function updateApiLifecycle(
       provider: { select: { name: true } },
       categories: { include: { category: { select: { slug: true } } } },
       authMethods: { select: { method: true } },
-      sources: { select: { sourceKind: true, url: true, isOfficial: true } },
+      sources: { select: { sourceKind: true, url: true, isOfficial: true, checkedAt: true } },
     },
   });
 
@@ -65,7 +77,10 @@ export async function updateApiLifecycle(
         categorySlugs: updated.categories.map((item) => item.category.slug),
         authMethods: updated.authMethods.map((item) => item.method),
         sources: updated.sources.map((source) => ({
-          sourceKind: source.sourceKind, url: source.url, isOfficial: source.isOfficial,
+          sourceKind: source.sourceKind,
+          url: source.url,
+          isOfficial: source.isOfficial,
+          checkedAt: source.checkedAt?.toISOString() ?? null,
         })),
       },
     },
