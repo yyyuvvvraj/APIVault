@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { withRequestContext } from "@/lib/request-context";
 import { getApiBySlug } from "@/lib/catalogue/queries";
 import { toPublicApiDetail } from "@/lib/catalogue/serializers";
 import { enforcePublicApiRateLimit } from "@/lib/api-rate-limit";
@@ -6,7 +7,7 @@ import { createEtag, matchesIfNoneMatch } from "@/lib/http-etag";
 
 type RouteContext = { params: Promise<{ slug: string }> };
 
-export async function GET(request: Request, context: RouteContext) {
+export const GET = withRequestContext("/api/v1/apis/[slug]", async function GET(request: Request, context: RouteContext) {
   let rateLimit: Awaited<ReturnType<typeof enforcePublicApiRateLimit>>;
   try {
     rateLimit = await enforcePublicApiRateLimit(request);
@@ -48,4 +49,4 @@ export async function GET(request: Request, context: RouteContext) {
       { status: 500, headers: rateLimit.headers },
     );
   }
-}
+});

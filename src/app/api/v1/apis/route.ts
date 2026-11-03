@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestContext } from "@/lib/request-context";
 import { listApis } from "@/lib/catalogue/queries";
 import { parseCatalogueFilters } from "@/lib/catalogue/search";
 import { toPublicApiCard } from "@/lib/catalogue/serializers";
 import { enforcePublicApiRateLimit } from "@/lib/api-rate-limit";
 import { createEtag, matchesIfNoneMatch } from "@/lib/http-etag";
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestContext("/api/v1/apis", async function GET(request: NextRequest) {
   let rateLimit: Awaited<ReturnType<typeof enforcePublicApiRateLimit>>;
   try {
     rateLimit = await enforcePublicApiRateLimit(request);
@@ -44,4 +45,4 @@ export async function GET(request: NextRequest) {
       { status: 500, headers: rateLimit.headers },
     );
   }
-}
+});
