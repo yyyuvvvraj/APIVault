@@ -4,7 +4,7 @@ All notable changes to APIVault will be documented here.
 
 The format is based on Keep a Changelog, and this project will use Semantic Versioning for stable releases.
 
-## [Unreleased]
+## [0.0.1] - 2026-11-03
 
 ### Added
 - PostgreSQL-backed fixed-window rate limiting for all public v1 REST endpoints, with atomic cross-instance updates, hashed client identifiers, 429 responses, retry guidance, and opportunistic bucket cleanup.
