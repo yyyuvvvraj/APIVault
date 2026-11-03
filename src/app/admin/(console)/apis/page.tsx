@@ -26,7 +26,7 @@ export default async function AdminApisPage() {
           <p className="mt-2 text-sm text-slate-400">All records, including unverified and archived entries.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-300">{apis.length} records shown</span>
+          <Link href="/admin/freshness" className="rounded-xl border border-amber-400/20 bg-amber-400/[0.05] px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-400/10">Freshness report ↗</Link><span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-300">{apis.length} records shown</span>
           <Link href="/admin/apis/new" className="rounded-xl bg-gradient-to-r from-rose-500 to-red-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-rose-950/30 transition hover:brightness-110">+ Add API</Link>
         </div>
       </header>
