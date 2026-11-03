@@ -79,6 +79,9 @@ VERIFIER_SHARED_SECRET=
 APIVAULT_INTERNAL_URL="http://host.docker.internal:3000"
 VERIFIER_SCAN_INTERVAL=30m
 VERIFIER_CONCURRENCY=8
+
+# Optional: protect the internal Prometheus metrics endpoint (minimum 32 random characters)
+APIVAULT_METRICS_TOKEN=
 ```
 
 Generate a Better Auth secret:

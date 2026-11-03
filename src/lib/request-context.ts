@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { recordHttpRequestMetric } from "@/lib/ops/metrics";
 
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]{1,128}$/;
 
@@ -32,6 +33,7 @@ export function withRequestContext<TRequest extends Request, TArgs extends unkno
       response.headers.set("X-Request-Id", requestId);
 
       const status = response.status;
+      recordHttpRequestMetric(route, request.method, status, Date.now() - startedAt);
       const record = {
         level: status >= 500 ? "error" : status >= 400 ? "warn" : "info",
         event: "http.request.completed",
@@ -49,6 +51,7 @@ export function withRequestContext<TRequest extends Request, TArgs extends unkno
 
       return response;
     } catch (error) {
+      recordHttpRequestMetric(route, request.method, 500, Date.now() - startedAt);
       console.error(JSON.stringify({
         level: "error",
         event: "http.request.failed",
