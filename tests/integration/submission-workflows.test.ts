@@ -69,3 +69,28 @@ test("transaction rollback restores the prior review state after a later write f
   assert.equal(saved.status, SubmissionStatus.IN_REVIEW);
   assert.equal(saved.reviewNote, null);
 });
+
+
+test("concurrent reviewer decisions cannot overwrite the first committed decision", async () => {
+  const submission = await createSubmission(SubmissionStatus.PENDING);
+
+  const decisions = await Promise.allSettled([
+    prisma.$transaction((tx) =>
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject after review"),
+    ),
+    prisma.$transaction((tx) =>
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.CHANGES_REQUESTED, "Request further evidence"),
+    ),
+  ]);
+
+  assert.equal(decisions.filter((decision) => decision.status === "fulfilled").length, 1);
+  assert.equal(decisions.filter((decision) => decision.status === "rejected").length, 1);
+
+  const saved = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
+  assert.ok(
+    saved.status === SubmissionStatus.REJECTED ||
+    saved.status === SubmissionStatus.CHANGES_REQUESTED,
+  );
+  assert.ok(saved.reviewNote);
+  assert.ok(saved.reviewedAt);
+});
