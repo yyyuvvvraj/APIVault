@@ -17,7 +17,7 @@ npm run db:deploy
 npm run test:integration
 ```
 
-Coverage includes an OpenAPI JSON parse and route-presence check for the published contract, catalogue filter parsing, admin API and community submission validation, administrator role policy, database relation persistence, public visibility filtering, transaction rollback, submission review transitions, rejection persistence, atomic CREATE-submission approval, and a source-level guard requiring every current admin server-action module to authorize before processing form input or accessing the database.
+Coverage includes an OpenAPI JSON parse and route-presence check for the published contract, catalogue filter parsing, admin API and community submission validation, administrator role policy, database relation persistence, public visibility filtering, transaction rollback, submission review transitions, concurrent-reviewer compare-and-set protection, rejection persistence, atomic CREATE-submission approval, and a source-level guard requiring every current admin server-action module to authorize before processing form input or accessing the database.
 
 ## Administrator authorization coverage
 
@@ -29,7 +29,7 @@ The source-level check does not simulate Better Auth cookies, sessions, or a non
 
 The submission review service is shared by the server action and integration tests. Tests cover allowed and forbidden state transitions, required reviewer notes, rejection persistence, and transaction rollback.
 
-The approval service is also shared by the server action and integration tests. CREATE approval is verified to apply the canonical API, official homepage evidence, revision snapshot, and APPROVED status in one transaction. The API remains pending verification and unpublished. A missing-category failure verifies that provider creation and submission changes roll back. UPDATE approval is covered for payload application, relation replacement, official homepage evidence, revision snapshots, and reset to pending verification. Concurrent reviewer races remain an additional coverage target.
+The approval service is also shared by the server action and integration tests. CREATE approval is verified to apply the canonical API, official homepage evidence, revision snapshot, and APPROVED status in one transaction. The API remains pending verification and unpublished. A missing-category failure verifies that provider creation and submission changes roll back. UPDATE approval is covered for payload application, relation replacement, official homepage evidence, revision snapshots, and reset to pending verification. Concurrent reviewer races are covered with competing PostgreSQL transactions; exactly one decision may commit.
 
 ## Verification and publication tests
 
@@ -65,6 +65,8 @@ go build ./cmd/verifier
 Tests cover unsafe URL rejection, standard-port restrictions, public/private IP classification, and the authenticated jobs/results contract. Go Verifier CI runs tests, vet, binary compilation, and an Alpine container build and smoke test.
 
 ## Continuous integration
+
+Application, browser E2E, Docker smoke-test, and repository-hygiene workflows run for pull requests regardless of target branch. This keeps validation active for stacked feature branches.
 
 Application CI provisions a disposable PostgreSQL 18 service, applies committed migrations, runs unit tests and database integration tests, then runs lint, type checking, and the production build. Never run these tests against production.
 

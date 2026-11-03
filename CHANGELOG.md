@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Fixed
+- Prevent concurrent submission reviewers from overwriting a newer moderation decision using status-conditional updates.
 - Align every Next.js Docker build and runtime stage with the supported Node.js 24 engine range.
 - Make the PostgreSQL Compose healthcheck use the configured database user and database name instead of hard-coded defaults.
 
@@ -15,6 +16,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 
 ### Added
 - Enable the initial `v0.0.1` release tag to pass stable-branch ancestry validation and publish a multi-platform GHCR image.
+- Run application, browser E2E, Docker smoke-test, and repository-hygiene workflows for pull requests targeting any branch, including stacked PR bases.
 - Database-backed `/api/health/ready` endpoint with sanitized 200/503 responses and unit coverage for healthy and unavailable database states.
 - Global baseline HTTP security headers for MIME sniffing, framing, referrer policy, and unused browser permissions, with automated configuration tests.
 - OpenAPI 3.1 JSON contract for the public v1 API routes, query parameters, pagination, and error responses.
