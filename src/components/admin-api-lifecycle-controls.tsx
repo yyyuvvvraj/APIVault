@@ -53,7 +53,7 @@ export function AdminApiLifecycleControls({ apiId, status, verificationStatus, p
           </label>
         </div>
         <label className="block text-xs font-semibold text-slate-300">Review note
-          <textarea name="note" maxLength={500} rows={3} className="mt-2 w-full rounded-xl border border-white/10 bg-[#0b1018] px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/60" placeholder="Evidence reviewed, source checked, or reason for status change."/>
+          <textarea name="note" maxLength={500} rows={3} className="mt-2 w-full rounded-xl border border-white/10 bg-[#0b1018] px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/60" placeholder="Required for verification: describe the official evidence checked."/>
         </label>
         <div className="flex justify-end">
           <button type="submit" disabled={pending} className="rounded-xl bg-gradient-to-r from-rose-500 to-red-600 px-5 py-3 text-xs font-extrabold text-white disabled:opacity-50">{pending ? "Saving status…" : "Save verification status"}</button>
