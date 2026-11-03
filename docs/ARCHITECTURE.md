@@ -104,7 +104,7 @@ Verification is evidence-gated: the official homepage source must match the cano
 
 ## Community submission moderation
 
-Community CREATE and UPDATE proposals are stored separately from canonical API records. Admin review actions enforce the allowed status transitions server-side. Approval revalidates the stored JSON payload, resolves providers and categories, applies the change to the canonical record, writes an API revision, and marks the submission approved in one transaction.
+Community CREATE and UPDATE proposals are stored separately from canonical API records. Admin review actions enforce the allowed status transitions server-side and use conditional status updates so concurrent reviewers cannot silently overwrite one another. Approval revalidates the stored JSON payload, resolves providers and categories, applies the change to the canonical record, writes an API revision, and marks the submission approved in one transaction.
 
 Applying a community submission never directly publishes an API. New or materially updated records return to pending verification and must pass the independent verification process.
 
