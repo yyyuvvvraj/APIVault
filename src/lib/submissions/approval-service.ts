@@ -150,6 +150,7 @@ export async function applySubmissionApproval(
             pricingModel: input.pricingModel,
             pricingSummary: input.pricingSummary ?? null,
             verificationStatus: VerificationStatus.PENDING_REVIEW,
+            verifiedAt: null,
             publishedAt: null,
             categories: {
               deleteMany: {},
