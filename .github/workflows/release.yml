@@ -1,0 +1,74 @@
+name: Publish GitHub Release
+
+on:
+  push:
+    tags: ["v0.*", "v1.*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: github-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Validate tag and publish release notes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify tag is on stable and matches project version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin stable
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/stable; then
+            echo "::error::Release tags must point to a commit already contained in stable."
+            exit 1
+          fi
+
+          version="${GITHUB_REF_NAME#v}"
+          package_version="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+          if [[ "$version" != "$package_version" ]]; then
+            echo "::error::Tag version $version does not match package.json version $package_version."
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Extract versioned changelog entry
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          awk -v heading="## [$VERSION]" '
+            index($0, heading) == 1 { found=1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
+
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/release-notes.md"; then
+            echo "::error::No changelog entry found for $VERSION."
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "GitHub Release $TAG already exists; leaving it unchanged."
+          else
+            gh release create "$TAG"               --verify-tag               --title "APIVault $TAG"               --notes-file "$RUNNER_TEMP/release-notes.md"
+          fi

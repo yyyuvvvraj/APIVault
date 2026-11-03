@@ -50,6 +50,12 @@ This checklist defines the evidence required before APIVault moves from developm
 - [ ] Verify the published container image, multi-architecture manifests, provenance/SBOM artifacts, and image startup configuration.
 - [ ] Run post-release smoke checks and record the result and rollback/forward-fix decision.
 
+## v0.0.1 release record
+
+- [x] The `v0.0.1` GitHub Release is published from `stable`.
+- [x] The tag validation and GitHub Release publication workflow completed successfully.
+- [x] The multi-architecture GHCR image build completed successfully; the release-tag workflow intentionally skips the PR/feature-branch container smoke-test step. Hosted application checks and runtime startup remain separate validation tasks.
+
 ## Current known gaps to resolve before a stable public launch
 
 - Authenticated non-admin session denial is now covered by `tests/e2e/admin-workflows.spec.ts`; rerun this test on the exact release candidate commit before launch.
