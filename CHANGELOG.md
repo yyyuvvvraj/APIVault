@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [Unreleased]
 
 ### Fixed
+- Prevent concurrent submission reviewers from overwriting a newer moderation decision by applying status-conditional updates.
 - Align every Next.js Docker build and runtime stage with the supported Node.js 24 engine range.
 - Make the PostgreSQL Compose healthcheck use the configured database user and database name instead of hard-coded defaults.
 
