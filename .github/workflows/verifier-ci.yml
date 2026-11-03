@@ -81,9 +81,9 @@ jobs:
         with:
           go-version-file: services/catalogue-importer/go.mod
           cache-dependency-path: services/catalogue-importer/go.mod
-      - name: Download importer Go modules
+      - name: Resolve importer dependencies and checksums
         working-directory: services/catalogue-importer
-        run: go mod download
+        run: go mod tidy
       - name: Verify gofmt formatting
         working-directory: services/catalogue-importer
         shell: bash
