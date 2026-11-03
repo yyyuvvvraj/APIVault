@@ -118,6 +118,10 @@ Unit tests use Node.js's built-in test runner through the existing `tsx` depende
 
 PostgreSQL integration tests now cover catalogue persistence, public visibility, transaction rollback, submission review transitions, rejection, and atomic CREATE approval. Session-backed authorization, UPDATE approval edge cases, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
 
+## Readiness endpoint
+
+`GET /api/health/ready` performs a lightweight database query and returns HTTP 200 only when PostgreSQL is reachable; otherwise it returns HTTP 503 with a sanitized status. Responses are marked `Cache-Control: no-store`. This is a readiness signal for deployment health checks, not a liveness probe and not a substitute for application-level smoke tests.
+
 ## Go verifier worker
 
 The optional Go verifier is a separate worker, not a replacement for Next.js route handlers or the catalogue domain layer. It obtains bounded health-check jobs and submits observations through authenticated internal Next.js endpoints. It has no direct database credentials and cannot change verification or publication state.
