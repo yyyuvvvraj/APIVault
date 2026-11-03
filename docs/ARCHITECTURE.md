@@ -115,9 +115,9 @@ Applying a community submission never directly publishes an API. New or material
 
 ## Testing architecture
 
-Unit tests use Node.js's built-in test runner through the existing `tsx` dependency. The initial suite covers catalogue filter parsing and the Zod schemas used by admin API creation and community submissions. Application CI runs `npm test` before lint, type checking, and build.
+Unit tests use Node.js's built-in test runner through the existing `tsx` dependency. Coverage includes catalogue and submission validation, admin authorization guard placement, ETag and conditional-request parsing, OpenAPI contract checks, security headers, readiness policy, request correlation, and operational metrics. Application CI runs unit tests and PostgreSQL integration tests before lint, type checking, and build.
 
-PostgreSQL integration tests now cover catalogue persistence, public visibility, transaction rollback, submission review transitions, rejection, and atomic CREATE approval. Session-backed authorization, UPDATE approval edge cases, and browser-based end-to-end tests remain explicit coverage gaps. See [TESTING.md](TESTING.md) for the test strategy and local commands.
+PostgreSQL integration tests cover catalogue persistence and visibility, transaction rollback, submission review transitions, CREATE and UPDATE approval, concurrent reviewer races, lifecycle verification/publication, and concurrent rate-limit consumption. Playwright browser tests cover unauthenticated admin denial, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. Authenticated non-admin session coverage remains an explicit gap; source-level authorization checks do not replace a real non-admin session test. See [TESTING.md](TESTING.md) for the current test strategy and local commands.
 
 ## Readiness endpoint
 
