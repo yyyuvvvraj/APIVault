@@ -17,7 +17,7 @@ Discover APIs, compare their capabilities and requirements, and contribute relia
 
 ## Local development
 
-New contributors should follow the step-by-step [setup guide](docs/SETUP.md). For a concise local development reference, see [local development](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), and [verification policy](docs/VERIFICATION_POLICY.md) before changing catalogue behaviour. For container builds and GHCR publishing, see the [Docker deployment guide](docs/DOCKER_DEPLOYMENT.md).
+New contributors should follow the step-by-step [setup guide](docs/SETUP.md). For a concise local development reference, see [local development](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), and [verification policy](docs/VERIFICATION_POLICY.md) before changing catalogue behaviour. See the [catalogue curation guide](docs/CATALOGUE_CURATION.md) for source, pricing, and review requirements. For container builds and GHCR publishing, see the [Docker deployment guide](docs/DOCKER_DEPLOYMENT.md).
 
 ## Public API
 
