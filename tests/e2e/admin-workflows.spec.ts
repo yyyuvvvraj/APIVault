@@ -55,7 +55,7 @@ test("authenticated non-admin users are denied admin pages", async ({ page }) =>
   await page.getByRole("button", { name: "Sign in to APIVault" }).click();
   // A successful sign-in must establish a session before authorization is tested.
   await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
-  await expect(page.getByRole("alert")).toContainText("This account does not have administrator access.");
+  await expect(page.getByText("This account does not have administrator access.", { exact: true })).toBeVisible();
 
   for (const protectedPath of ["/admin", "/admin/apis/new", "/admin/submissions"]) {
     await page.goto(protectedPath);
