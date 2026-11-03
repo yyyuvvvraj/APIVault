@@ -57,7 +57,7 @@ test("authenticated non-admin users are denied admin pages", async ({ page }) =>
   await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
   await expect(page.getByText("This account does not have administrator access.", { exact: true })).toBeVisible();
 
-  for (const protectedPath of ["/admin", "/admin/apis/new", "/admin/submissions"]) {
+  for (const protectedPath of ["/admin", "/admin/apis/new", "/admin/submissions", "/admin/review-queue"]) {
     await page.goto(protectedPath);
     await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
     await expect(page.getByRole("heading", { name: "Welcome back." })).toBeVisible();
