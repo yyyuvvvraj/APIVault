@@ -2,7 +2,6 @@ name: Application CI
 
 on:
   pull_request:
-    branches: [dev, stable, "feature/**", "test/**"]
   push:
     branches: [dev, stable, "feature/**"]
   workflow_dispatch:
