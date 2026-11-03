@@ -17,7 +17,11 @@ npm run db:deploy
 npm run test:integration
 ```
 
-Coverage includes an OpenAPI JSON parse and route-presence check for the published contract, catalogue filter parsing, admin API and community submission validation, administrator role policy, database relation persistence, public visibility filtering, transaction rollback, submission review transitions, concurrent-reviewer compare-and-set protection, rejection persistence, atomic CREATE-submission approval, and a source-level guard requiring every current admin server-action module to authorize before processing form input or accessing the database.
+Coverage includes an OpenAPI JSON parse and route-presence check for the published contract, catalogue filter parsing, admin API and community submission validation, administrator role policy, database relation persistence, public visibility filtering, transaction rollback, submission review transitions, concurrent-reviewer compare-and-set protection, rejection persistence, atomic CREATE-submission approval, PostgreSQL-backed concurrent API rate-limit consumption and window resets, client-IP hashing and rate-limit header formatting, and a source-level guard requiring every current admin server-action module to authorize before processing form input or accessing the database.
+
+## API rate-limit tests
+
+The unit suite covers reverse-proxy client address extraction, one-way address hashing, and rate-limit headers. The PostgreSQL integration test races concurrent requests against a disposable database bucket and verifies that exactly the configured number are admitted, excess requests are rejected, and a new fixed window admits requests again. Run integration tests only against a disposable database.
 
 ## Administrator authorization coverage
 

@@ -64,6 +64,7 @@ The browser never talks directly to PostgreSQL. Route handlers expose explicit p
 - `src/lib/admin-auth.ts`: server-side administrator session and role enforcement.
 - `src/lib/auth.ts` and `src/lib/auth-client.ts`: Better Auth server and client configuration.
 - `src/lib/db.ts`: server-only Prisma client lifecycle.
+- `src/lib/api-rate-limit.ts`: shared PostgreSQL fixed-window limiter; client IPs are SHA-256 hashed before persistence.
 - `prisma/`: canonical database schema, migrations, and seed data.
 - `tests/unit/`, `tests/integration/`, `tests/e2e/`, and `services/verifier/`: policy/validation tests, PostgreSQL-backed persistence tests, Playwright browser workflows, and the independent Go health-check worker.
 - `docs/`: product and engineering decisions.
@@ -98,7 +99,7 @@ The current read-only routes are:
 - `GET /api/v1/apis/{slug}`
 - `GET /api/v1/categories`
 
-Responses contain only active, verified catalogue entries. The routes are versioned, apply bounded pagination, and use explicit serializers. The OpenAPI 3.1 contract is published at [openapi.json](openapi.json). The error envelope and bounded query parameters are documented there. Rate limiting, production observability, and a published usage policy remain release-readiness requirements.
+Responses contain only active, verified catalogue entries. The routes are versioned, apply bounded pagination, and use explicit serializers. The OpenAPI 3.1 contract is published at [openapi.json](openapi.json). All public routes enforce a shared PostgreSQL fixed-window limit of 120 requests per client IP per 60 seconds. Atomic upserts keep decisions consistent across application instances. Client IPs are SHA-256 hashed before storage; the reverse proxy must set a trustworthy X-Real-IP header. Rejected requests receive HTTP 429, Retry-After, and X-RateLimit headers. If the limiter database operation fails, requests fail closed with HTTP 503. Expired buckets are opportunistically cleaned. Rate limiting is now implemented; production observability and a published usage policy remain release-readiness requirements.
 
 ## Admin catalogue lifecycle
 

@@ -368,3 +368,13 @@ model ApiHealthCheck {
 
   @@index([apiId, checkedAt])
 }
+
+model ApiRateLimitBucket {
+  key         String   @db.VarChar(64)
+  windowStart DateTime @db.Timestamptz(6)
+  count       Int
+  expiresAt   DateTime @db.Timestamptz(6)
+
+  @@id([key, windowStart])
+  @@index([expiresAt])
+}
