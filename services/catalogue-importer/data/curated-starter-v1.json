@@ -55,8 +55,8 @@
       "homepageUrl": "https://api.nasa.gov/",
       "documentationUrl": "https://api.nasa.gov/",
       "baseUrl": "https://api.nasa.gov",
-      "pricingModel": "FREE",
-      "pricingSummary": "Developer API keys are available without a stated charge; request limits apply and vary by service.",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "The portal offers developer API keys; no general API price is stated here. Request limits apply and vary by service.",
       "verificationStatus": "PENDING_REVIEW",
       "categories": [
         "science-education"
