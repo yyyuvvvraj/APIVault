@@ -32,7 +32,7 @@ Contributions of code, API listings, data corrections, tests, and documentation 
 - The dev branch is the default integration branch.
 - Work on short-lived branches such as feature/add-api-catalogue or docs/improve-readme.
 - Open pull requests into dev; do not push directly to protected branches.
-- Stable releases will be prepared from dev and published from stable with version tags.
+- Stable releases will be prepared from dev and published from stable with version tags. Review the [release-readiness checklist](docs/RELEASE_READINESS.md) before creating a release candidate.
 
 ## Community
 
