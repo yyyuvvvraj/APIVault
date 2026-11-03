@@ -57,7 +57,7 @@ export default async function AdminDashboardPage() {
           <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">Dashboard</h1>
           <p className="mt-2 text-sm text-slate-400">A live view of catalogue health and community activity.</p>
         </div>
-        <Link href="/admin/apis" className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/[0.08]">Manage catalogue ↗</Link>
+        <div className="flex gap-2"><Link href="/admin/freshness" className="rounded-xl border border-amber-400/20 bg-amber-400/[0.05] px-4 py-2.5 text-xs font-bold text-amber-200 transition hover:bg-amber-400/10">Freshness report ↗</Link><Link href="/admin/apis" className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/[0.08]">Manage catalogue ↗</Link></div>
       </header>
 
       <section aria-label="Catalogue statistics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
