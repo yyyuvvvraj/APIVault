@@ -166,7 +166,7 @@ func importAPI(ctx context.Context, tx pgx.Tx, api API, now time.Time) error {
 		INSERT INTO "ApiRevision"
 			("id", "apiId", "action", "actorGithub", "summary", "snapshot", "createdAt")
 		VALUES ($1::uuid, $2::uuid, $3::"RevisionAction", $4, $5, $6::jsonb, $7)
-	`, revisionUUID, apiID, action, revisionActor, "Catalogue import via Go importer", snapshot, now); err != nil {
+	`, revisionUUID, apiID, action, revisionActor, "Catalogue import via Go importer", string(snapshot), now); err != nil {
 		return fmt.Errorf("write API revision: %w", err)
 	}
 	return nil
