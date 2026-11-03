@@ -52,7 +52,7 @@ This checklist defines the evidence required before APIVault moves from developm
 
 ## Current known gaps to resolve before a stable public launch
 
-- Authenticated non-admin session coverage is not yet implemented; current source-level guard tests and unauthenticated browser denial are not sufficient substitutes.
+- Authenticated non-admin session denial is now covered by `tests/e2e/admin-workflows.spec.ts`; rerun this test on the exact release candidate commit before launch.
 - A reviewed Content Security Policy and hosting-edge transport-security configuration are still outstanding.
 - Production hosting, secrets management, centralized observability/alerting, automated backups, and a tested restore procedure have not been selected and validated.
 - Repository branch protection/ruleset settings are GitHub-side configuration and must be verified in repository settings; workflow files cannot prove those controls are enabled.
