@@ -28,6 +28,7 @@ export default async function AdminDashboardPage() {
   const [
     totalApis,
     verifiedApis,
+    pendingApiReviews,
     pendingSubmissions,
     totalCategories,
     recentApis,
@@ -35,6 +36,7 @@ export default async function AdminDashboardPage() {
   ] = await Promise.all([
     db.api.count(),
     db.api.count({ where: { verificationStatus: VerificationStatus.VERIFIED, status: ApiStatus.ACTIVE } }),
+    db.api.count({ where: { verificationStatus: VerificationStatus.PENDING_REVIEW } }),
     db.apiSubmission.count({ where: { status: { in: [SubmissionStatus.PENDING, SubmissionStatus.IN_REVIEW] } } }),
     db.category.count(),
     db.api.findMany({
@@ -57,13 +59,14 @@ export default async function AdminDashboardPage() {
           <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">Dashboard</h1>
           <p className="mt-2 text-sm text-slate-400">A live view of catalogue health and community activity.</p>
         </div>
-        <div className="flex gap-2"><Link href="/admin/freshness" className="rounded-xl border border-amber-400/20 bg-amber-400/[0.05] px-4 py-2.5 text-xs font-bold text-amber-200 transition hover:bg-amber-400/10">Freshness report ↗</Link><Link href="/admin/apis" className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/[0.08]">Manage catalogue ↗</Link></div>
+        <div className="flex gap-2"><Link href="/admin/review-queue" className="rounded-xl border border-amber-400/20 bg-amber-400/[0.05] px-4 py-2.5 text-xs font-bold text-amber-200 transition hover:bg-amber-400/10">Verification queue ↗</Link><Link href="/admin/freshness" className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/[0.08]">Freshness report ↗</Link><Link href="/admin/apis" className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/[0.08]">Manage catalogue ↗</Link></div>
       </header>
 
-      <section aria-label="Catalogue statistics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Catalogue statistics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard label="Total APIs" value={totalApis} note="All catalogue records" accent="bg-sky-400" />
         <MetricCard label="Verified & active" value={verifiedApis} note="Visible in the public catalogue" accent="bg-emerald-400" />
-        <MetricCard label="Needs review" value={pendingSubmissions} note="Pending or being reviewed" accent="bg-amber-400" />
+        <MetricCard label="Awaiting verification" value={pendingApiReviews} note="Catalogue records awaiting evidence review" accent="bg-amber-400" />
+        <MetricCard label="Open submissions" value={pendingSubmissions} note="Community items pending moderation" accent="bg-orange-400" />
         <MetricCard label="Categories" value={totalCategories} note="Available catalogue categories" accent="bg-rose-400" />
       </section>
 
