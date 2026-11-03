@@ -50,6 +50,17 @@ This checklist defines the evidence required before APIVault moves from developm
 - [ ] Verify the published container image, multi-architecture manifests, provenance/SBOM artifacts, and image startup configuration.
 - [ ] Run post-release smoke checks and record the result and rollback/forward-fix decision.
 
+## v0.1.0 candidate gates
+
+- [ ] Review API-key lifecycle, session ownership, revocation, expiry, and dual IP/key rate limiting in staging.
+- [ ] Confirm account provisioning policy; public signup remains disabled and existing accounts are provisioned by maintainers.
+- [ ] Review contributor profile privacy defaults and verify private profiles cannot be fetched publicly.
+- [ ] Review in-app submission rate limits, moderation transitions, and the rule that approval does not bypass catalogue verification.
+- [ ] Validate the backup scripts against an isolated non-production database and record a successful restore drill.
+- [ ] Configure the `APIVAULT_BASE_URL` repository variable for the scheduled uptime smoke check, and configure an external monitor/alert destination separately.
+- [ ] Review CSP report-only observations before considering enforcement; HSTS is sent only in production.
+- [ ] Review the v2 curated dataset and approve each record through the normal evidence-backed moderation workflow before import.
+
 ## v0.0.1 release record
 
 - [x] The `v0.0.1` GitHub Release is published from `stable`.

@@ -10,7 +10,7 @@ v0.1 focuses on making APIVault useful to developers and contributors while impr
 - Keep the existing read-only public API usable without a key.
 - Add optional, user-owned API keys with a visible prefix and one-time secret display.
 - Store only a cryptographic hash of each key; never persist or log the raw secret.
-- Support revoke, rotate, expiry, last-used timestamps, and narrowly defined read-only scopes.
+- Support revocation, expiry, last-used timestamps, and a fixed `catalogue:read` scope. Rotate by creating a replacement key and revoking the old one.
 - Attribute rate-limit consumption to a valid key while retaining anonymous client-IP protection.
 - Do not increase quotas until abuse controls and per-key limits are tested.
 
@@ -48,6 +48,15 @@ v0.1 focuses on making APIVault useful to developers and contributors while impr
 - Review CSP, HSTS, cookies, trusted proxy handling, and rate-limit behavior at the actual hosting ingress.
 - Add operational runbooks for migration failure, database unavailability, credential rotation, and incident response.
 - Keep provider-specific operations (Render/Neon settings, alert destinations, backup schedules) documented separately from code checks.
+
+## v0.1.0 implementation status
+
+- [x] Read-only API keys: one-time secret display, hash-only storage, expiry, revocation, last-used tracking, fixed read scope, and per-key plus per-IP rate limiting.
+- [x] OpenAPI documentation, same-origin read-only playground, and account documentation.
+- [x] Opt-in public contributor profiles and authenticated submission/history pages for provisioned accounts.
+- [x] Review-only eight-record catalogue expansion dataset; all candidates remain pending maintainer review.
+- [x] Encrypted PostgreSQL backup/restore scripts, operations runbook, and scheduled/manual hosted smoke-check workflow.
+- [x] Production HSTS and CSP report-only baseline; CSP enforcement remains a separately reviewed gate.
 
 ## Delivery sequence
 

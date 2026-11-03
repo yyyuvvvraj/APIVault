@@ -23,6 +23,13 @@ New contributors should follow the step-by-step [setup guide](docs/SETUP.md). Fo
 
 The public API is read-only and currently exposes catalogue listings, individual API records, and categories. See the [API usage policy](docs/API_USAGE_POLICY.md) for current rate limits, caching and conditional request guidance, attribution, and fair-use expectations. The [OpenAPI specification](docs/openapi.json) documents the available endpoints.
 
+## Developer experience
+
+- Interactive API reference and playground: `/docs`.
+- Canonical OpenAPI document: `/openapi.json`.
+- Authenticated account area: `/account` for optional read-only API keys, contributor profiles, and submission history. Sign in at `/account/login`; public registration remains disabled and accounts are provisioned by maintainers.
+- API submissions are moderated and are never published automatically.
+
 ## Contributing
 
 Contributions of code, API listings, data corrections, tests, and documentation are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md). API suggestions should include official source links and can be submitted using the [Suggest an API issue form](https://github.com/yyyuvvvraj/APIVault/issues/new?template=api_submission.yml).

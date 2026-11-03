@@ -11,4 +11,6 @@ test("Next.js applies baseline security headers to every route", async () => {
   assert.equal(headers.get("x-frame-options"), "DENY");
   assert.equal(headers.get("referrer-policy"), "strict-origin-when-cross-origin");
   assert.equal(headers.get("permissions-policy"), "camera=(), microphone=(), geolocation=()");
+  assert.match(headers.get("content-security-policy-report-only") ?? "", /default-src/);
+  assert.match(headers.get("content-security-policy-report-only") ?? "", /frame-ancestors/);
 });

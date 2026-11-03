@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "APIVault Public API",
-    "version": "1.0.0",
-    "description": "Read-only API for ACTIVE and VERIFIED catalogue entries."
+    "version": "0.1.0",
+    "description": "Read-only API for ACTIVE and VERIFIED catalogue entries. Anonymous access remains available; optional APIVault API keys identify integrations and receive per-key rate limiting."
   },
   "servers": [
     {
@@ -283,6 +283,194 @@
           }
         ]
       }
+    },
+    "/account/keys": {
+      "get": {
+        "summary": "List the authenticated user's API keys",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key metadata only; raw secrets are never returned."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a read-only API key",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80
+                  },
+                  "expiresInDays": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "enum": [
+                      30,
+                      90,
+                      365,
+                      null
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created key metadata and the raw secret, returned once."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "409": {
+            "description": "Active key limit reached."
+          }
+        }
+      }
+    },
+    "/account/keys/{id}": {
+      "delete": {
+        "summary": "Revoke one of the authenticated user's API keys",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key revoked."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Key not found."
+          }
+        }
+      }
+    },
+    "/account/profile": {
+      "get": {
+        "summary": "Get the current user's contributor profile",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private profile settings."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      },
+      "put": {
+        "summary": "Create or update the current user's contributor profile",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile saved."
+          },
+          "400": {
+            "description": "Invalid profile."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "409": {
+            "description": "Handle is already in use."
+          }
+        }
+      }
+    },
+    "/submissions": {
+      "post": {
+        "summary": "Submit an API suggestion or update for moderation",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Submission accepted into the moderation queue."
+          },
+          "400": {
+            "description": "Invalid submission."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "429": {
+            "description": "Submission rate limit exceeded."
+          }
+        }
+      }
+    },
+    "/contributors/{handle}": {
+      "get": {
+        "summary": "Get an opted-in public contributor profile",
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public profile and approved contribution count."
+          },
+          "404": {
+            "description": "Profile is private or does not exist."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -403,6 +591,35 @@
           }
         }
       }
+    },
+    "securitySchemes": {
+      "ApiVaultBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "APIVault API key",
+        "description": "Optional read-only key created from the authenticated APIVault account. Use Authorization: Bearer av_live_…"
+      },
+      "ApiVaultHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Optional read-only APIVault API key."
+      },
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "better-auth.session_token",
+        "description": "Better Auth session cookie; account routes require an authenticated session."
+      }
     }
-  }
+  },
+  "security": [
+    {},
+    {
+      "ApiVaultBearer": []
+    },
+    {
+      "ApiVaultHeader": []
+    }
+  ]
 }
