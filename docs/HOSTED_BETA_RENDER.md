@@ -12,29 +12,26 @@ It is **not** the production deployment and must not contain production data.
 - Readiness check at `/api/health/ready`
 
 The application uses `DATABASE_URL` for runtime PostgreSQL connections.
-Prisma CLI migrations use `DIRECT_URL` when present, so use Neon's pooled URL for
-`DATABASE_URL` and its direct (non-pooled) URL for `DIRECT_URL`.
+Prisma CLI migrations prefer Neon's `DATABASE_URL_UNPOOLED`, then the hosted
+Render-compatible `DIRECT_URL`, and finally `DATABASE_URL` as a local fallback.
+Use a pooled URL for runtime and a direct (non-pooled) URL for migrations.
 
 The Render PostgreSQL resource in the Blueprint is a temporary migration fallback.
 It is deliberately not wired into the application. Keep it until Neon is verified,
 then remove it in a separate cleanup change.
 
-## Create the Neon database
+## Neon CLI setup
 
-1. Create a project at [Neon](https://neon.com/) using the Free plan.
-2. Choose the AWS Singapore region if available, to keep it close to the Render service.
-3. Create/select the default database and role.
-4. In the Neon Console, open **Connect** and copy both connection strings:
-   - **Pooled** URL (hostname contains `-pooler`) → Render `DATABASE_URL`
-   - **Direct** URL (hostname does not contain `-pooler`) → Render `DIRECT_URL`
-5. Keep both URLs private. They contain database credentials; never commit them or paste them into public issues or pull requests.
+The repository uses the existing Neon project and branch linked by `neon init`.
+The Neon CLI writes `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct),
+and branch metadata to the ignored local `.env.local`. Never commit that file.
 
 ## Configure Render
 
 1. Open the `apivault-beta` service in the Render Dashboard.
 2. Go to **Environment**.
 3. Set `DATABASE_URL` to the Neon pooled connection string.
-4. Set `DIRECT_URL` to the Neon direct connection string.
+4. Set `DIRECT_URL` to the Neon direct (non-pooled) connection string.
 5. Save changes and allow Render to redeploy.
 6. The start command runs committed Prisma migrations using `DIRECT_URL` before starting the app.
 
