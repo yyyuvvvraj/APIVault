@@ -42,7 +42,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           package-manager-cache: false
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - name: Generate Prisma and Better Auth clients
         run: |
           npm run db:generate
