@@ -14,6 +14,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 - Clear the previous verification timestamp when an approved community UPDATE returns an API to pending verification.
 
 ### Added
+- Enable the initial `v0.0.1` release tag to pass stable-branch ancestry validation and publish a multi-platform GHCR image.
 - Database-backed `/api/health/ready` endpoint with sanitized 200/503 responses and unit coverage for healthy and unavailable database states.
 - Global baseline HTTP security headers for MIME sniffing, framing, referrer policy, and unused browser permissions, with automated configuration tests.
 - OpenAPI 3.1 JSON contract for the public v1 API routes, query parameters, pagination, and error responses.
