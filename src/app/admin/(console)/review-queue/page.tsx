@@ -24,10 +24,6 @@ export default async function AdminVerificationQueuePage() {
     },
     include: {
       provider: { select: { name: true } },
-      homepageUrl: true,
-      documentationUrl: true,
-      pricingModel: true,
-      pricingSummary: true,
       categories: { select: { categoryId: true } },
       authMethods: { select: { method: true } },
       sources: { select: { id: true, sourceKind: true, url: true, isOfficial: true } },
