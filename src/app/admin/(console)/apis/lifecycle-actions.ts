@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ApiStatus, VerificationStatus } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-auth";
-import { updateApiLifecycle } from "@/lib/catalogue/lifecycle-service";
+import { updateApiLifecycle, verificationReviewNoteError } from "@/lib/catalogue/lifecycle-service";
 
 const verificationValues = Object.values(VerificationStatus) as string[];
 const apiStatusValues = Object.values(ApiStatus) as string[];
@@ -31,8 +31,9 @@ export async function updateApiLifecycleAction(
   const nextVerification = verificationStatus as VerificationStatus;
   const nextStatus = status as ApiStatus;
 
-  if (nextVerification === VerificationStatus.VERIFIED && !note) {
-    return { status: "error", message: "A review note is required when verifying an API. Describe the official evidence you checked." };
+  if (nextVerification === VerificationStatus.VERIFIED) {
+    const noteError = verificationReviewNoteError(note);
+    if (noteError) return { status: "error", message: noteError };
   }
 
   try {
