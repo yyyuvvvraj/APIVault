@@ -94,7 +94,7 @@ The current read-only routes are:
 - `GET /api/v1/apis/{slug}`
 - `GET /api/v1/categories`
 
-Responses contain only active, verified catalogue entries. The routes are versioned, apply bounded pagination, and use explicit serializers. Before declaring a public production API, add and publish an OpenAPI document, stable error contract, request limits, rate limiting, observability, and a published usage policy.
+Responses contain only active, verified catalogue entries. The routes are versioned, apply bounded pagination, and use explicit serializers. The OpenAPI 3.1 contract is published at [openapi.json](openapi.json). The error envelope and bounded query parameters are documented there. Rate limiting, production observability, and a published usage policy remain release-readiness requirements.
 
 ## Admin catalogue lifecycle
 
