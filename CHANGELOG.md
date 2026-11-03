@@ -14,6 +14,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 - Clear the previous verification timestamp when an approved community UPDATE returns an API to pending verification.
 
 ### Added
+- Global baseline HTTP security headers for MIME sniffing, framing, referrer policy, and unused browser permissions, with automated configuration tests.
 - OpenAPI 3.1 JSON contract for the public v1 API routes, query parameters, pagination, and error responses.
 - Weekly Dependabot monitoring for npm, Go modules, Docker images, and GitHub Actions, with grouped npm update pull requests.
 - Admin verifier health page with recent per-API check history, failure details, and stale-observation warnings; health observations remain separate from verification and publication decisions.
