@@ -47,6 +47,10 @@ npx playwright test
 
 The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds a disposable administrator and submission fixture, builds and starts the app, then exercises unauthenticated admin denial, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. Credentials are test-only CI values and must never be reused outside disposable environments.
 
+## Operational readiness tests
+
+The readiness policy is unit-tested with successful and failed database-check functions. The route itself runs a real `SELECT 1` against the configured PostgreSQL connection and does not expose connection details in its response.
+
 ## Go verifier tests
 
 The independent worker uses Go's standard test runner and has no third-party Go module dependencies:
