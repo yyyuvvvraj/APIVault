@@ -39,12 +39,19 @@ export async function transitionSubmissionReview(
   const error = submissionReviewError(current.status, next, note);
   if (error) throw new Error(error);
 
-  return tx.apiSubmission.update({
-    where: { id },
+  // Compare-and-set prevents two reviewers from overwriting each other's decision.
+  const result = await tx.apiSubmission.updateMany({
+    where: { id, status: current.status },
     data: {
       status: next,
       reviewNote: note.trim() || null,
       reviewedAt: next === SubmissionStatus.IN_REVIEW ? null : new Date(),
     },
   });
+
+  if (result.count !== 1) {
+    throw new Error("This submission was updated by another reviewer. Refresh and review the latest status.");
+  }
+
+  return tx.apiSubmission.findUniqueOrThrow({ where: { id } });
 }
