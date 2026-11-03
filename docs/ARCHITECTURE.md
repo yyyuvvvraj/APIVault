@@ -68,6 +68,10 @@ The browser never talks directly to PostgreSQL. Route handlers expose explicit p
 - `tests/unit/`, `tests/integration/`, `tests/e2e/`, and `services/verifier/`: policy/validation tests, PostgreSQL-backed persistence tests, Playwright browser workflows, and the independent Go health-check worker.
 - `docs/`: product and engineering decisions.
 
+## HTTP security headers
+
+Next.js applies baseline response headers globally: MIME sniffing is disabled, framing is denied, referrer information is restricted to the origin on cross-origin requests, and camera, microphone, and geolocation browser permissions are disabled. These defaults do not replace a future Content Security Policy, transport-security configuration at the hosting edge, or application-specific security review.
+
 ## Authentication and administrator authorization
 
 Public registration is disabled. The initial administrator is provisioned through the documented Better Auth CLI workflow. The admin console layout checks the session and administrator role before rendering protected pages.
