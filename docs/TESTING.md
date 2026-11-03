@@ -62,6 +62,10 @@ Tests cover unsafe URL rejection, standard-port restrictions, public/private IP 
 
 ## Continuous integration
 
+Application, browser E2E, Docker smoke-test, and repository-hygiene workflows are configured to run for pull requests regardless of their target branch. This keeps required validation active for stacked feature branches as well as PRs targeting `dev` and `stable`.
+
+
+
 Application CI provisions a disposable PostgreSQL 18 service, applies committed migrations, runs unit tests and database integration tests, then runs lint, type checking, and the production build. Never run these tests against production.
 
 ## Pull request expectations
