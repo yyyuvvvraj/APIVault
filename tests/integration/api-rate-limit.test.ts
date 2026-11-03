@@ -19,7 +19,7 @@ test("PostgreSQL rate limit is atomic under concurrent requests and resets in a 
   );
   assert.equal(attempts.filter((attempt) => attempt.allowed).length, 5);
   assert.equal(attempts.filter((attempt) => !attempt.allowed).length, 7);
-  assert.equal(attempts.filter((attempt) => attempt.remaining === 0).length, 12);
+  assert.equal(attempts.filter((attempt) => attempt.remaining === 0).length, 8);
 
   const nextWindow = await consumeRateLimit(key, {
     limit: 5,
