@@ -33,11 +33,11 @@ type APIValidation struct {
 }
 
 type CatalogueConflict struct {
-	Kind             string `json:"kind"`
-	APISlug           string `json:"apiSlug"`
+	Kind               string `json:"kind"`
+	APISlug            string `json:"apiSlug"`
 	ConflictingAPISlug string `json:"conflictingApiSlug"`
-	Key              string `json:"key"`
-	Severity         string `json:"severity"`
+	Key                string `json:"key"`
+	Severity           string `json:"severity"`
 }
 
 type ValidationReport struct {
@@ -47,7 +47,7 @@ type ValidationReport struct {
 	ReviewRequired      int             `json:"reviewRequired"`
 	Rejected            int             `json:"rejected"`
 	Results             []APIValidation `json:"results"`
-	Conflicts            []CatalogueConflict `json:"conflicts"`
+	Conflicts           []CatalogueConflict `json:"conflicts"`
 }
 
 // ValidateLive checks public HTTPS evidence URLs. A clean result is a candidate
@@ -96,8 +96,8 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 					Slug:        api.Slug,
 					HomepageURL: api.HomepageURL,
 					Name:        api.Name,
-					Provider: api.Provider.Name,
-					Verdict:  "VALIDATED_CANDIDATE",
+					Provider:    api.Provider.Name,
+					Verdict:     "VALIDATED_CANDIDATE",
 				}
 				urls := []string{api.HomepageURL}
 				if api.DocumentationURL != "" {
@@ -150,8 +150,11 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 			result.Verdict = "REVIEW_REQUIRED"
 			result.ReviewReasons = append(result.ReviewReasons, "possible duplicate of "+prior)
 			report.Conflicts = append(report.Conflicts, CatalogueConflict{
-				Kind: "PROVIDER_NAME_DUPLICATE", APISlug: result.Slug,
-				ConflictingAPISlug: prior, Key: nameKey, Severity: "HIGH",
+				Kind:               "PROVIDER_NAME_DUPLICATE",
+				APISlug:            result.Slug,
+				ConflictingAPISlug: prior,
+				Key:                nameKey,
+				Severity:           "HIGH",
 			})
 		} else {
 			seenNames[nameKey] = result.Slug
