@@ -126,7 +126,7 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		}
 		batchID, idErr := newUUID()
 		if idErr == nil {
-			_, err = tx.Exec(ctx, `INSERT INTO "CatalogueImportBatch" ("id","runId","batchNumber","recordCount","status","startedAt") VALUES ($1::uuid,$2,$3,$4,'RUNNING',$5) ON CONFLICT ("runId","batchNumber") DO UPDATE SET "recordCount"=EXCLUDED."recordCount","status"='RUNNING',"startedAt"=EXCLUDED."startedAt',"completedAt"=NULL,"errorSummary"=NULL`, batchID, options.RunID, batch, end-start, time.Now().UTC())
+			_, err = tx.Exec(ctx, `INSERT INTO "CatalogueImportBatch" ("id","runId","batchNumber","recordCount","status","startedAt") VALUES ($1::uuid,$2,$3,$4,'RUNNING',$5) ON CONFLICT ("runId","batchNumber") DO UPDATE SET "recordCount"=EXCLUDED."recordCount","status"='RUNNING',"startedAt"=EXCLUDED."startedAt","completedAt"=NULL,"errorSummary"=NULL`, batchID, options.RunID, batch, end-start, time.Now().UTC())
 		} else {
 			err = idErr
 		}

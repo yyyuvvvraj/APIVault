@@ -271,6 +271,11 @@ func httpsURL(value, field string, required bool) error {
 }
 
 func (api API) Normalized() API {
+	// Normalization must not mutate slices owned by the caller. ImportResumable
+	// may be invoked concurrently with the same input manifest.
+	api.Categories = append([]string(nil), api.Categories...)
+	api.AuthMethods = append([]AuthMethod(nil), api.AuthMethods...)
+	api.Sources = append([]Source(nil), api.Sources...)
 	api.Slug = strings.TrimSpace(api.Slug)
 	api.Name = strings.TrimSpace(api.Name)
 	api.Summary = strings.TrimSpace(api.Summary)
