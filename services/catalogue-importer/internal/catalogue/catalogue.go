@@ -70,13 +70,13 @@ func valueSet(values ...string) map[string]struct{} {
 }
 
 func Decode(reader io.Reader) (File, error) {
-	const maxInputBytes = 5 << 20
+	const maxInputBytes = 64 << 20
 	raw, err := io.ReadAll(io.LimitReader(reader, maxInputBytes+1))
 	if err != nil {
 		return File{}, fmt.Errorf("read catalogue JSON: %w", err)
 	}
 	if len(raw) > maxInputBytes {
-		return File{}, fmt.Errorf("catalogue JSON exceeds the 5 MiB input limit")
+		return File{}, fmt.Errorf("catalogue JSON exceeds the 64 MiB input limit")
 	}
 
 	decoder := json.NewDecoder(bytes.NewReader(raw))
@@ -100,8 +100,8 @@ func (file File) Validate() error {
 	if len(file.APIs) == 0 {
 		return fmt.Errorf("catalogue must contain at least one API")
 	}
-	if len(file.APIs) > 500 {
-		return fmt.Errorf("catalogue contains %d APIs; maximum is 500 per import", len(file.APIs))
+	if len(file.APIs) > 10000 {
+		return fmt.Errorf("catalogue contains %d APIs; maximum is 10,000 per manifest", len(file.APIs))
 	}
 
 	seenSlugs := make(map[string]struct{}, len(file.APIs))
