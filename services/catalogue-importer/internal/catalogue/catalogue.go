@@ -20,7 +20,7 @@ type File struct {
 
 type DatasetProvenance struct {
 	Name        string `json:"name"`
-	SourceURL   string `json:"sourceUrl"`
+	SourceURL    string `json:"sourceUrl"`
 	Version     string `json:"version"`
 	RetrievedAt string `json:"retrievedAt"`
 	License     string `json:"license"`
