@@ -56,7 +56,7 @@ test("approval atomically creates API, evidence, revision, and approved submissi
   const submission = await createSubmission(category.slug);
 
   const slug = await prisma.$transaction((tx) =>
-    applySubmissionApproval(tx, submission.id, "Reviewed official sources"),
+    applySubmissionApproval(tx, submission.id, "Reviewed official sources", "integration-reviewer"),
   );
 
   assert.equal(slug, `approval-api-${suffix}`);
@@ -137,7 +137,7 @@ test("UPDATE approval applies payload, records a revision, and returns the API t
   submissionIds.push(submission.id);
 
   const returnedSlug = await prisma.$transaction((tx) =>
-    applySubmissionApproval(tx, submission.id, "Reviewed UPDATE evidence"),
+    applySubmissionApproval(tx, submission.id, "Reviewed UPDATE evidence", "integration-reviewer"),
   );
 
   const [savedSubmission, updatedApi] = await Promise.all([

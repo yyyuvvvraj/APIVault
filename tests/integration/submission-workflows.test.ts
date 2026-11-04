@@ -29,7 +29,7 @@ after(async () => {
 test("rejection persists the reviewer decision and note", async () => {
   const submission = await createSubmission(SubmissionStatus.IN_REVIEW);
   await prisma.$transaction((tx) =>
-    transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Evidence is insufficient"),
+    transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Evidence is insufficient", "integration-reviewer"),
   );
 
   const saved = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
@@ -42,7 +42,7 @@ test("invalid review transition leaves the stored submission unchanged", async (
   const submission = await createSubmission(SubmissionStatus.REJECTED);
   await assert.rejects(
     prisma.$transaction((tx) =>
-      transitionSubmissionReview(tx, submission.id, SubmissionStatus.IN_REVIEW, ""),
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.IN_REVIEW, "", "integration-reviewer"),
     ),
     /Cannot move/,
   );
@@ -76,10 +76,10 @@ test("concurrent reviewer decisions cannot overwrite the first committed decisio
 
   const decisions = await Promise.allSettled([
     prisma.$transaction((tx) =>
-      transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject after review"),
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject after review", "integration-reviewer-a"),
     ),
     prisma.$transaction((tx) =>
-      transitionSubmissionReview(tx, submission.id, SubmissionStatus.CHANGES_REQUESTED, "Request further evidence"),
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.CHANGES_REQUESTED, "Request further evidence", "integration-reviewer-b"),
     ),
   ]);
 
