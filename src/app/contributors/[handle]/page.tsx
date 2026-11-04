@@ -8,14 +8,14 @@ type Props = { params: Promise<{ handle: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
-  const profile = await getPrisma().contributorProfile.findFirst({ where: { handle: handle.toLowerCase() }, select: { displayName: true } });
+  const profile = await getPrisma().contributorProfile.findFirst({ where: { handle: handle.toLowerCase(), isPublic: true }, select: { displayName: true } });
   return profile ? { title: `${profile.displayName} · Contributor` } : { title: "Contributor not found" };
 }
 
 export default async function ContributorPage({ params }: Props) {
   const { handle } = await params;
   const profile = await getPrisma().contributorProfile.findFirst({
-    where: { handle: handle.toLowerCase(), isPublic: true },
+    where: { handle: handle.toLowerCase() },
     select: { isPublic: true, handle: true, displayName: true, bio: true, websiteUrl: true, githubUrl: true, createdAt: true, user: { select: { submissions: { where: { status: "APPROVED" }, select: { id: true } } } } },
   });
   const publicProfile = profile ? toPublicContributorProfile({ ...profile, approvedContributions: profile.user.submissions.length }) : null;
