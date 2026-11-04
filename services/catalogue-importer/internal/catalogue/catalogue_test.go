@@ -1,6 +1,7 @@
 package catalogue
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
@@ -70,5 +71,32 @@ func TestValidateRejectsFeaturedImport(t *testing.T) {
 	file.APIs[0].Featured = true
 	if err := file.Validate(); err == nil {
 		t.Fatal("Validate() accepted a featured, unverified import")
+	}
+}
+
+func TestCuratedStarterV2DatasetValidatesWithoutPublishing(t *testing.T) {
+	input, err := os.Open("../../data/curated-starter-v2.json")
+	if err != nil {
+		t.Fatalf("open v2 dataset: %v", err)
+	}
+	defer input.Close()
+
+	file, err := Decode(input)
+	if err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if len(file.APIs) != 8 {
+		t.Fatalf("expected 8 curated candidates, got %d", len(file.APIs))
+	}
+	if err := file.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v", err)
+	}
+	for _, api := range file.APIs {
+		if api.VerificationStatus != "PENDING_REVIEW" {
+			t.Fatalf("candidate %q is not pending review", api.Slug)
+		}
+		if api.Featured {
+			t.Fatalf("candidate %q must not be featured", api.Slug)
+		}
 	}
 }

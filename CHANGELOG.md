@@ -4,6 +4,18 @@ All notable changes to APIVault will be documented here.
 
 The format is based on Keep a Changelog, and this project will use Semantic Versioning for stable releases.
 
+## [0.1.0] - Unreleased
+
+### Added
+- Optional read-only API keys with hash-only storage, expiry, revocation, last-used tracking, and per-key throttling while preserving anonymous access.
+- Private account key management, opt-in public contributor profiles, authenticated API submissions, and contributor submission history.
+- Developer documentation, live API playground, and a served OpenAPI document.
+- PostgreSQL backup/restore scripts, operations runbook, and scheduled/manual uptime smoke-check workflow.
+- Additional curated API records supplied as a review-only dataset; imports remain pending maintainer verification.
+
+### Security
+- Add production HSTS and an initial report-only Content Security Policy for observation before enforcement.
+
 ## [0.0.1] - 2026-11-03
 
 ### Added

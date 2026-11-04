@@ -16,6 +16,8 @@ The API is read-only. It does not proxy requests to listed providers, issue prov
 
 The current application-level limit is **120 requests per client IP per 60-second fixed window** for public API requests.
 
+Optional APIVault API keys can be created from the authenticated account area. Send a key using `Authorization: Bearer av_live_…` or `X-API-Key`. Keys are stored as SHA-256 hashes, displayed only once, and can be revoked or configured with an expiry. A valid key does not currently increase the default 120 requests per minute. Requests remain subject to both the client-IP limit and the per-key limit; sharing a key does not provide additional capacity. Requests without a key remain supported.
+
 Responses include rate-limit headers so clients can understand the current window and remaining allowance. Clients should:
 
 - Respect the returned limit and reset information.
