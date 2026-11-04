@@ -103,7 +103,7 @@ test("relevance ranking prefers exact API names over broad description matches",
   assert.deepEqual(rankCatalogueResults([broad, exact], "weather api").map((item) => item.name), ["Weather API", "Forecast Data"]);
 });
 
-test("relevance ranking uses featured and freshness as deterministic tie breakers", () => {
+test("relevance ranking uses featured, verification, and update dates as tie breakers", () => {
   const base = {
     name: "Weather API",
     slug: "weather-api",
@@ -112,11 +112,17 @@ test("relevance ranking uses featured and freshness as deterministic tie breaker
     provider: { name: "Example", slug: "example" },
     categories: [],
     tags: [],
-    verifiedAt: null,
+    featured: false,
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
   };
-  const older = { ...base, featured: false };
-  const featured = { ...base, featured: true };
+  const older = { ...base, verifiedAt: new Date("2026-01-01T00:00:00.000Z") };
+  const newer = { ...base, verifiedAt: new Date("2026-02-01T00:00:00.000Z") };
+  const featured = { ...base, featured: true, verifiedAt: null };
 
   assert.equal(rankCatalogueResults([older, featured], "weather")[0]?.featured, true);
+  assert.equal(rankCatalogueResults([older, newer], "weather")[0]?.verifiedAt?.toISOString(), "2026-02-01T00:00:00.000Z");
+
+  const recent = { ...base, verifiedAt: null, updatedAt: new Date("2026-03-01T00:00:00.000Z") };
+  const stale = { ...base, verifiedAt: null, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
+  assert.equal(rankCatalogueResults([stale, recent], "weather")[0]?.updatedAt.toISOString(), "2026-03-01T00:00:00.000Z");
 });
