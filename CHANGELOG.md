@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 ## [0.1.0] - Unreleased
 
 ### Added
+- API detail pages show catalogue review freshness, the next review due date, and a clear note distinguishing review metadata from live availability.
 - Verification queue evidence checks now require official documentation, pricing, and authentication sources where applicable, and flag missing or older-than-180-day official source review timestamps.
 - One-command local setup script that creates a local environment, generates a local-only auth secret, starts PostgreSQL, applies migrations, and seeds starter categories.
 - Contributor quickstart, architecture diagrams, and a staged 0.2.0–0.5.0 delivery roadmap with explicit acceptance gates.
