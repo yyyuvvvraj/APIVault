@@ -67,3 +67,70 @@ test("authenticated non-admin users are denied admin pages", async ({ page }) =>
     await expect(page.getByRole("heading", { name: "Welcome back." })).toBeVisible();
   }
 });
+
+
+test("contributor can submit an API, track it privately, and control public profile visibility", async ({ page }) => {
+  const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+  const handle = "e2e-contributor";
+
+  await page.goto("/account/login");
+  await page.getByLabel("Email address").fill(userEmail);
+  await page.getByLabel("Password").fill(userPassword);
+  await page.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(page).toHaveURL(/\/account(?:\?.*)?$/);
+
+  await page.goto("/submit");
+  await page.getByLabel("API name").fill("E2E Contributor Submission API");
+  await page.getByLabel("Provider").fill("E2E Contributor Provider");
+  await page.getByLabel("Short summary").fill("An API submitted by a contributor browser test.");
+  await page.getByLabel("Official API homepage").fill("https://contributor-api.example.test");
+  await page.getByLabel("Documentation URL").fill("https://contributor-api.example.test/docs");
+  await page.getByLabel("Category slugs (comma separated)").fill("e2e-testing");
+  await page.getByLabel("Authentication methods").fill("API_KEY");
+  await page.getByLabel("Pricing model").selectOption("FREEMIUM");
+  await page.getByLabel("Official source URLs (one per line)").fill("https://contributor-api.example.test/pricing");
+  await page.getByRole("button", { name: "Submit for review" }).click();
+  await expect(page.getByRole("status")).toContainText("Submission received");
+
+  await page.goto("/account/submissions");
+  const ownSubmission = page.locator("article").filter({ hasText: "E2E Contributor Submission API" });
+  await expect(ownSubmission).toBeVisible();
+  await expect(ownSubmission).toContainText("PENDING");
+
+  await page.goto("/account/profile");
+  await page.getByLabel("Public handle").fill(handle);
+  await page.getByLabel("Display name").fill("E2E Public Contributor");
+  await page.getByLabel("Bio (280 characters)").fill("Contributor profile visibility is covered by an end-to-end test.");
+  await page.getByLabel("Website URL (HTTPS)").fill("https://contributor.example.test");
+  await page.getByLabel("GitHub profile URL").fill("https://github.com/e2e-contributor");
+  await page.getByLabel(/Make profile public/).check();
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByRole("status")).toContainText("Profile saved.");
+
+  await page.goto(`/contributors/${handle}`);
+  await expect(page.getByRole("heading", { name: "E2E Public Contributor" })).toBeVisible();
+  await expect(page.getByText("Contributor profile visibility is covered by an end-to-end test.")).toBeVisible();
+
+  const publicProfileResponse = await page.request.get(`/api/contributors/${handle}`);
+  expect(publicProfileResponse.status()).toBe(200);
+  const publicProfile = await publicProfileResponse.json();
+  expect(publicProfile.data).toMatchObject({
+    handle,
+    displayName: "E2E Public Contributor",
+    approvedContributions: 0,
+  });
+  expect(JSON.stringify(publicProfile.data)).not.toContain(userEmail);
+  expect(publicProfile.data).not.toHaveProperty("userId");
+  expect(publicProfile.data).not.toHaveProperty("email");
+
+  await page.goto("/account/profile");
+  await page.getByLabel(/Make profile public/).uncheck();
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByRole("status")).toContainText("Profile saved.");
+
+  const privateProfileResponse = await page.request.get(`/api/contributors/${handle}`);
+  expect(privateProfileResponse.status()).toBe(404);
+  const privatePageResponse = await page.request.get(`/contributors/${handle}`);
+  expect(privatePageResponse.status()).toBe(404);
+});
