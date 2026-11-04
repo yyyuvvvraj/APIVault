@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0] - 2026-11-04
+
+### Added
+- Playground requests now expose the exact request URL, response size, and a copyable cURL command for reproducible integrations.
+- Developer API reference covers pagination, combined filters, conditional requests, response metadata, error handling, rate-limit retries, and safe API-key usage with cURL, JavaScript, and Python examples.
+- API-key management explains the read-only scope and shows key creation and usage metadata alongside expiry and revocation state.
+
+### Changed
+- Align the development package and OpenAPI document versions with the 0.3.0 developer-platform milestone.
+
+
 All notable changes to APIVault will be documented here.
 
 The format is based on Keep a Changelog, and this project will use Semantic Versioning for stable releases.

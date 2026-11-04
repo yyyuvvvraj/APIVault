@@ -24,6 +24,7 @@ export default function ApiDocsPage() {
           <div className="mt-5 flex flex-wrap gap-3">
             <a href="/openapi.json" target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/5">OpenAPI JSON ↗</a>
             <Link href="/apis" className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/5">Browse catalogue →</Link>
+            <a href="https://github.com/yyyuvvvraj/APIVault/blob/dev/docs/API_REFERENCE.md" target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/5">Full API reference ↗</a>
           </div>
         </div>
 
