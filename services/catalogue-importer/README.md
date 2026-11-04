@@ -81,3 +81,18 @@ The importer is a resumable first-stage ingestion tool, not yet a complete 200,0
 The 0.4.0 ingestion work introduces bounded batches, durable checkpoints, resumable runs, idempotent API upserts, and operator-visible run summaries. Dataset provenance, source-level duplicate/conflict reports, and moderator prioritization remain explicit follow-on acceptance work before 0.4.0 can be called complete. Each batch must retain source-dataset provenance and remain pending/unverified. A failed batch must be safely retried without duplicating records; a failed run must not silently skip records.
 
 The 200,000 figure is a long-term target for distinct API products/services, not a release commitment. Source licenses, attribution, provider terms, data quality, database performance, and maintainer review capacity are release gates. See [the roadmap](../../../docs/ROADMAP.md#catalogue-scale-programme-directional-targets-not-release-guarantees) and [catalogue curation policy](../../../docs/CATALOGUE_CURATION.md#large-scale-catalogue-growth).
+
+
+## Automated Go validation
+
+Run the validator locally:
+
+```bash
+cd services/catalogue-importer
+go test ./...
+go run ./cmd/catalogue-validate -input data/curated-starter-v1.json -live=true -output validation-report.json
+```
+
+The GitHub Actions workflow runs static validation for pull requests and live HTTPS checks on its weekly schedule or manual dispatch. It checks metadata/schema, HTTPS source reachability, HTTP response status, and likely duplicates (provider + normalized API name). URL checks are concurrency-limited and reject localhost/private-network DNS results. The report is uploaded as a workflow artifact.
+
+A `VALIDATED_CANDIDATE` means the record passed automated structural and reachability checks and has official source references declared in its manifest. It does **not** prove domain ownership, license compatibility, accuracy of pricing/authentication claims, or API functionality. It never changes database verification or publication state. `REVIEW_REQUIRED` records are routed for human review; do not bulk-promote them.

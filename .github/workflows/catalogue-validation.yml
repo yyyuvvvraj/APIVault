@@ -1,0 +1,65 @@
+name: Go API catalogue validation
+
+on:
+  pull_request:
+    paths:
+      - "services/catalogue-importer/**"
+      - ".github/workflows/catalogue-validation.yml"
+  workflow_dispatch:
+    inputs:
+      live_checks:
+        description: Check HTTPS evidence URLs
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    - cron: "23 3 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalogue-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate catalogue evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Run Go tests
+        working-directory: services/catalogue-importer
+        run: go test ./...
+
+      - name: Validate catalogue schema and evidence
+        working-directory: services/catalogue-importer
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          LIVE_INPUT: ${{ inputs.live_checks }}
+        run: |
+          LIVE=true
+          if [ "$EVENT_NAME" = "pull_request" ]; then LIVE=false; fi
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$LIVE_INPUT" = "false" ]; then LIVE=false; fi
+          go run ./cmd/catalogue-validate \
+            -input data/curated-starter-v1.json \
+            -live="$LIVE" \
+            -output "$RUNNER_TEMP/catalogue-validation-report.json"
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalogue-validation-report
+          path: ${{ runner.temp }}/catalogue-validation-report.json
+          if-no-files-found: warn
+          retention-days: 30
