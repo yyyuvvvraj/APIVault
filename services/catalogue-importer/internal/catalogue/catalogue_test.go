@@ -124,3 +124,29 @@ func TestDatasetProvenanceValidate(t *testing.T) {
 		t.Fatal("expected non-HTTPS dataset source to be rejected")
 	}
 }
+
+func TestNormalizeBatchSize(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   int
+		want    int
+		wantErr bool
+	}{
+		{name: "default", input: 0, want: 100},
+		{name: "minimum", input: 1, want: 1},
+		{name: "maximum", input: 250, want: 250},
+		{name: "negative", input: -1, wantErr: true},
+		{name: "too large", input: 251, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := normalizeBatchSize(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("normalizeBatchSize(%d) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+			}
+			if !tt.wantErr && got != tt.want {
+				t.Fatalf("normalizeBatchSize(%d) = %d, want %d", tt.input, got, tt.want)
+			}
+		})
+	}
+}

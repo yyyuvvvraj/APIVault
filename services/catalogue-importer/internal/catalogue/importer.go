@@ -92,7 +92,7 @@ func importAPI(ctx context.Context, tx pgx.Tx, api API, now time.Time) error {
 			"baseUrl" = EXCLUDED."baseUrl",
 			"pricingModel" = EXCLUDED."pricingModel",
 			"pricingSummary" = EXCLUDED."pricingSummary",
-			"status" = EXCLUDED."status",
+			"status" = CASE WHEN "Api"."verificationStatus" = 'VERIFIED'::"VerificationStatus" THEN "Api"."status" ELSE EXCLUDED."status" END,
 			"verificationStatus" = CASE WHEN "Api"."verificationStatus" = 'VERIFIED'::"VerificationStatus" THEN "Api"."verificationStatus" ELSE EXCLUDED."verificationStatus" END,
 			"featured" = CASE WHEN "Api"."verificationStatus" = 'VERIFIED'::"VerificationStatus" THEN "Api"."featured" ELSE EXCLUDED."featured" END,
 			"updatedAt" = EXCLUDED."updatedAt"

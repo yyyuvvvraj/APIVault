@@ -17,6 +17,16 @@ type ImportOptions struct {
 	BatchSize int
 }
 
+func normalizeBatchSize(size int) (int, error) {
+	if size == 0 {
+		return 100, nil
+	}
+	if size < 1 || size > 250 {
+		return 0, fmt.Errorf("batch size must be between 1 and 250")
+	}
+	return size, nil
+}
+
 type ImportReport struct {
 	RunID            string `json:"runId"`
 	TotalRecords     int    `json:"totalRecords"`
@@ -38,12 +48,11 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		return ImportReport{}, fmt.Errorf("dataset provenance: %w", err)
 	}
 	retrievedAt, _ := time.Parse(time.RFC3339, file.Dataset.RetrievedAt)
-	if options.BatchSize == 0 {
-		options.BatchSize = 100
+	normalizedBatchSize, err := normalizeBatchSize(options.BatchSize)
+	if err != nil {
+		return ImportReport{}, err
 	}
-	if options.BatchSize < 1 || options.BatchSize > 250 {
-		return ImportReport{}, fmt.Errorf("batch size must be between 1 and 250")
-	}
+	options.BatchSize = normalizedBatchSize
 	if options.RunID == "" {
 		id, err := newUUID()
 		if err != nil {
@@ -81,7 +90,9 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		report.ProcessedRecords = len(file.APIs)
 		return report, nil
 	}
-	_, _ = pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='RUNNING',"errorSummary"=NULL,"updatedAt"=$2 WHERE "id"=$1`, options.RunID, time.Now().UTC())
+	if _, err := pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='RUNNING',"errorSummary"=NULL,"updatedAt"=$2 WHERE "id"=$1`, options.RunID, time.Now().UTC()); err != nil {
+		return report, fmt.Errorf("mark import run running: %w", err)
+	}
 
 	batchCount := (len(file.APIs) + options.BatchSize - 1) / options.BatchSize
 	for batch := 0; batch < batchCount; batch++ {
@@ -125,7 +136,9 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		}
 		if err != nil {
 			_ = tx.Rollback(context.Background())
-			_, _ = pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='FAILED',"errorSummary"=$2,"updatedAt"=$3 WHERE "id"=$1`, options.RunID, err.Error(), time.Now().UTC())
+			if _, statusErr := pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='FAILED',"errorSummary"=$2,"updatedAt"=$3 WHERE "id"=$1`, options.RunID, err.Error(), time.Now().UTC()); statusErr != nil {
+				return report, fmt.Errorf("batch %d failed (%v); could not mark run failed: %w", batch, err, statusErr)
+			}
 			return report, fmt.Errorf("batch %d failed; retry with the same run ID: %w", batch, err)
 		}
 		if err := tx.Commit(ctx); err != nil {
