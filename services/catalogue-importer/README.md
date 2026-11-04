@@ -7,7 +7,7 @@ A dry-run-first Go CLI for importing API catalogue records into the existing API
 - Uses PostgreSQL through `pgx/v5`.
 - Imports providers, APIs, category links, authentication methods, source references, and revision history.
 - Uses bounded PostgreSQL transactions (default 100 records, maximum 250) with durable run and batch checkpoints.
-- Commits each batch and its checkpoint atomically; completed batches are skipped when a failed run is resumed with the same run ID and unchanged input.
+- Commits each batch and its checkpoint atomically; completed batches are skipped when a failed run is resumed with the same run ID and unchanged input. A transaction-scoped PostgreSQL advisory lock serializes concurrent workers using the same run ID, so they cannot process the same checkpoint simultaneously.
 - Upserts providers and APIs by their stable slugs, making repeated imports safe.
 - Replaces category and authentication-method associations for each imported API.
 - Upserts source references by API and URL.
@@ -67,6 +67,7 @@ Do not use the placeholder example file against a real database.
 
 - Each batch and its checkpoint are committed or rolled back together.
 - A failed run can be resumed with the same `-run-id`, input file, and batch size.
+- Concurrent invocations using the same run ID are serialized at each batch checkpoint; separate run IDs can still proceed independently.
 - Reusing a run ID with different input or batch size is rejected.
 - Unknown category slugs fail the import.
 - API records are imported as unverified or pending review, never verified.

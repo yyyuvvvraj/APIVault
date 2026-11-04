@@ -100,19 +100,29 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		if end > len(file.APIs) {
 			end = len(file.APIs)
 		}
-		var completed bool
-		if err := pool.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM "CatalogueImportBatch" WHERE "runId"=$1 AND "batchNumber"=$2 AND "status"='COMPLETED')`, options.RunID, batch).Scan(&completed); err != nil {
-			return report, fmt.Errorf("read batch checkpoint %d: %w", batch, err)
-		}
-		if completed {
-			report.SkippedBatches++
-			report.ProcessedRecords += end - start
-			continue
-		}
-
 		tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 		if err != nil {
 			return report, fmt.Errorf("begin batch %d: %w", batch, err)
+		}
+		// Serialize workers that resume the same run. The checkpoint is read only
+		// after acquiring the transaction-scoped lock, preventing duplicate batch
+		// processing and duplicate revision events for concurrent invocations.
+		if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, options.RunID); err != nil {
+			_ = tx.Rollback(context.Background())
+			return report, fmt.Errorf("lock import run %q: %w", options.RunID, err)
+		}
+		var completed bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM "CatalogueImportBatch" WHERE "runId"=$1 AND "batchNumber"=$2 AND "status"='COMPLETED')`, options.RunID, batch).Scan(&completed); err != nil {
+			_ = tx.Rollback(context.Background())
+			return report, fmt.Errorf("read batch checkpoint %d: %w", batch, err)
+		}
+		if completed {
+			if err := tx.Commit(ctx); err != nil {
+				return report, fmt.Errorf("release completed batch lock %d: %w", batch, err)
+			}
+			report.SkippedBatches++
+			report.ProcessedRecords += end - start
+			continue
 		}
 		batchID, idErr := newUUID()
 		if idErr == nil {
