@@ -22,32 +22,32 @@ type URLCheck struct {
 }
 
 type APIValidation struct {
-	Slug          string     `json:"slug"`
-	HomepageURL   string     `json:"homepageUrl"`
-	Name          string     `json:"name"`
-	Provider      string     `json:"provider"`
-	Verdict       string     `json:"verdict"`
-	Checks        []URLCheck `json:"checks"`
-	DuplicateOf   string     `json:"duplicateOf,omitempty"`
-	ReviewReasons []string   `json:"reviewReasons,omitempty"`
+	Slug string `json:"slug"`
+	HomepageURL string `json:"homepageUrl"`
+	Name string `json:"name"`
+	Provider string `json:"provider"`
+	Verdict string `json:"verdict"`
+	Checks []URLCheck `json:"checks"`
+	DuplicateOf string `json:"duplicateOf,omitempty"`
+	ReviewReasons []string `json:"reviewReasons,omitempty"`
 }
 
 type CatalogueConflict struct {
-	Kind               string `json:"kind"`
-	APISlug            string `json:"apiSlug"`
+	Kind string `json:"kind"`
+	APISlug string `json:"apiSlug"`
 	ConflictingAPISlug string `json:"conflictingApiSlug"`
-	Key                string `json:"key"`
-	Severity           string `json:"severity"`
+	Key string `json:"key"`
+	Severity string `json:"severity"`
 }
 
 type ValidationReport struct {
-	GeneratedAt         time.Time       `json:"generatedAt"`
-	Total               int             `json:"total"`
-	ValidatedCandidates int             `json:"validatedCandidates"`
-	ReviewRequired      int             `json:"reviewRequired"`
-	Rejected            int             `json:"rejected"`
-	Results             []APIValidation `json:"results"`
-	Conflicts           []CatalogueConflict `json:"conflicts"`
+	GeneratedAt time.Time `json:"generatedAt"`
+	Total int `json:"total"`
+	ValidatedCandidates int `json:"validatedCandidates"`
+	ReviewRequired int `json:"reviewRequired"`
+	Rejected int `json:"rejected"`
+	Results []APIValidation `json:"results"`
+	Conflicts []CatalogueConflict `json:"conflicts"`
 }
 
 // ValidateLive checks public HTTPS evidence URLs. A clean result is a candidate
