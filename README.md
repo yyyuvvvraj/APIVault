@@ -19,7 +19,7 @@ The idea is simple: APIs should be as discoverable, reviewable and community-mai
 
 ### Verify with evidence
 - Keep verification evidence and publication status tied to canonical API records.
-- Use the Go-based verifier for API homepage checks.
+- Use the Go-based verifier for API homepage checks; Go is a required project language and toolchain.
 - Review verification history and stale observations in the admin tooling.
 
 Verification is evidence-based; a listing is not a guarantee of provider uptime, service quality, security, or continued availability.
@@ -52,7 +52,7 @@ flowchart TD
   Handlers --> Domain
   Domain --> Prisma[Prisma ORM and PostgreSQL adapter]
   Prisma --> DB[(PostgreSQL catalogue and audit history)]
-  Verifier[Optional Go verifier] -->|authenticated observations| Handlers
+  Verifier[Go verifier worker] -->|authenticated observations| Handlers
   Admin[Maintainer console] -->|review and lifecycle actions| Domain
 ```
 
