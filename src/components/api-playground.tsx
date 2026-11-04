@@ -9,6 +9,9 @@ type PlaygroundResult = {
   durationMs: number;
   headers: Array<[string, string]>;
   body: string;
+  requestUrl: string;
+  curlCommand: string;
+  responseBytes: number;
 };
 
 const inputClass =
@@ -27,6 +30,7 @@ export function ApiPlayground() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PlaygroundResult | null>(null);
   const [requestError, setRequestError] = useState("");
+  const [copiedCurl, setCopiedCurl] = useState(false);
 
   async function sendRequest() {
     setLoading(true);
@@ -52,6 +56,8 @@ export function ApiPlayground() {
     }
 
     const url = params.size ? `${path}?${params.toString()}` : path;
+    const requestUrl = new URL(url, window.location.origin).toString();
+    const curlCommand = "curl --request GET --url '" + requestUrl + "' --header 'Accept: application/json'";
     const startedAt = performance.now();
 
     try {
@@ -80,7 +86,11 @@ export function ApiPlayground() {
         durationMs,
         headers: headers.map(([name, value]) => [name, value] as [string, string]),
         body: body ? formatJson(body) : "(empty response body)",
+        requestUrl,
+        curlCommand,
+        responseBytes: new TextEncoder().encode(body).length,
       });
+      setCopiedCurl(false);
     } catch {
       setRequestError("The request could not be completed. Check your connection and try again.");
     } finally {
@@ -193,6 +203,16 @@ export function ApiPlayground() {
           </div>
           {requestError ? <p role="alert" className="p-4 text-xs text-rose-300">{requestError}</p> : result ? (
             <>
+              <div className="border-b border-white/[0.06] px-4 py-3">
+                <p className="mb-1 text-[9px] font-extrabold uppercase tracking-wider text-slate-600">Request</p>
+                <p className="break-all text-[10px] text-slate-400">{result.requestUrl}</p>
+                <p className="mt-1 text-[10px] text-slate-500">Response size: {result.responseBytes.toLocaleString()} bytes</p>
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-600">Copy as cURL</p>
+                  <button type="button" onClick={() => { void navigator.clipboard.writeText(result.curlCommand).then(() => setCopiedCurl(true)).catch(() => setCopiedCurl(false)); }} className="rounded-md border border-white/10 px-2.5 py-1 text-[10px] font-bold text-slate-300 hover:bg-white/5">{copiedCurl ? "Copied" : "Copy command"}</button>
+                </div>
+                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-black/30 p-2 text-[10px] leading-5 text-emerald-100/80"><code>{result.curlCommand}</code></pre>
+              </div>
               <div className="border-b border-white/[0.06] px-4 py-3">
                 <p className="mb-2 text-[9px] font-extrabold uppercase tracking-wider text-slate-600">Response headers</p>
                 <dl className="grid gap-1.5 sm:grid-cols-2">

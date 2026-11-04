@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "APIVault Public API",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "description": "Read-only API for ACTIVE and VERIFIED catalogue entries. Anonymous access remains available; optional APIVault API keys identify integrations and receive per-key rate limiting."
   },
   "servers": [
