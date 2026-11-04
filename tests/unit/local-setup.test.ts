@@ -16,6 +16,9 @@ test("local setup is exposed as a package command and has valid Bash syntax", ()
 
 test("local setup checks supported runtime and Docker readiness before changing state", () => {
   assert.match(setupScript, /process\.versions\.node/);
+  assert.match(setupScript, /command -v go/);
+  assert.match(setupScript, /Go 1\.25 or newer/);
+  assert.match(setupScript, /npm run verify:go/);
   assert.match(setupScript, /docker compose version/);
   assert.match(setupScript, /docker info/);
   assert.match(setupScript, /docker compose up -d postgres/);
