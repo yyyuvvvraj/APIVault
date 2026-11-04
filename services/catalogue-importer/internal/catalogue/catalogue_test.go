@@ -127,9 +127,9 @@ func TestDatasetProvenanceValidate(t *testing.T) {
 
 func TestNormalizeBatchSize(t *testing.T) {
 	tests := []struct {
-		name string
-		input int
-		want int
+		name    string
+		input   int
+		want    int
 		wantErr bool
 	}{
 		{name: "default", input: 0, want: 100},
