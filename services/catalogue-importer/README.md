@@ -59,7 +59,7 @@ cd services/catalogue-importer
 go run ./cmd/catalogue-importer -input data/curated-starter-v1.json -apply -batch-size 100 -run-id starter-v1-2026-11-04
 ```
 
-The importer prints only the database host and database name, never the connection string or credentials. It accepts up to 10,000 records per manifest (64 MiB input limit) and processes them in bounded transactions. The command's operation timeout is two minutes.
+The importer prints only the database host and database name, never the connection string or credentials. It accepts up to 10,000 records per manifest (64 MiB input limit) and processes them in bounded transactions. The command's operation timeout is 30 minutes.
 
 Do not use the placeholder example file against a real database.
 
