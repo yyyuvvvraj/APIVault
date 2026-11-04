@@ -101,7 +101,7 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
   ]);
 
   const filters = parseCatalogueFilters({
-    q: "Public Integration",
+    q: "Public Provider",
     category: categorySlug,
     pricing: "UNKNOWN",
     auth: "API_KEY",
