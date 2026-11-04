@@ -22,6 +22,7 @@ const pendingSlug = `${prefix}-pending-api`;
 const archivedSlug = `${prefix}-archived-api`;
 const unverifiedSlug = `${prefix}-unverified-api`;
 const incompleteSlug = `${prefix}-incomplete-api`;
+const wrongEvidenceSlug = `${prefix}-wrong-evidence-api`;
 
 after(async () => {
   await prisma.api.deleteMany({ where: { slug: { startsWith: prefix } } });
@@ -66,6 +67,7 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
     status: ApiStatus,
     verificationStatus: VerificationStatus,
     complete = true,
+    officialHomepage = true,
   ) {
     const homepageUrl = `https://${slug}.example.test`;
     return prisma.api.create({
@@ -84,8 +86,8 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
         authMethods: { create: [{ method: AuthMethod.API_KEY }] },
         sources: {
           create: [{
-            sourceKind: SourceKind.OFFICIAL_HOMEPAGE,
-            url: homepageUrl,
+            sourceKind: officialHomepage ? SourceKind.OFFICIAL_HOMEPAGE : SourceKind.DOCUMENTATION,
+            url: officialHomepage ? homepageUrl : `${homepageUrl}/docs`,
             isOfficial: true,
           }],
         },
@@ -98,6 +100,7 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
     createVisibilityFixture(archivedSlug, ApiStatus.ARCHIVED, VerificationStatus.VERIFIED),
     createVisibilityFixture(unverifiedSlug, ApiStatus.ACTIVE, VerificationStatus.UNVERIFIED),
     createVisibilityFixture(incompleteSlug, ApiStatus.ACTIVE, VerificationStatus.VERIFIED, false),
+    createVisibilityFixture(wrongEvidenceSlug, ApiStatus.ACTIVE, VerificationStatus.VERIFIED, true, false),
   ]);
 
   const filters = parseCatalogueFilters({
@@ -109,7 +112,7 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
   const result = await listApis(filters);
   const visibleSlugs = result.items.map((item) => item.slug);
   assert.equal(visibleSlugs.includes(publicSlug), true);
-  for (const hiddenSlug of [pendingSlug, archivedSlug, unverifiedSlug, incompleteSlug]) {
+  for (const hiddenSlug of [pendingSlug, archivedSlug, unverifiedSlug, incompleteSlug, wrongEvidenceSlug]) {
     assert.equal(visibleSlugs.includes(hiddenSlug), false, `${hiddenSlug} must not be public`);
   }
 
@@ -118,11 +121,13 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
   const archivedDetail = await getApiBySlug(archivedSlug);
   const unverifiedDetail = await getApiBySlug(unverifiedSlug);
   const incompleteDetail = await getApiBySlug(incompleteSlug);
+  const wrongEvidenceDetail = await getApiBySlug(wrongEvidenceSlug);
   assert.equal(publicDetail.api?.slug, publicSlug);
   assert.equal(pendingDetail.api, null);
   assert.equal(archivedDetail.api, null);
   assert.equal(unverifiedDetail.api, null);
   assert.equal(incompleteDetail.api, null);
+  assert.equal(wrongEvidenceDetail.api, null);
 
   const relations = await prisma.api.findUniqueOrThrow({
     where: { slug: publicSlug },
