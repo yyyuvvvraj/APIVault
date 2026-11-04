@@ -38,7 +38,25 @@ Verification is evidence-based; a listing is not a guarantee of provider uptime,
 
 APIVault is under active development toward its first official v1.0.0 general-availability launch. Incremental 0.x releases will document tested development milestones and be published as GitHub prereleases. Public registration is currently disabled; contributor accounts are provisioned by maintainers. Some catalogue data imports are review-only and require maintainer verification before publication.
 
-See the [v1.0.0 launch plan](docs/LAUNCH_PLAN.md), [release strategy](docs/RELEASE_STRATEGY.md), and [release-readiness checklist](docs/RELEASE_READINESS.md).
+See the [delivery roadmap](docs/ROADMAP.md), [v1.0.0 launch plan](docs/LAUNCH_PLAN.md), [release strategy](docs/RELEASE_STRATEGY.md), and [release-readiness checklist](docs/RELEASE_READINESS.md).
+
+## Product architecture
+
+```mermaid
+flowchart TD
+  Browser[Browser] --> Next[Next.js App Router]
+  Next --> Pages[Discovery pages and API docs]
+  Next --> Handlers[Read-only REST API and auth routes]
+  Next --> Domain[Catalogue, validation, moderation and verification rules]
+  Pages --> Domain
+  Handlers --> Domain
+  Domain --> Prisma[Prisma ORM and PostgreSQL adapter]
+  Prisma --> DB[(PostgreSQL catalogue and audit history)]
+  Verifier[Optional Go verifier] -->|authenticated observations| Handlers
+  Admin[Maintainer console] -->|review and lifecycle actions| Domain
+```
+
+The browser never connects directly to PostgreSQL. Public endpoints serialize only published records; the optional verifier reports observations but cannot publish or verify records by itself. See the full [architecture guide](docs/ARCHITECTURE.md).
 
 ## Technology
 
@@ -50,7 +68,7 @@ See the [v1.0.0 launch plan](docs/LAUNCH_PLAN.md), [release strategy](docs/RELEA
 
 ## Run locally
 
-Start with the step-by-step [setup guide](docs/SETUP.md), then use the [local development reference](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), [verification policy](docs/VERIFICATION_POLICY.md), and [catalogue curation guide](docs/CATALOGUE_CURATION.md) before changing catalogue behaviour.
+For a guided first-time setup, install Node.js 24 and Docker Compose, clone the repository, then run `npm run setup:local`. The script creates a local `.env` if needed, generates a local auth secret, installs dependencies, starts PostgreSQL, applies migrations, and seeds categories. It does not create an administrator or sample API listings. For manual setup and troubleshooting, use the step-by-step [setup guide](docs/SETUP.md) and [local development reference](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), [verification policy](docs/VERIFICATION_POLICY.md), and [catalogue curation guide](docs/CATALOGUE_CURATION.md) before changing catalogue behaviour.
 
 ## Public API
 
@@ -58,7 +76,7 @@ The public API is read-only and exposes published catalogue listings, individual
 
 ## Contributing
 
-Contributions of code, API listings, data corrections, tests and documentation are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. API suggestions should include official source links and can be submitted using the [Suggest an API issue form](https://github.com/yyyuvvvraj/APIVault/issues/new?template=api_submission.yml).
+Contributions of code, API listings, data corrections, tests and documentation are welcome. Start with the [first-contribution quickstart](docs/CONTRIBUTOR_QUICKSTART.md), then read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. API suggestions should include official source links and can be submitted using the [Suggest an API issue form](https://github.com/yyyuvvvraj/APIVault/issues/new?template=api_submission.yml).
 
 ## Community
 

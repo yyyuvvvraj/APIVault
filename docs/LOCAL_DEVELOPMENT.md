@@ -8,7 +8,7 @@
 - Docker Desktop or Docker Engine with Compose.
 - Git.
 
-## 1. Clone and configure
+## Fast path\n\nAfter installing Node.js 24.x and Docker Compose, run this from the repository root:\n\n```bash\nnpm run setup:local\n```\n\nThe script creates a local-only `.env` when absent, generates a random local Better Auth secret, installs locked dependencies, starts PostgreSQL, waits for readiness, applies migrations, and seeds categories. It is safe to rerun for dependency and database setup; it does not reset or delete the database volume. It does not provision an administrator or add API records.\n\nFor manual setup or troubleshooting, continue below.\n\n## 1. Clone and configure
 
 ```bash
 git clone https://github.com/yyyuvvvraj/APIVault.git
