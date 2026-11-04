@@ -16,8 +16,8 @@ export function normalizeHomepageUrl(value: string): string | null {
   try {
     const url = new URL(value);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    const hostname = url.hostname.toLowerCase().replace(/^www\\./, "");
-    const pathname = url.pathname.replace(/\\/+$/, "") || "/";
+    const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
+    const pathname = url.pathname.replace(/\/+$/, "") || "/";
     return `${url.protocol}//${hostname}${url.port ? `:${url.port}` : ""}${pathname}`;
   } catch {
     return null;
