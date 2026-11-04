@@ -4,6 +4,15 @@ All notable changes to APIVault will be documented here.
 
 The format is based on Keep a Changelog, and this project will use Semantic Versioning for stable releases.
 
+## [0.2.0] - Unreleased
+
+### Changed
+- Catalogue discovery now matches every search term across API names, providers, categories, tags, and descriptions, then ranks exact and high-signal matches ahead of broad text matches.
+- Catalogue search ranking uses stable featured, verification-date, update-date, and name tie-breakers; combined category, pricing, and authentication filters remain conjunctive.
+
+### Quality
+- Search ranking, tokenization, whitespace normalization, and multi-filter public visibility have deterministic unit and PostgreSQL integration coverage.
+
 ## [0.1.0] - Unreleased
 
 ### Added

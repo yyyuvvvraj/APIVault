@@ -22,6 +22,7 @@ test("administrator can sign in, create and verify an API, and moderate a submis
   await page.getByLabel(/Provider name/).fill("E2E Lifecycle Provider");
   await page.getByLabel(/Short summary/).fill("An API created by the APIVault browser test.");
   await page.getByLabel(/Official homepage/).fill("https://e2e-lifecycle.example.test");
+  await page.getByLabel(/Documentation URL/).fill("https://e2e-lifecycle.example.test/docs");
   await page.locator('input[name="categorySlugs"]').first().check();
   await page.locator('input[name="authMethods"][value="API_KEY"]').check();
   await page.getByRole("button", { name: "Create unverified API" }).click();

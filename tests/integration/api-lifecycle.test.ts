@@ -13,9 +13,9 @@ const suffix = randomUUID().replaceAll("-", "").slice(0, 10);
 const prefix = `lifecycle-${suffix}`;
 const providerSlug = `${prefix}-provider`;
 const categorySlug = `${prefix}-category`;
-const slugs = [`${prefix}-valid`, `${prefix}-no-source`, `${prefix}-no-category`, `${prefix}-no-auth`];
+const slugs = [`${prefix}-valid`, `${prefix}-no-source`, `${prefix}-no-category`, `${prefix}-no-auth`, `${prefix}-no-docs`];
 
-async function createFixture(slug: string, options: { source?: boolean; category?: boolean; auth?: boolean } = {}) {
+async function createFixture(slug: string, options: { source?: boolean; category?: boolean; auth?: boolean; documentation?: boolean } = {}) {
   const provider = await prisma.apiProvider.upsert({
     where: { slug: providerSlug },
     update: {},
@@ -30,7 +30,9 @@ async function createFixture(slug: string, options: { source?: boolean; category
   return prisma.api.create({
     data: {
       slug, name: slug, summary: "Fixture for API lifecycle verification and publication tests.",
-      providerId: provider.id, homepageUrl, pricingModel: PricingModel.FREEMIUM,
+      providerId: provider.id, homepageUrl,
+      ...(options.documentation === false ? {} : { documentationUrl: `${homepageUrl}/docs` }),
+      pricingModel: PricingModel.FREEMIUM,
       status: ApiStatus.ACTIVE, verificationStatus: VerificationStatus.PENDING_REVIEW,
       ...(options.category === false ? {} : { categories: { create: [{ categoryId: category.id }] } }),
       ...(options.auth === false ? {} : { authMethods: { create: [{ method: AuthMethod.API_KEY }] } }),
@@ -55,6 +57,17 @@ test("verification requires matching official homepage evidence", async () => {
     /official homepage source matching/,
   );
   const saved = await prisma.api.findUniqueOrThrow({ where: { id: api.id } });
+  assert.equal(saved.verificationStatus, VerificationStatus.PENDING_REVIEW);
+  assert.equal(saved.publishedAt, null);
+});
+
+test("verification requires an official HTTPS documentation URL", async () => {
+  const noDocs = await createFixture(slugs[4]!, { documentation: false });
+  await assert.rejects(
+    prisma.$transaction((tx) => updateApiLifecycle(tx, noDocs.id, VerificationStatus.VERIFIED, ApiStatus.ACTIVE, "Evidence reviewed")),
+    /official HTTPS documentation URL/,
+  );
+  const saved = await prisma.api.findUniqueOrThrow({ where: { id: noDocs.id } });
   assert.equal(saved.verificationStatus, VerificationStatus.PENDING_REVIEW);
   assert.equal(saved.publishedAt, null);
 });

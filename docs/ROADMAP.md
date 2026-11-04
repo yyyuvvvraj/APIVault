@@ -19,13 +19,13 @@ This roadmap is an execution order, not a claim that future capabilities already
 - A consistent metadata completeness policy for official documentation, homepage, authentication, pricing, rate limits, terms, status page, geography, and source evidence.
 - A review queue that makes missing evidence and incomplete fields obvious to maintainers.
 - Duplicate detection and import validation before records can enter the canonical catalogue.
-- Better search relevance and filter combinations, backed by representative fixtures and query tests.
+- Better search relevance through all-term matching and weighted ranking across API names, providers, categories, tags, and descriptions; category, pricing, and authentication filters compose with AND semantics.
 - Clear freshness and verification context on API detail pages.
 - A reviewed starter catalogue; no imported record becomes public merely because it exists in a data file.
 
 ### Acceptance gates
 - Unit and PostgreSQL integration tests prove that pending, unverified, archived, or incomplete records are not returned by public endpoints.
-- Search and filter combinations are covered by deterministic tests.
+- Search tokenization, weighted ranking, and category + pricing + authentication filter combinations are covered by deterministic unit and PostgreSQL integration tests.
 - Every published candidate has official source evidence; unknown facts remain explicitly unknown.
 - No material search regression in the existing public API contract.
 

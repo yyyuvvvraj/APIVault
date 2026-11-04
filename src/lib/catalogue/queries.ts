@@ -6,6 +6,7 @@ import {
 } from "@/generated/prisma/client";
 import type { Prisma } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
+import { rankCatalogueResults, tokenizeCatalogueQuery } from "@/lib/catalogue/search";
 import type { CatalogueFilters } from "@/lib/catalogue/search";
 
 const apiCardInclude = {
@@ -28,25 +29,39 @@ const apiDetailInclude = {
 export type ApiCardRecord = Prisma.ApiGetPayload<{ include: typeof apiCardInclude }>;
 export type ApiDetailRecord = Prisma.ApiGetPayload<{ include: typeof apiDetailInclude }>;
 
-function buildWhere(filters: CatalogueFilters): Prisma.ApiWhereInput {
-  const query = filters.q;
-
+function publicVisibilityWhere(): Prisma.ApiWhereInput {
   return {
     status: ApiStatus.ACTIVE,
     verificationStatus: VerificationStatus.VERIFIED,
-    ...(query
+    publishedAt: { not: null },
+    documentationUrl: { startsWith: "https://" },
+    categories: { some: {} },
+    authMethods: { some: {} },
+    sources: { some: { isOfficial: true, url: { startsWith: "https://" } } },
+  };
+}
+
+function buildWhere(filters: CatalogueFilters): Prisma.ApiWhereInput {
+  const tokens = tokenizeCatalogueQuery(filters.q);
+
+  return {
+    ...publicVisibilityWhere(),
+    ...(tokens.length
       ? {
-          OR: [
-            { name: { contains: query, mode: "insensitive" } },
-            { slug: { contains: query, mode: "insensitive" } },
-            { summary: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-            { provider: { is: { name: { contains: query, mode: "insensitive" } } } },
-            { provider: { is: { slug: { contains: query, mode: "insensitive" } } } },
-            { tags: { some: { tag: { name: { contains: query, mode: "insensitive" } } } } },
-            { tags: { some: { tag: { slug: { contains: query, mode: "insensitive" } } } } },
-            { categories: { some: { category: { name: { contains: query, mode: "insensitive" } } } } },
-          ],
+          AND: tokens.map((token) => ({
+            OR: [
+              { name: { contains: token, mode: "insensitive" as const } },
+              { slug: { contains: token, mode: "insensitive" as const } },
+              { summary: { contains: token, mode: "insensitive" as const } },
+              { description: { contains: token, mode: "insensitive" as const } },
+              { provider: { is: { name: { contains: token, mode: "insensitive" as const } } } },
+              { provider: { is: { slug: { contains: token, mode: "insensitive" as const } } } },
+              { tags: { some: { tag: { name: { contains: token, mode: "insensitive" as const } } } } },
+              { tags: { some: { tag: { slug: { contains: token, mode: "insensitive" as const } } } } },
+              { categories: { some: { category: { name: { contains: token, mode: "insensitive" as const } } } } },
+              { categories: { some: { category: { slug: { contains: token, mode: "insensitive" as const } } } } },
+            ],
+          })),
         }
       : {}),
     ...(filters.category
@@ -79,16 +94,21 @@ export async function listApis(filters: CatalogueFilters) {
             ? [{ updatedAt: "desc" }, { name: "asc" }]
             : [{ featured: "desc" }, { updatedAt: "desc" }, { name: "asc" }];
 
-  const [items, total] = await Promise.all([
+  const shouldRankSearch = filters.sort === "relevance" && filters.q.length > 0;
+  const [records, total] = await Promise.all([
     prisma.api.findMany({
       where,
       include: apiCardInclude,
       orderBy,
-      skip: (filters.page - 1) * filters.limit,
-      take: filters.limit,
+      ...(shouldRankSearch ? {} : { skip: (filters.page - 1) * filters.limit, take: filters.limit }),
     }),
     prisma.api.count({ where }),
   ]);
+
+  const rankedRecords = shouldRankSearch ? rankCatalogueResults(records, filters.q) : records;
+  const items = shouldRankSearch
+    ? rankedRecords.slice((filters.page - 1) * filters.limit, filters.page * filters.limit)
+    : rankedRecords;
 
   return {
     databaseStatus: "ready" as const,
@@ -106,8 +126,7 @@ export async function getApiBySlug(slug: string) {
   const api = await getPrisma().api.findFirst({
     where: {
       slug,
-      status: ApiStatus.ACTIVE,
-      verificationStatus: VerificationStatus.VERIFIED,
+      ...publicVisibilityWhere(),
     },
     include: apiDetailInclude,
   });

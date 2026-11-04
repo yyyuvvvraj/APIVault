@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import {
   ApiStatus,
   AuthMethod,
+  PricingModel,
   SourceKind,
   VerificationStatus,
 } from "../../src/generated/prisma/client";
@@ -18,6 +19,9 @@ const providerSlug = `${prefix}-provider`;
 const categorySlug = `${prefix}-category`;
 const publicSlug = `${prefix}-public-api`;
 const pendingSlug = `${prefix}-pending-api`;
+const archivedSlug = `${prefix}-archived-api`;
+const unverifiedSlug = `${prefix}-unverified-api`;
+const incompleteSlug = `${prefix}-incomplete-api`;
 
 after(async () => {
   await prisma.api.deleteMany({ where: { slug: { startsWith: prefix } } });
@@ -40,6 +44,8 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
       summary: "Integration fixture for public catalogue query tests.",
       providerId: provider.id,
       homepageUrl: "https://integration.example.test",
+      documentationUrl: "https://integration.example.test/docs",
+      pricingModel: "UNKNOWN",
       status: ApiStatus.ACTIVE,
       verificationStatus: VerificationStatus.VERIFIED,
       publishedAt: new Date(),
@@ -55,27 +61,68 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
     },
   });
 
-  await prisma.api.create({
-    data: {
-      slug: pendingSlug,
-      name: `Pending Integration API ${suffix}`,
-      summary: "Must remain hidden from public catalogue.",
-      providerId: provider.id,
-      homepageUrl: "https://pending.example.test",
-      status: ApiStatus.ACTIVE,
-      verificationStatus: VerificationStatus.PENDING_REVIEW,
-    },
-  });
+  async function createVisibilityFixture(
+    slug: string,
+    status: ApiStatus,
+    verificationStatus: VerificationStatus,
+    complete = true,
+  ) {
+    const homepageUrl = `https://${slug}.example.test`;
+    return prisma.api.create({
+      data: {
+        slug,
+        name: `Public Integration ${slug}`,
+        summary: "Visibility fixture for combined public catalogue filters.",
+        providerId: provider.id,
+        homepageUrl,
+        ...(complete ? { documentationUrl: `${homepageUrl}/docs` } : {}),
+        pricingModel: PricingModel.UNKNOWN,
+        status,
+        verificationStatus,
+        publishedAt: new Date(),
+        categories: { create: [{ category: { connect: { id: category.id } } }] },
+        authMethods: { create: [{ method: AuthMethod.API_KEY }] },
+        sources: {
+          create: [{
+            sourceKind: SourceKind.OFFICIAL_HOMEPAGE,
+            url: homepageUrl,
+            isOfficial: true,
+          }],
+        },
+      },
+    });
+  }
 
-  const result = await listApis(parseCatalogueFilters({}));
+  await Promise.all([
+    createVisibilityFixture(pendingSlug, ApiStatus.ACTIVE, VerificationStatus.PENDING_REVIEW),
+    createVisibilityFixture(archivedSlug, ApiStatus.ARCHIVED, VerificationStatus.VERIFIED),
+    createVisibilityFixture(unverifiedSlug, ApiStatus.ACTIVE, VerificationStatus.UNVERIFIED),
+    createVisibilityFixture(incompleteSlug, ApiStatus.ACTIVE, VerificationStatus.VERIFIED, false),
+  ]);
+
+  const filters = parseCatalogueFilters({
+    q: "Public Provider",
+    category: categorySlug,
+    pricing: "UNKNOWN",
+    auth: "API_KEY",
+  });
+  const result = await listApis(filters);
   const visibleSlugs = result.items.map((item) => item.slug);
   assert.equal(visibleSlugs.includes(publicSlug), true);
-  assert.equal(visibleSlugs.includes(pendingSlug), false);
+  for (const hiddenSlug of [pendingSlug, archivedSlug, unverifiedSlug, incompleteSlug]) {
+    assert.equal(visibleSlugs.includes(hiddenSlug), false, `${hiddenSlug} must not be public`);
+  }
 
   const publicDetail = await getApiBySlug(publicSlug);
   const pendingDetail = await getApiBySlug(pendingSlug);
+  const archivedDetail = await getApiBySlug(archivedSlug);
+  const unverifiedDetail = await getApiBySlug(unverifiedSlug);
+  const incompleteDetail = await getApiBySlug(incompleteSlug);
   assert.equal(publicDetail.api?.slug, publicSlug);
   assert.equal(pendingDetail.api, null);
+  assert.equal(archivedDetail.api, null);
+  assert.equal(unverifiedDetail.api, null);
+  assert.equal(incompleteDetail.api, null);
 
   const relations = await prisma.api.findUniqueOrThrow({
     where: { slug: publicSlug },
