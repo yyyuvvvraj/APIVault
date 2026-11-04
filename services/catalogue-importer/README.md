@@ -96,3 +96,10 @@ go run ./cmd/catalogue-validate -input data/curated-starter-v1.json -live=true -
 The GitHub Actions workflow runs static validation for pull requests and live HTTPS checks on its weekly schedule or manual dispatch. It checks metadata/schema, HTTPS source reachability, HTTP response status, and likely duplicates (provider + normalized API name). URL checks are concurrency-limited and reject localhost/private-network DNS results. The report is uploaded as a workflow artifact.
 
 A `VALIDATED_CANDIDATE` means the record passed automated structural and reachability checks and has official source references declared in its manifest. It does **not** prove domain ownership, license compatibility, accuracy of pricing/authentication claims, or API functionality. It never changes database verification or publication state. `REVIEW_REQUIRED` records are routed for human review; do not bulk-promote them.
+
+
+## Dataset provenance
+
+Every resumable import requires top-level `dataset` metadata: name, HTTPS source URL, version, RFC3339 retrieval timestamp, license declaration (use `NOASSERTION` when no blanket dataset license is asserted), and attribution. The importer persists these fields on the import run. Dataset metadata is included in the input fingerprint, so a run cannot be resumed with altered provenance.
+
+The dataset-level license declaration does not override provider-specific rights or terms. Each API record must still retain its own official source evidence and applicable usage terms.

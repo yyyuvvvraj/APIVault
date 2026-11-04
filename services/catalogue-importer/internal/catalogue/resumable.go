@@ -24,6 +24,7 @@ type ImportReport struct {
 	SkippedBatches   int    `json:"skippedBatches"`
 	CompletedBatches int    `json:"completedBatches"`
 	BatchSize        int    `json:"batchSize"`
+	DatasetName      string `json:"datasetName"`
 }
 
 // ImportResumable commits each bounded batch and its checkpoint atomically.
@@ -33,6 +34,10 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 	if err := file.Validate(); err != nil {
 		return ImportReport{}, err
 	}
+	if err := file.Dataset.Validate(); err != nil {
+		return ImportReport{}, fmt.Errorf("dataset provenance: %w", err)
+	}
+	retrievedAt, _ := time.Parse(time.RFC3339, file.Dataset.RetrievedAt)
 	if options.BatchSize == 0 {
 		options.BatchSize = 100
 	}
@@ -57,7 +62,7 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 	sum := sha256.Sum256(input)
 	fingerprint := hex.EncodeToString(sum[:])
 	now := time.Now().UTC()
-	_, err = pool.Exec(ctx, `INSERT INTO "CatalogueImportRun" ("id","inputFingerprint","totalRecords","batchSize","status","createdAt","updatedAt") VALUES ($1,$2,$3,$4,'RUNNING',$5,$5) ON CONFLICT ("id") DO NOTHING`, options.RunID, fingerprint, len(file.APIs), options.BatchSize, now)
+	_, err = pool.Exec(ctx, `INSERT INTO "CatalogueImportRun" ("id","inputFingerprint","totalRecords","batchSize","status","datasetName","datasetSourceUrl","datasetVersion","retrievedAt","license","attribution","createdAt","updatedAt") VALUES ($1,$2,$3,$4,'RUNNING',$5,$6,$7,$8,$9,$10,$11,$11) ON CONFLICT ("id") DO NOTHING`, options.RunID, fingerprint, len(file.APIs), options.BatchSize, file.Dataset.Name, file.Dataset.SourceURL, file.Dataset.Version, retrievedAt, file.Dataset.License, file.Dataset.Attribution, now)
 	if err != nil {
 		return ImportReport{}, fmt.Errorf("create import run: %w", err)
 	}
@@ -71,7 +76,7 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 	if storedFingerprint != fingerprint || total != len(file.APIs) || batchSize != options.BatchSize {
 		return ImportReport{}, fmt.Errorf("run ID %q is already associated with different input or batch size", options.RunID)
 	}
-	report := ImportReport{RunID: options.RunID, TotalRecords: len(file.APIs), BatchSize: options.BatchSize}
+	report := ImportReport{RunID: options.RunID, TotalRecords: len(file.APIs), BatchSize: options.BatchSize, DatasetName: file.Dataset.Name}
 	if status == "COMPLETED" {
 		report.ProcessedRecords = len(file.APIs)
 		return report, nil

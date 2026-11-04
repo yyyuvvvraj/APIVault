@@ -46,7 +46,7 @@ func main() {
 		for _, api := range file.APIs {
 			report.Results = append(report.Results, catalogue.APIValidation{
 				Slug: api.Slug, Name: api.Name, Provider: api.Provider.Name,
-				Verdict:       "REVIEW_REQUIRED",
+				Verdict: "REVIEW_REQUIRED",
 				ReviewReasons: []string{"live checks disabled; static validation only"},
 			})
 			report.ReviewRequired++

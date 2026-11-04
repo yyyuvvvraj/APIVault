@@ -8,12 +8,37 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 
 type File struct {
-	APIs []API `json:"apis"`
+	APIs    []API              `json:"apis"`
+	Dataset DatasetProvenance `json:"dataset"`
+}
+
+type DatasetProvenance struct {
+	Name        string `json:"name"`
+	SourceURL   string `json:"sourceUrl"`
+	Version     string `json:"version"`
+	RetrievedAt string `json:"retrievedAt"`
+	License     string `json:"license"`
+	Attribution string `json:"attribution"`
+}
+
+func (d DatasetProvenance) Validate() error {
+	if strings.TrimSpace(d.Name) == "" || strings.TrimSpace(d.Version) == "" ||
+		strings.TrimSpace(d.License) == "" || strings.TrimSpace(d.Attribution) == "" {
+		return fmt.Errorf("dataset provenance requires name, version, license, and attribution")
+	}
+	if err := httpsURL(d.SourceURL, "dataset.sourceUrl", true); err != nil {
+		return err
+	}
+	if _, err := time.Parse(time.RFC3339, d.RetrievedAt); err != nil {
+		return fmt.Errorf("dataset.retrievedAt must be an RFC3339 timestamp")
+	}
+	return nil
 }
 
 type API struct {
@@ -284,7 +309,7 @@ func defaultValue(value, fallback string) string {
 }
 
 func (file File) Normalize() File {
-	normalized := File{APIs: make([]API, len(file.APIs))}
+	normalized := File{APIs: make([]API, len(file.APIs)), Dataset: file.Dataset}
 	for i, api := range file.APIs {
 		normalized.APIs[i] = api.Normalized()
 	}
