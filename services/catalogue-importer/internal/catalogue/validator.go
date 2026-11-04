@@ -146,6 +146,11 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 	close(tasks)
 	wg.Wait()
 
+	applyCatalogueConflictChecks(&report)
+	return report
+}
+
+func applyCatalogueConflictChecks(report *ValidationReport) {
 	seenNames := make(map[string]string)
 	seenHomepages := make(map[string]APIValidation)
 	for i := range report.Results {
@@ -170,13 +175,22 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 				result.Verdict = "REVIEW_REQUIRED"
 				result.ReviewReasons = append(result.ReviewReasons, "homepage also referenced by provider "+prior.Provider+" ("+prior.Slug+")")
 				report.Conflicts = append(report.Conflicts, CatalogueConflict{
-					Kind: "CROSS_PROVIDER_HOMEPAGE_COLLISION", APISlug: result.Slug,
-					ConflictingAPISlug: prior.Slug, Key: homepageKey, Severity: "MEDIUM",
+					Kind:               "CROSS_PROVIDER_HOMEPAGE_COLLISION",
+					APISlug:            result.Slug,
+					ConflictingAPISlug: prior.Slug,
+					Key:                homepageKey,
+					Severity:           "MEDIUM",
 				})
 			} else {
 				seenHomepages[homepageKey] = *result
 			}
 		}
+		sort.Strings(result.ReviewReasons)
+	}
+	report.ValidatedCandidates = 0
+	report.ReviewRequired = 0
+	report.Rejected = 0
+	for _, result := range report.Results {
 		switch result.Verdict {
 		case "VALIDATED_CANDIDATE":
 			report.ValidatedCandidates++
@@ -185,9 +199,7 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 		default:
 			report.ReviewRequired++
 		}
-		sort.Strings(result.ReviewReasons)
 	}
-	return report
 }
 
 func canonicalHomepage(raw string) (string, error) {
