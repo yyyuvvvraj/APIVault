@@ -6,7 +6,8 @@ A dry-run-first Go CLI for importing API catalogue records into the existing API
 
 - Uses PostgreSQL through `pgx/v5`.
 - Imports providers, APIs, category links, authentication methods, source references, and revision history.
-- Uses one database transaction for the complete file. Any invalid category or database error rolls the entire import back.
+- Uses bounded PostgreSQL transactions (default 100 records, maximum 250) with durable run and batch checkpoints.
+- Commits each batch and its checkpoint atomically; completed batches are skipped when a failed run is resumed with the same run ID and unchanged input.
 - Upserts providers and APIs by their stable slugs, making repeated imports safe.
 - Replaces category and authentication-method associations for each imported API.
 - Upserts source references by API and URL.
@@ -55,16 +56,18 @@ Only after a maintainer has reviewed the source links and confirmed the target d
 
 ```bash
 cd services/catalogue-importer
-go run ./cmd/catalogue-importer -input data/curated-starter-v1.json -apply
+go run ./cmd/catalogue-importer -input data/curated-starter-v1.json -apply -batch-size 100 -run-id starter-v1-2026-11-04
 ```
 
-The importer prints only the database host and database name, never the connection string or credentials. It processes at most 500 APIs per file and uses a two-minute operation timeout.
+The importer prints only the database host and database name, never the connection string or credentials. It accepts up to 10,000 records per manifest (64 MiB input limit) and processes them in bounded transactions. The command's operation timeout is two minutes.
 
 Do not use the placeholder example file against a real database.
 
 ## Data integrity
 
-- The entire file is committed or rolled back as one transaction.
+- Each batch and its checkpoint are committed or rolled back together.
+- A failed run can be resumed with the same `-run-id`, input file, and batch size.
+- Reusing a run ID with different input or batch size is rejected.
 - Unknown category slugs fail the import.
 - API records are imported as unverified or pending review, never verified.
 - Source references are retained and updated idempotently.
@@ -73,8 +76,8 @@ Do not use the placeholder example file against a real database.
 
 ## Large-scale ingestion direction
 
-The current importer is a safe starter tool, not yet a 200,000-record ingestion engine. It accepts at most 500 APIs per JSON file, reads the complete file into memory, and applies one transaction for the whole batch. Do not simply raise the limit to 200,000: that would create oversized transactions, poor failure recovery, and difficult review.
+The importer is a resumable first-stage ingestion tool, not yet a complete 200,000-record ingestion platform. It accepts up to 10,000 APIs per manifest, reads the manifest into memory (64 MiB maximum), and commits bounded batches. For larger source collections, split data into reviewed manifests and preserve the same dataset provenance. A future streaming adapter and source-specific connectors are still needed for sustained 200,000-record acquisition.
 
-The 0.4.0 ingestion work will introduce bounded batches, durable checkpoints, resumable runs, idempotent processing, structured duplicate/conflict reporting, and import summaries. Each batch must retain source-dataset provenance and remain pending/unverified. A failed batch must be safely retried without duplicating records; a failed run must not silently skip records.
+The 0.4.0 ingestion work introduces bounded batches, durable checkpoints, resumable runs, idempotent API upserts, and operator-visible run summaries. Dataset provenance, source-level duplicate/conflict reports, and moderator prioritization remain explicit follow-on acceptance work before 0.4.0 can be called complete. Each batch must retain source-dataset provenance and remain pending/unverified. A failed batch must be safely retried without duplicating records; a failed run must not silently skip records.
 
 The 200,000 figure is a long-term target for distinct API products/services, not a release commitment. Source licenses, attribution, provider terms, data quality, database performance, and maintainer review capacity are release gates. See [the roadmap](../../../docs/ROADMAP.md#catalogue-scale-programme-directional-targets-not-release-guarantees) and [catalogue curation policy](../../../docs/CATALOGUE_CURATION.md#large-scale-catalogue-growth).
