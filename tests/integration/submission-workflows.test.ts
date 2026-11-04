@@ -59,7 +59,7 @@ test("transaction rollback restores the prior review state after a later write f
   const submission = await createSubmission(SubmissionStatus.IN_REVIEW);
   await assert.rejects(
     prisma.$transaction(async (tx) => {
-      await transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject this proposal");
+      await transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject this proposal", "integration-reviewer");
       await tx.apiRevision.create({
         data: {
           apiId: randomUUID(),
