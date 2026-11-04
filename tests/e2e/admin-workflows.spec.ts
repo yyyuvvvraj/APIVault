@@ -35,6 +35,9 @@ test("administrator can sign in, create and verify an API, and moderate a submis
   await expect(page.getByRole("status")).toContainText("verified and published");
   await page.goto("/apis/e2e-lifecycle-api");
   await expect(page.getByRole("heading", { name: "E2E Lifecycle API" })).toBeVisible();
+  await expect(page.getByText("Review current", { exact: true })).toBeVisible();
+  await expect(page.getByText("Next review due", { exact: true })).toBeVisible();
+  await expect(page.getByText(/90-day catalogue review cadence/)).toBeVisible();
 
   await page.goto("/admin/submissions");
   const submission = page.locator("article").filter({ hasText: "E2E Community Member" });
