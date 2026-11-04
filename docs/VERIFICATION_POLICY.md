@@ -15,7 +15,9 @@ Third-party directory pages can help discovery but are not sufficient evidence f
 
 ## Review checklist
 
-Before setting an entry to `VERIFIED`, a maintainer should confirm:
+Before setting an entry to `VERIFIED`, a maintainer must confirm the publication prerequisites: an HTTPS developer documentation URL, an official homepage source whose URL exactly matches the API homepage, at least one category, and at least one explicit authentication classification. The public catalogue independently enforces these fields, an official HTTPS source, a publication timestamp, `ACTIVE` status, and `VERIFIED` status for both listings and detail lookups.
+
+A maintainer should then confirm:
 1. The API and provider are identifiable and the links resolve to the expected service.
 2. The summary accurately reflects the official description.
 3. Authentication information is supported by documentation.
