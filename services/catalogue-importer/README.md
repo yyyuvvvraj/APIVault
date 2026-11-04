@@ -103,3 +103,6 @@ A `VALIDATED_CANDIDATE` means the record passed automated structural and reachab
 Every resumable import requires top-level `dataset` metadata: name, HTTPS source URL, version, RFC3339 retrieval timestamp, license declaration (use `NOASSERTION` when no blanket dataset license is asserted), and attribution. The importer persists these fields on the import run. Dataset metadata is included in the input fingerprint, so a run cannot be resumed with altered provenance.
 
 The dataset-level license declaration does not override provider-specific rights or terms. Each API record must still retain its own official source evidence and applicable usage terms.
+
+
+Verified catalogue records are protected from candidate-import downgrades: repeated imports preserve their verification state, featured flag, and operational status. Failed database status updates are surfaced rather than silently ignored.
