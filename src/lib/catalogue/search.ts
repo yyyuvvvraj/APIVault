@@ -25,7 +25,7 @@ function oneOf<T extends string>(value: string, options: readonly { value: T }[]
 }
 
 export function tokenizeCatalogueQuery(query: string): string[] {
-  return [...new Set(query.toLowerCase().trim().split(/\s+/).map((token) => token.replace(/^[^\\p{L}\\p{N}]+|[^\\p{L}\\p{N}]+$/gu, "")).filter(Boolean))].slice(0, 8);
+  return [...new Set(query.toLowerCase().trim().split(/\s+/).map((token) => token.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "")).filter(Boolean))].slice(0, 8);
 }
 
 export type SearchableCatalogueRecord = {
