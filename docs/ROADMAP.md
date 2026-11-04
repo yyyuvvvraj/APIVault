@@ -55,6 +55,19 @@ This roadmap is an execution order, not a claim that future capabilities already
 - Separate discovery candidates from canonical catalogue records: bulk imports must land in a review/staging state and must never auto-verify, auto-feature, or auto-publish APIs.
 - Add source adapters only for datasets whose licenses, attribution, freshness, and provider usage terms permit the intended collection and redistribution.
 
+### Implementation status (updated 2026-11-04)
+
+The following 0.4.0 components are implemented on `dev` and have focused regression coverage merged:
+- Contributor profile privacy projection and regression tests.
+- Structured catalogue duplicate/conflict reporting and tests.
+- Moderation prioritization and operator-facing health/quality metrics.
+- Resumable, bounded, idempotent importer with durable checkpoints and same-run PostgreSQL advisory locking.
+- PostgreSQL-backed recovery and concurrent-run integration test, executed in Application CI with `go test -race`; the test passed on the merged importer fix.
+
+The merged CI evidence for the importer fix includes successful Go importer/verifier checks, Application CI (including the PostgreSQL recovery/concurrency test, 91 unit tests, and 17 database integration tests), Docker build, and repository hygiene. This is meaningful implementation evidence, not a declaration that the entire 0.4.0 milestone is release-ready.
+
+Before preparing a 0.4.0 release snapshot, complete and record a single acceptance review covering the end-to-end contributor submission and moderation journeys, privacy behavior in the integrated UI/API, operational metrics and their definitions, source/license/attribution eligibility for every ingestion adapter, failure/recovery operator procedures, and all required browser, application, verifier, and container checks on the exact release candidate. Update this section with links to the evidence and any remaining exceptions. Keep `stable` unchanged until every gate is satisfied.
+
 ### Catalogue scale programme (directional targets, not release guarantees)
 - 1,000 high-quality candidates: prove curation, deduplication, evidence capture, and review throughput.
 - 10,000 candidates: prove repeatable batch ingestion, resumability, and search/index performance.
