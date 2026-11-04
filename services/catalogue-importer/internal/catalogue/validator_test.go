@@ -1,6 +1,7 @@
 package catalogue
 
 import (
+	"context"
 	"net"
 	"testing"
 )
@@ -33,5 +34,12 @@ func TestIsPublicIP(t *testing.T) {
 				t.Fatalf("isPublicIP(%s) = %v, want %v", tc.value, got, tc.want)
 			}
 		})
+	}
+}
+
+func TestDialPublicContextRejectsLoopback(t *testing.T) {
+	_, err := dialPublicContext(context.Background(), "tcp", "127.0.0.1:443")
+	if err == nil {
+		t.Fatal("expected loopback destination to be rejected")
 	}
 }
