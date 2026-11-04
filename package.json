@@ -19,7 +19,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "setup:local": "bash scripts/setup-local.sh"
+    "setup:local": "bash scripts/setup-local.sh",
+    "verify:go": "bash scripts/verify-go.sh"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "1.7.15",

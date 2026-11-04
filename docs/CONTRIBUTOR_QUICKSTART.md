@@ -14,9 +14,9 @@ Avoid starting with authentication, authorization, database migrations, release 
 
 ## Get the project running
 
-1. Install Git, Node.js 24.x, and Docker with Compose v2.
+1. Install Git, Node.js 24.x, Go 1.25+, and Docker with Compose v2.
 2. Clone the repository and switch to `dev`.
-3. Run `bash scripts/setup-local.sh` from the repository root.
+3. Run `npm run setup:local` from the repository root. Setup requires Go 1.25+ and validates both Go services.
 4. Start the app with `npm run dev` and open http://localhost:3000.
 5. Read [SETUP.md](SETUP.md) if you need the detailed setup or troubleshooting steps.
 
@@ -28,7 +28,7 @@ The setup script creates a local `.env` if needed, generates a local-only auth s
 - For substantial work, discuss the approach in an issue.
 - Create a short-lived branch from the latest `dev`.
 - Include a focused test and update documentation in the same PR.
-- Run `npm test`, plus relevant integration, lint, typecheck, and build checks.
+- Run `npm run verify:go`, `npm test`, plus relevant integration, lint, typecheck, and build checks.
 - Target `dev`, describe the behavior change, and disclose anything you could not test.
 
 ## Catalogue data standards

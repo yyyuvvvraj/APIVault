@@ -11,8 +11,16 @@ fail() {
 
 command -v node >/dev/null 2>&1 || fail "Node.js 24.x is required. Install it and rerun this script."
 command -v npm >/dev/null 2>&1 || fail "npm is required."
+command -v go >/dev/null 2>&1 || fail "Go 1.25 or newer is required for APIVault. Install Go and rerun this script."
 command -v docker >/dev/null 2>&1 || fail "Docker with the Compose plugin is required."
 node -e 'const major = Number(process.versions.node.split(".")[0]); if (major !== 24) process.exit(1)' || fail "This project requires Node.js 24.x; found $(node --version)."
+go_version="$(go env GOVERSION | sed 's/^go//')"
+go_major="${go_version%%.*}"
+go_minor="${go_version#*.}"
+go_minor="${go_minor%%.*}"
+if (( go_major < 1 || (go_major == 1 && go_minor < 25) )); then
+  fail "APIVault requires Go 1.25 or newer; found $(go version)."
+fi
 docker compose version >/dev/null 2>&1 || fail "Docker Compose v2 is required. Start or install Docker Desktop / Docker Engine."
 docker info >/dev/null 2>&1 || fail "The Docker daemon is not running. Start Docker Desktop / Docker Engine and retry."
 
@@ -38,10 +46,10 @@ if (!configured) {
 }
 NODE
 
-printf '\n[1/5] Installing locked dependencies...\n'
+printf '\n[1/6] Installing locked dependencies...\n'
 npm ci
 
-printf '\n[2/5] Starting PostgreSQL...\n'
+printf '\n[2/6] Starting PostgreSQL...\n'
 docker compose up -d postgres
 
 printf 'Waiting for PostgreSQL health'
@@ -57,13 +65,16 @@ done
 printf '\n'
 [[ "$ready" -eq 1 ]] || fail "PostgreSQL did not become ready. Inspect with: docker compose logs postgres"
 
-printf '\n[3/5] Generating Prisma Client...\n'
+printf '\n[3/6] Verifying required Go services...\n'
+npm run verify:go
+
+printf '\n[4/6] Generating Prisma Client...\n'
 npm run db:generate
 
-printf '\n[4/5] Applying database migrations...\n'
+printf '\n[5/6] Applying database migrations...\n'
 npm run db:deploy
 
-printf '\n[5/5] Seeding the starter category taxonomy...\n'
+printf '\n[6/6] Seeding the starter category taxonomy...\n'
 npm run db:seed
 
 cat <<'EOF'
