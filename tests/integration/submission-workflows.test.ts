@@ -29,32 +29,37 @@ after(async () => {
 test("rejection persists the reviewer decision and note", async () => {
   const submission = await createSubmission(SubmissionStatus.IN_REVIEW);
   await prisma.$transaction((tx) =>
-    transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Evidence is insufficient"),
+    transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Evidence is insufficient", "integration-reviewer"),
   );
 
   const saved = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
   assert.equal(saved.status, SubmissionStatus.REJECTED);
   assert.equal(saved.reviewNote, "Evidence is insufficient");
   assert.ok(saved.reviewedAt);
+  const event = await prisma.submissionReviewEvent.findFirst({ where: { submissionId: submission.id } });
+  assert.equal(event?.previousStatus, SubmissionStatus.IN_REVIEW);
+  assert.equal(event?.nextStatus, SubmissionStatus.REJECTED);
+  assert.equal(event?.reviewerUserId, "integration-reviewer");
 });
 
 test("invalid review transition leaves the stored submission unchanged", async () => {
   const submission = await createSubmission(SubmissionStatus.REJECTED);
   await assert.rejects(
     prisma.$transaction((tx) =>
-      transitionSubmissionReview(tx, submission.id, SubmissionStatus.IN_REVIEW, ""),
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.IN_REVIEW, "", "integration-reviewer"),
     ),
     /Cannot move/,
   );
   const saved = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
   assert.equal(saved.status, SubmissionStatus.REJECTED);
+  assert.equal(await prisma.submissionReviewEvent.count({ where: { submissionId: submission.id } }), 0);
 });
 
 test("transaction rollback restores the prior review state after a later write fails", async () => {
   const submission = await createSubmission(SubmissionStatus.IN_REVIEW);
   await assert.rejects(
     prisma.$transaction(async (tx) => {
-      await transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject this proposal");
+      await transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject this proposal", "integration-reviewer");
       await tx.apiRevision.create({
         data: {
           apiId: randomUUID(),
@@ -68,6 +73,7 @@ test("transaction rollback restores the prior review state after a later write f
   const saved = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
   assert.equal(saved.status, SubmissionStatus.IN_REVIEW);
   assert.equal(saved.reviewNote, null);
+  assert.equal(await prisma.submissionReviewEvent.count({ where: { submissionId: submission.id } }), 0);
 });
 
 
@@ -76,10 +82,10 @@ test("concurrent reviewer decisions cannot overwrite the first committed decisio
 
   const decisions = await Promise.allSettled([
     prisma.$transaction((tx) =>
-      transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject after review"),
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.REJECTED, "Reject after review", "integration-reviewer-a"),
     ),
     prisma.$transaction((tx) =>
-      transitionSubmissionReview(tx, submission.id, SubmissionStatus.CHANGES_REQUESTED, "Request further evidence"),
+      transitionSubmissionReview(tx, submission.id, SubmissionStatus.CHANGES_REQUESTED, "Request further evidence", "integration-reviewer-b"),
     ),
   ]);
 
@@ -93,4 +99,5 @@ test("concurrent reviewer decisions cannot overwrite the first committed decisio
   );
   assert.ok(saved.reviewNote);
   assert.ok(saved.reviewedAt);
+  assert.equal(await prisma.submissionReviewEvent.count({ where: { submissionId: submission.id } }), 1);
 });
