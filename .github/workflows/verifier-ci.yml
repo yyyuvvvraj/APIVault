@@ -1,4 +1,4 @@
-name: Required Go CI
+name: Go Verifier CI
 
 on:
   pull_request:
