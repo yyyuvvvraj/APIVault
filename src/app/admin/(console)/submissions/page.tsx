@@ -3,6 +3,7 @@ import { getPrisma } from "@/lib/db";
 import { findSubmissionDuplicateCandidates, type DuplicateSubmissionInput } from "@/lib/submissions/duplicate-detection";
 import { AdminSubmissionReviewActions } from "@/components/admin-submission-review-actions";
 import { AdminSubmissionApprovalButton } from "@/components/admin-submission-approval-button";
+import { getModerationPriority } from "@/lib/submissions/moderation-priority";
 
 export const metadata = { title: "Community submissions" };
 
@@ -63,6 +64,23 @@ export default async function AdminSubmissionsPage() {
     ) : [],
   ]));
 
+  const priorityBySubmission = new Map(submissions.map((submission) => {
+    const duplicateCount = (duplicateHints.get(submission.id) ?? []).length;
+    return [submission.id, getModerationPriority({
+      status: submission.status,
+      kind: submission.kind,
+      createdAt: submission.createdAt,
+      payload: submission.payload,
+      sourceKinds: submission.sources.map((source) => source.sourceKind),
+      duplicateCount,
+      hasTargetApi: Boolean(submission.targetApi),
+    })] as const;
+  }));
+  submissions.sort((a, b) => {
+    const scoreDelta = (priorityBySubmission.get(b.id)?.score ?? 0) - (priorityBySubmission.get(a.id)?.score ?? 0);
+    return scoreDelta || a.createdAt.getTime() - b.createdAt.getTime();
+  });
+
   return (
     <>
       <header className="mb-7">
@@ -79,9 +97,10 @@ export default async function AdminSubmissionsPage() {
                 <p className="text-sm font-extrabold text-white">{submission.kind === "CREATE" ? "New API suggestion" : "Update request"}</p>
                 <p className="mt-1 text-xs text-slate-500">{submission.submitterName || "Community member"}{submission.submitterGithub ? " · @" + submission.submitterGithub : ""} · {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(submission.createdAt)}</p>
               </div>
-              <span className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide ${statusTone[submission.status]}`}>{submission.status.replaceAll("_", " ")}</span>
+              <div className="flex items-center gap-2"><span className="rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-2.5 py-1.5 text-[10px] font-extrabold text-cyan-200">Priority {priorityBySubmission.get(submission.id)?.score ?? 0}</span><span className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide ${statusTone[submission.status]}`}>{submission.status.replaceAll("_", " ")}</span></div>
             </div>
             {submission.targetApi && <p className="mt-3 text-xs text-slate-400">Target API: {submission.targetApi.name} ({submission.targetApi.slug})</p>}
+            {(priorityBySubmission.get(submission.id)?.reasons ?? []).length > 0 && <p className="mt-2 text-xs leading-5 text-amber-300">Triage signals: {priorityBySubmission.get(submission.id)?.reasons.join(" · ")}</p>}
             {(duplicateHints.get(submission.id) ?? []).length > 0 && (
               <section aria-label="Possible duplicate APIs" className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.04] p-3">
                 <p className="text-[10px] font-extrabold uppercase tracking-wide text-amber-300">Possible catalogue duplicates — manual review required</p>
