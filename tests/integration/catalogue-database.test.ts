@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import {
   ApiStatus,
   AuthMethod,
+  PricingModel,
   SourceKind,
   VerificationStatus,
 } from "../../src/generated/prisma/client";
@@ -60,54 +61,44 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
     },
   });
 
-  await prisma.api.create({
-    data: {
-      slug: pendingSlug,
-      name: `Pending Integration API ${suffix}`,
-      summary: "Must remain hidden from public catalogue.",
-      providerId: provider.id,
-      homepageUrl: "https://pending.example.test",
-      status: ApiStatus.ACTIVE,
-      verificationStatus: VerificationStatus.PENDING_REVIEW,
-    },
-  });
+  async function createVisibilityFixture(
+    slug: string,
+    status: ApiStatus,
+    verificationStatus: VerificationStatus,
+    complete = true,
+  ) {
+    const homepageUrl = `https://${slug}.example.test`;
+    return prisma.api.create({
+      data: {
+        slug,
+        name: `Public Integration ${slug}`,
+        summary: "Visibility fixture for combined public catalogue filters.",
+        providerId: provider.id,
+        homepageUrl,
+        ...(complete ? { documentationUrl: `${homepageUrl}/docs` } : {}),
+        pricingModel: PricingModel.UNKNOWN,
+        status,
+        verificationStatus,
+        publishedAt: new Date(),
+        categories: { create: [{ category: { connect: { id: category.id } } }] },
+        authMethods: { create: [{ method: AuthMethod.API_KEY }] },
+        sources: {
+          create: [{
+            sourceKind: SourceKind.OFFICIAL_HOMEPAGE,
+            url: homepageUrl,
+            isOfficial: true,
+          }],
+        },
+      },
+    });
+  }
 
-  await prisma.api.createMany({
-    data: [
-      {
-        slug: archivedSlug,
-        name: `Archived Integration API ${suffix}`,
-        summary: "Archived records must remain private.",
-        providerId: provider.id,
-        homepageUrl: "https://archived.example.test",
-        documentationUrl: "https://archived.example.test/docs",
-        status: ApiStatus.ARCHIVED,
-        verificationStatus: VerificationStatus.VERIFIED,
-        publishedAt: new Date(),
-      },
-      {
-        slug: unverifiedSlug,
-        name: `Unverified Integration API ${suffix}`,
-        summary: "Unverified records must remain private.",
-        providerId: provider.id,
-        homepageUrl: "https://unverified.example.test",
-        documentationUrl: "https://unverified.example.test/docs",
-        status: ApiStatus.ACTIVE,
-        verificationStatus: VerificationStatus.UNVERIFIED,
-        publishedAt: new Date(),
-      },
-      {
-        slug: incompleteSlug,
-        name: `Incomplete Integration API ${suffix}`,
-        summary: "Verified records without required evidence must remain private.",
-        providerId: provider.id,
-        homepageUrl: "https://incomplete.example.test",
-        status: ApiStatus.ACTIVE,
-        verificationStatus: VerificationStatus.VERIFIED,
-        publishedAt: new Date(),
-      },
-    ],
-  });
+  await Promise.all([
+    createVisibilityFixture(pendingSlug, ApiStatus.ACTIVE, VerificationStatus.PENDING_REVIEW),
+    createVisibilityFixture(archivedSlug, ApiStatus.ARCHIVED, VerificationStatus.VERIFIED),
+    createVisibilityFixture(unverifiedSlug, ApiStatus.ACTIVE, VerificationStatus.UNVERIFIED),
+    createVisibilityFixture(incompleteSlug, ApiStatus.ACTIVE, VerificationStatus.VERIFIED, false),
+  ]);
 
   const filters = parseCatalogueFilters({
     q: "Public Integration",
