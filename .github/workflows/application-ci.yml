@@ -66,6 +66,18 @@ jobs:
       - name: Apply database migrations
         run: npm run db:deploy
 
+      - name: Set up Go for importer integration tests
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Test resumable importer against migrated PostgreSQL
+        working-directory: services/catalogue-importer
+        env:
+          APIVAULT_TEST_DATABASE_URL: postgresql://apivault:apivault@localhost:5432/apivault?schema=public
+        run: go test -race -run TestImportResumablePostgresRecoveryAndConcurrency -count=1 ./...
+
       - name: Unit tests
         run: npm test
 
