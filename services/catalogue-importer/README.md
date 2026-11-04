@@ -70,3 +70,11 @@ Do not use the placeholder example file against a real database.
 - Source references are retained and updated idempotently.
 - Existing API IDs are preserved when an API slug is updated.
 - No schema migration is performed by this tool.
+
+## Large-scale ingestion direction
+
+The current importer is a safe starter tool, not yet a 200,000-record ingestion engine. It accepts at most 500 APIs per JSON file, reads the complete file into memory, and applies one transaction for the whole batch. Do not simply raise the limit to 200,000: that would create oversized transactions, poor failure recovery, and difficult review.
+
+The 0.4.0 ingestion work will introduce bounded batches, durable checkpoints, resumable runs, idempotent processing, structured duplicate/conflict reporting, and import summaries. Each batch must retain source-dataset provenance and remain pending/unverified. A failed batch must be safely retried without duplicating records; a failed run must not silently skip records.
+
+The 200,000 figure is a long-term target for distinct API products/services, not a release commitment. Source licenses, attribution, provider terms, data quality, database performance, and maintainer review capacity are release gates. See [the roadmap](../../../docs/ROADMAP.md#catalogue-scale-programme-directional-targets-not-release-guarantees) and [catalogue curation policy](../../../docs/CATALOGUE_CURATION.md#large-scale-catalogue-growth).
