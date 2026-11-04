@@ -72,10 +72,11 @@ func main() {
 	if err := pool.Ping(ctx); err != nil {
 		fatalf("PostgreSQL health check failed: %v", err)
 	}
-	if err := catalogue.Import(ctx, pool, file); err != nil {
-		fatalf("catalogue import failed; transaction rolled back: %v", err)
+	report, err := catalogue.ImportResumable(ctx, pool, file, catalogue.ImportOptions{RunID: *runID, BatchSize: *batchSize})
+	if err != nil {
+		fatalf("catalogue import failed (resume with -run-id %q): %v", report.RunID, err)
 	}
-
+	fmt.Printf("Import successful: run=%s processed=%d/%d batches=%d skipped=%d batch-size=%d\\n", report.RunID, report.ProcessedRecords, report.TotalRecords, report.CompletedBatches, report.SkippedBatches, report.BatchSize)
 	fmt.Printf("Import successful: %d API record(s) processed transactionally.\n", len(file.APIs))
 }
 
