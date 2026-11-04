@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getApiBySlug } from "@/lib/catalogue/queries";
+import { CATALOGUE_REVIEW_INTERVAL_DAYS, getCatalogueFreshnessState, getCatalogueReviewDueAt } from "@/lib/catalogue/freshness";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -44,6 +45,18 @@ export default async function ApiDetailPage({ params }: PageProps) {
 
   if (!result.api) notFound();
   const api = result.api;
+  const freshnessState = getCatalogueFreshnessState(api.lastCheckedAt, new Date());
+  const reviewDueAt = api.lastCheckedAt ? getCatalogueReviewDueAt(api.lastCheckedAt) : null;
+  const freshnessLabel = freshnessState === "OVERDUE"
+    ? "Review overdue"
+    : freshnessState === "NEVER_CHECKED"
+      ? "Review not recorded"
+      : "Review current";
+  const freshnessClass = freshnessState === "OVERDUE"
+    ? "bg-amber-400/10 text-amber-300"
+    : freshnessState === "NEVER_CHECKED"
+      ? "bg-slate-400/10 text-slate-300"
+      : "bg-emerald-400/10 text-emerald-300";
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
@@ -84,7 +97,10 @@ export default async function ApiDetailPage({ params }: PageProps) {
           <dl className="mt-4 space-y-3 text-sm">
             <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-400">Last verified</dt><dd className="mt-1 text-slate-200">{dateLabel(api.verifiedAt)}</dd></div>
             <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-400">Last checked</dt><dd className="mt-1 text-slate-200">{dateLabel(api.lastCheckedAt)}</dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-400">Catalogue review</dt><dd className="mt-1"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${freshnessClass}`}>{freshnessLabel}</span></dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-slate-400">Next review due</dt><dd className="mt-1 text-slate-200">{reviewDueAt ? dateLabel(reviewDueAt) : "Not scheduled"}</dd></div>
           </dl>
+          <p className="mt-4 text-xs leading-5 text-slate-500">Review status follows a {CATALOGUE_REVIEW_INTERVAL_DAYS}-day catalogue review cadence. It reflects the last recorded maintainer review, not live API availability or an uptime guarantee.</p>
           <ul className="mt-5 space-y-3">
             {api.sources.map((source) => (
               <li key={source.id} className="border-t border-white/[0.06] pt-3">

@@ -29,7 +29,11 @@ The admin verification action requires a non-empty review note. The note should 
 
 When an admin marks an API as `VERIFIED`, APIVault records the current timestamp in `lastCheckedAt` and `checkedAt` for every linked source. The review page displays these timestamps, and the revision snapshot captures them. This timestamp records the maintainer's review action; it does not independently prove that a URL was reachable or that every claim is correct.
 
-## Automated evidence-coverage hints\n\nThe maintainer verification queue checks that homepage, documentation, pricing, and authentication evidence is linked to official provider sources where those fields are known. It also flags official source records without a review timestamp and records whose official source review timestamps are older than 180 days. These are completeness and freshness hints, not an automatic verdict: a maintainer must open the sources, verify the claims, and record a review note. A timestamp means a maintainer recorded a review action; it does not guarantee that the source remains accurate between reviews.\n\n## Unknown is an acceptable value
+## Automated evidence-coverage hints
+
+The maintainer verification queue checks that homepage, documentation, pricing, and authentication evidence is linked to official provider sources where those fields are known. It also flags official source records without a review timestamp and records whose official source review timestamps are older than 180 days. These are completeness and freshness hints, not an automatic verdict: a maintainer must open the sources, verify the claims, and record a review note. A timestamp means a maintainer recorded a review action; it does not guarantee that the source remains accurate between reviews.
+
+## Unknown is an acceptable value
 
 Use `UNKNOWN` when the source does not state the information or the maintainer cannot verify it. Never infer "free", "no authentication", "unlimited", or a specific rate limit merely because a demo request worked.
 
