@@ -2,6 +2,7 @@ import {
   ApiStatus,
   AuthMethod,
   PricingModel,
+  SourceKind,
   VerificationStatus,
 } from "@/generated/prisma/client";
 import type { Prisma } from "@/generated/prisma/client";
@@ -34,10 +35,17 @@ function publicVisibilityWhere(): Prisma.ApiWhereInput {
     status: ApiStatus.ACTIVE,
     verificationStatus: VerificationStatus.VERIFIED,
     publishedAt: { not: null },
+    homepageUrl: { startsWith: "https://" },
     documentationUrl: { startsWith: "https://" },
     categories: { some: {} },
     authMethods: { some: {} },
-    sources: { some: { isOfficial: true, url: { startsWith: "https://" } } },
+    sources: {
+      some: {
+        sourceKind: SourceKind.OFFICIAL_HOMEPAGE,
+        isOfficial: true,
+        url: { startsWith: "https://" },
+      },
+    },
   };
 }
 
