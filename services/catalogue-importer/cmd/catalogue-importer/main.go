@@ -14,6 +14,8 @@ import (
 func main() {
 	inputPath := flag.String("input", "", "path to a catalogue JSON file")
 	apply := flag.Bool("apply", false, "write validated records to PostgreSQL; without this flag the command is a dry run")
+	runID := flag.String("run-id", "", "stable import run ID; reuse it to resume a failed import")
+	batchSize := flag.Int("batch-size", 100, "records per transaction (1-250)")
 	flag.Parse()
 
 	if *inputPath == "" {
@@ -38,7 +40,7 @@ func main() {
 
 	if !*apply {
 		fmt.Printf("Dry run successful: validated %d API record(s). No database connection or writes were made.\n", len(file.APIs))
-		fmt.Println("Review the input, then pass -apply to import transactionally.")
+		fmt.Println("Review the input, then pass -apply to import in resumable batches.")
 		return
 	}
 
