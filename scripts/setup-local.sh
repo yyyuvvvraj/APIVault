@@ -23,7 +23,7 @@ fi
 
 node --input-type=module <<'NODE'
 import { randomBytes } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, readFileSync, writeFileSync } from "node:fs";
 const path = ".env";
 const contents = readFileSync(path, "utf8");
 const match = contents.match(/^BETTER_AUTH_SECRET=(.*)$/m);
@@ -33,6 +33,7 @@ if (!configured) {
   const secret = randomBytes(32).toString("base64url");
   const updated = contents.replace(/^BETTER_AUTH_SECRET=.*$/m, `BETTER_AUTH_SECRET="${secret}"`);
   writeFileSync(path, updated, { mode: 0o600 });
+  chmodSync(path, 0o600);
   console.log("Generated a unique local Better Auth secret in .env.");
 }
 NODE
