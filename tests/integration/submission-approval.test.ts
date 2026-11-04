@@ -74,6 +74,10 @@ test("approval atomically creates API, evidence, revision, and approved submissi
   assert.equal(api.sources.some((source) => source.isOfficial && source.url === api.homepageUrl), true);
   assert.equal(api.revisions.length, 1);
   assert.equal(api.revisions[0]?.snapshot !== null, true);
+  const event = await prisma.submissionReviewEvent.findFirst({ where: { submissionId: submission.id } });
+  assert.equal(event?.previousStatus, SubmissionStatus.IN_REVIEW);
+  assert.equal(event?.nextStatus, SubmissionStatus.APPROVED);
+  assert.equal(event?.reviewerUserId, "integration-reviewer");
 });
 
 test("approval fails and rolls back provider creation when submitted category is missing", async () => {
@@ -91,6 +95,7 @@ test("approval fails and rolls back provider creation when submitted category is
   assert.equal(savedSubmission.status, SubmissionStatus.IN_REVIEW);
   assert.equal(provider, null);
   assert.equal(api, null);
+  assert.equal(await prisma.submissionReviewEvent.count({ where: { submissionId: submission.id } }), 0);
 });
 
 
@@ -165,4 +170,7 @@ test("UPDATE approval applies payload, records a revision, and returns the API t
   assert.equal(updatedApi.revisions.length, 1);
   assert.equal(updatedApi.revisions[0]?.action, "UPDATED");
   assert.equal((updatedApi.revisions[0]?.snapshot as { name?: string }).name, `Updated API ${suffix}`);
+  const event = await prisma.submissionReviewEvent.findFirst({ where: { submissionId: submission.id } });
+  assert.equal(event?.nextStatus, SubmissionStatus.APPROVED);
+  assert.equal(event?.reviewerUserId, "integration-reviewer");
 });
