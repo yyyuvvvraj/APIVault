@@ -36,6 +36,10 @@ test("rejection persists the reviewer decision and note", async () => {
   assert.equal(saved.status, SubmissionStatus.REJECTED);
   assert.equal(saved.reviewNote, "Evidence is insufficient");
   assert.ok(saved.reviewedAt);
+  const event = await prisma.submissionReviewEvent.findFirst({ where: { submissionId: submission.id } });
+  assert.equal(event?.previousStatus, SubmissionStatus.IN_REVIEW);
+  assert.equal(event?.nextStatus, SubmissionStatus.REJECTED);
+  assert.equal(event?.reviewerUserId, "integration-reviewer");
 });
 
 test("invalid review transition leaves the stored submission unchanged", async () => {
@@ -48,6 +52,7 @@ test("invalid review transition leaves the stored submission unchanged", async (
   );
   const saved = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
   assert.equal(saved.status, SubmissionStatus.REJECTED);
+  assert.equal(await prisma.submissionReviewEvent.count({ where: { submissionId: submission.id } }), 0);
 });
 
 test("transaction rollback restores the prior review state after a later write fails", async () => {
@@ -68,6 +73,7 @@ test("transaction rollback restores the prior review state after a later write f
   const saved = await prisma.apiSubmission.findUniqueOrThrow({ where: { id: submission.id } });
   assert.equal(saved.status, SubmissionStatus.IN_REVIEW);
   assert.equal(saved.reviewNote, null);
+  assert.equal(await prisma.submissionReviewEvent.count({ where: { submissionId: submission.id } }), 0);
 });
 
 
@@ -93,4 +99,5 @@ test("concurrent reviewer decisions cannot overwrite the first committed decisio
   );
   assert.ok(saved.reviewNote);
   assert.ok(saved.reviewedAt);
+  assert.equal(await prisma.submissionReviewEvent.count({ where: { submissionId: submission.id } }), 1);
 });
