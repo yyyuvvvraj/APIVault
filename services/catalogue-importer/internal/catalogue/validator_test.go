@@ -6,7 +6,10 @@ import (
 )
 
 func TestIsPublicIP(t *testing.T) {
-	cases := []struct { value string; want bool }{
+	cases := []struct {
+		value string
+		want  bool
+	}{
 		{"8.8.8.8", true},
 		{"127.0.0.1", false},
 		{"10.0.0.1", false},
