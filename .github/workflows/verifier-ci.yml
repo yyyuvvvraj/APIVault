@@ -1,18 +1,10 @@
-name: Go Verifier CI
+name: Required Go CI
 
 on:
   pull_request:
     branches: [dev, stable]
-    paths:
-      - "services/verifier/**"
-      - "services/catalogue-importer/**"
-      - ".github/workflows/verifier-ci.yml"
   push:
     branches: [dev, stable]
-    paths:
-      - "services/verifier/**"
-      - "services/catalogue-importer/**"
-      - ".github/workflows/verifier-ci.yml"
   workflow_dispatch:
 
 permissions:
