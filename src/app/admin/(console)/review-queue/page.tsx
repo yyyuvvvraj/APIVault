@@ -26,7 +26,7 @@ export default async function AdminVerificationQueuePage() {
       provider: { select: { name: true } },
       categories: { select: { categoryId: true } },
       authMethods: { select: { method: true } },
-      sources: { select: { id: true, sourceKind: true, url: true, isOfficial: true } },
+      sources: { select: { id: true, sourceKind: true, url: true, isOfficial: true, checkedAt: true } },
     },
     orderBy: [
       { verificationStatus: "asc" },
