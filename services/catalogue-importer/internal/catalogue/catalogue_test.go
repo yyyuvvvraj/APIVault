@@ -103,11 +103,11 @@ func TestCuratedStarterV2DatasetValidatesWithoutPublishing(t *testing.T) {
 
 func TestDatasetProvenanceValidate(t *testing.T) {
 	valid := DatasetProvenance{
-		Name: "Starter catalogue",
-		SourceURL: "https://example.org/catalogue.json",
-		Version: "v1",
+		Name:        "Starter catalogue",
+		SourceURL:   "https://example.org/catalogue.json",
+		Version:     "v1",
 		RetrievedAt: "2026-11-04T00:00:00Z",
-		License: "NOASSERTION",
+		License:     "NOASSERTION",
 		Attribution: "APIVault curation; see provider sources",
 	}
 	if err := valid.Validate(); err != nil {
