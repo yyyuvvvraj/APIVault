@@ -44,7 +44,6 @@ func TestDialPublicContextRejectsLoopback(t *testing.T) {
 	}
 }
 
-
 func TestApplyCatalogueConflictChecks(t *testing.T) {
 	report := ValidationReport{Results: []APIValidation{
 		{Slug: "weather-api", Name: "Weather API", Provider: "Acme", HomepageURL: "https://www.acme.example/weather/", Verdict: "VALIDATED_CANDIDATE"},
