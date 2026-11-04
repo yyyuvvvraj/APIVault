@@ -126,3 +126,23 @@ test("relevance ranking uses featured, verification, and update dates as tie bre
   const stale = { ...base, verifiedAt: null, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
   assert.equal(rankCatalogueResults([stale, recent], "weather")[0]?.updatedAt.toISOString(), "2026-03-01T00:00:00.000Z");
 });
+
+test("search tokenization ignores surrounding punctuation but preserves hyphenated terms", () => {
+  assert.deepEqual(tokenizeCatalogueQuery(" (Weather), API! open-meteo. "), ["weather", "api", "open-meteo"]);
+});
+
+test("relevance accumulates matches across independent metadata fields", () => {
+  const base = {
+    slug: "weather-api",
+    summary: "Weather data",
+    description: null,
+    categories: [],
+    tags: [],
+    featured: false,
+    verifiedAt: null,
+    updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+  };
+  const weak = { ...base, name: "Weather Service", provider: { name: "Other", slug: "other" } };
+  const crossField = { ...base, name: "Weather Service", provider: { name: "API Platform", slug: "api-platform" } };
+  assert.equal(rankCatalogueResults([weak, crossField], "weather api")[0]?.provider.name, "API Platform");
+});

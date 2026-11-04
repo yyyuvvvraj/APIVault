@@ -4,7 +4,17 @@ All notable changes to APIVault will be documented here.
 
 The format is based on Keep a Changelog, and this project will use Semantic Versioning for stable releases.
 
-## [0.2.0] - 2026-11-04
+## [0.2.0] - Unreleased
+
+### Changed
+- Catalogue discovery now matches every search term across API names, providers, categories, tags, and descriptions, then ranks exact and high-signal matches ahead of broad text matches.
+- Catalogue search ranking uses stable featured, verification-date, update-date, and name tie-breakers; token matches accumulate across independent metadata fields and punctuation around search terms is ignored.
+- Public listings and detail lookups require HTTPS homepage and documentation URLs plus official HTTPS homepage evidence, alongside the existing verification, publication, category, and authentication prerequisites.
+
+### Quality
+- Search ranking, tokenization, whitespace normalization, and multi-filter public visibility have deterministic unit and PostgreSQL integration coverage.
+
+## [0.1.0] - Unreleased
 
 ### Added
 - Moderator inbox flags likely duplicate API submissions using normalized homepage URLs or matching provider/name pairs; hints remain advisory and never auto-reject submissions.
@@ -18,15 +28,8 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 - PostgreSQL backup/restore scripts, operations runbook, and scheduled/manual uptime smoke-check workflow.
 - Additional curated API records supplied as a review-only dataset; imports remain pending maintainer verification.
 
-### Changed
-- Catalogue discovery now matches every search term across API names, providers, categories, tags, and descriptions, then ranks exact and high-signal matches ahead of broad text matches.
-- Catalogue search ranking uses stable featured, verification-date, update-date, and name tie-breakers; combined category, pricing, and authentication filters remain conjunctive.
-
 ### Security
 - Add production HSTS and an initial report-only Content Security Policy for observation before enforcement.
-
-### Quality
-- Search ranking, tokenization, whitespace normalization, and multi-filter public visibility have deterministic unit and PostgreSQL integration coverage.
 
 ## [0.0.1] - 2026-11-03
 
