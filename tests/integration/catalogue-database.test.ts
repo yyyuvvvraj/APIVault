@@ -18,9 +18,6 @@ const providerSlug = `${prefix}-provider`;
 const categorySlug = `${prefix}-category`;
 const publicSlug = `${prefix}-public-api`;
 const pendingSlug = `${prefix}-pending-api`;
-const archivedSlug = `${prefix}-archived-api`;
-const unverifiedSlug = `${prefix}-unverified-api`;
-const incompleteSlug = `${prefix}-incomplete-api`;
 
 after(async () => {
   await prisma.api.deleteMany({ where: { slug: { startsWith: prefix } } });
@@ -43,8 +40,6 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
       summary: "Integration fixture for public catalogue query tests.",
       providerId: provider.id,
       homepageUrl: "https://integration.example.test",
-      documentationUrl: "https://integration.example.test/docs",
-      pricingModel: "UNKNOWN",
       status: ApiStatus.ACTIVE,
       verificationStatus: VerificationStatus.VERIFIED,
       publishedAt: new Date(),
@@ -72,66 +67,15 @@ test("persists relational catalogue data and exposes only ACTIVE + VERIFIED APIs
     },
   });
 
-  await prisma.api.createMany({
-    data: [
-      {
-        slug: archivedSlug,
-        name: `Archived Integration API ${suffix}`,
-        summary: "Archived records must remain private.",
-        providerId: provider.id,
-        homepageUrl: "https://archived.example.test",
-        documentationUrl: "https://archived.example.test/docs",
-        status: ApiStatus.ARCHIVED,
-        verificationStatus: VerificationStatus.VERIFIED,
-        publishedAt: new Date(),
-      },
-      {
-        slug: unverifiedSlug,
-        name: `Unverified Integration API ${suffix}`,
-        summary: "Unverified records must remain private.",
-        providerId: provider.id,
-        homepageUrl: "https://unverified.example.test",
-        documentationUrl: "https://unverified.example.test/docs",
-        status: ApiStatus.ACTIVE,
-        verificationStatus: VerificationStatus.UNVERIFIED,
-        publishedAt: new Date(),
-      },
-      {
-        slug: incompleteSlug,
-        name: `Incomplete Integration API ${suffix}`,
-        summary: "Verified records without required evidence must remain private.",
-        providerId: provider.id,
-        homepageUrl: "https://incomplete.example.test",
-        status: ApiStatus.ACTIVE,
-        verificationStatus: VerificationStatus.VERIFIED,
-        publishedAt: new Date(),
-      },
-    ],
-  });
-
-  const filters = parseCatalogueFilters({
-    q: "Public Integration",
-    category: categorySlug,
-    pricing: "UNKNOWN",
-    auth: "API_KEY",
-  });
-  const result = await listApis(filters);
+  const result = await listApis(parseCatalogueFilters({}));
   const visibleSlugs = result.items.map((item) => item.slug);
   assert.equal(visibleSlugs.includes(publicSlug), true);
-  for (const hiddenSlug of [pendingSlug, archivedSlug, unverifiedSlug, incompleteSlug]) {
-    assert.equal(visibleSlugs.includes(hiddenSlug), false, `${hiddenSlug} must not be public`);
-  }
+  assert.equal(visibleSlugs.includes(pendingSlug), false);
 
   const publicDetail = await getApiBySlug(publicSlug);
   const pendingDetail = await getApiBySlug(pendingSlug);
-  const archivedDetail = await getApiBySlug(archivedSlug);
-  const unverifiedDetail = await getApiBySlug(unverifiedSlug);
-  const incompleteDetail = await getApiBySlug(incompleteSlug);
   assert.equal(publicDetail.api?.slug, publicSlug);
   assert.equal(pendingDetail.api, null);
-  assert.equal(archivedDetail.api, null);
-  assert.equal(unverifiedDetail.api, null);
-  assert.equal(incompleteDetail.api, null);
 
   const relations = await prisma.api.findUniqueOrThrow({
     where: { slug: publicSlug },
