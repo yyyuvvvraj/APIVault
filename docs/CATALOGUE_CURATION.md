@@ -39,3 +39,26 @@ go run ./cmd/catalogue-importer -input data/curated-starter-v2.json
 The importer defaults to dry-run and performs no database writes. CI validates both batches in dry-run mode on every pull request. The curated file should only be applied after a maintainer has reviewed its source links and confirmed that the target database is the intended environment.
 
 To apply after review, use the documented `-apply` flag and `DATABASE_URL_UNPOOLED` for the intended database. Do not apply the placeholder file under `examples/`. Public publication additionally requires an explicit maintainer verification, publication timestamp, documentation URL, category, authentication classification, and official HTTPS source evidence.
+
+## Large-scale catalogue growth
+
+The long-term directional target is 200,000 distinct API products/services, not 200,000 URL paths. This is not a promise to publish 200,000 entries or a fixed delivery date.
+
+### Source acceptance
+- Prefer provider-maintained directories, official API catalogues, and datasets with explicit reuse terms.
+- Record the dataset name, source URL, retrieval date, license/terms, attribution requirements, and source version for every ingestion batch.
+- Reject sources whose license or provider terms do not permit the intended collection and redistribution.
+- Do not bypass authentication, rate limits, robots controls, or access restrictions.
+- Treat third-party community lists as discovery leads, not proof of official API facts.
+
+### Candidate quality
+- Deduplicate by canonical homepage, provider identity, normalized API name, and documented aliases; ambiguous matches go to human review.
+- Store source provenance and field-level evidence. Unknown pricing, authentication, rate limits, and availability stay unknown.
+- Imported records remain pending/unverified. Ingestion cannot publish, feature, or verify a record.
+- Count distinct API products/services. Do not inflate counts with endpoints, versions, SDKs, mirrors, or duplicate provider listings.
+
+### Scale gates
+- Prove the pipeline with 1,000 candidates before expanding to 10,000.
+- Demonstrate resumable ingestion, duplicate reporting, and review throughput at 10,000.
+- Load-test PostgreSQL queries, indexes, and public pagination at 50,000.
+- Consider the 200,000 target only after licensing, source refresh, moderation capacity, and operating cost are understood.

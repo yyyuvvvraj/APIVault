@@ -44,20 +44,33 @@ This roadmap is an execution order, not a claim that future capabilities already
 - API-key integration tests cover ownership, expiry, revocation, and throttling.
 - No write-capable public API key is introduced in this milestone.
 
-## 0.4.0 — Community operations
+## 0.4.0 — Catalogue growth and community operations
 
 ### Deliverables
-- Clear contributor onboarding and submission guidance.
-- Better duplicate detection and source-evidence prompts in the submission flow.
-- Moderator queue prioritization and auditable reviewer decisions.
-- Contributor activity and profile privacy controls that are explicit and testable.
-- Maintainer-facing quality metrics for submissions, review age, and catalogue freshness.
+- Improve contributor onboarding, submission guidance, source-evidence prompts, and duplicate review.
+- Prioritize moderation by risk, completeness, duplicate likelihood, and submission age; keep reviewer decisions auditable.
+- Add contributor activity and explicit, tested profile privacy controls.
+- Give maintainers actionable metrics for submissions, review age, catalogue freshness, and import quality.
+- Establish a repeatable, resumable bulk-ingestion pipeline with dry-run validation, batch checkpoints, idempotent upserts, duplicate/conflict reports, provenance retention, and operator-visible failure recovery.
+- Separate discovery candidates from canonical catalogue records: bulk imports must land in a review/staging state and must never auto-verify, auto-feature, or auto-publish APIs.
+- Add source adapters only for datasets whose licenses, attribution, freshness, and provider usage terms permit the intended collection and redistribution.
+
+### Catalogue scale programme (directional targets, not release guarantees)
+- 1,000 high-quality candidates: prove curation, deduplication, evidence capture, and review throughput.
+- 10,000 candidates: prove repeatable batch ingestion, resumability, and search/index performance.
+- 50,000 candidates: validate database/query performance, moderation sampling, and operational cost.
+- 200,000 candidates: long-term catalogue target, reached only from permitted, deduplicated sources with clear provenance and a sustainable refresh process.
+
+A raw endpoint URL is not a catalogue record. Count distinct API products/services, not endpoint paths, SDK methods, versions, or mirrors. Preserve provider identity and source attribution. Do not scrape or redistribute data contrary to provider terms or dataset licenses. Never invent pricing, authentication, rate limits, or verification claims; unknown facts remain unknown.
 
 ### Acceptance gates
 - End-to-end tests cover submission, reviewer decisions, approval, revision history, and return-to-verification.
 - Authorization tests prove that non-maintainers cannot moderate or publish.
 - Public profile privacy defaults and opt-in behavior are tested.
+- Bulk ingestion is dry-run-first, resumable, idempotent, bounded, observable, and safe under partial failure; repeat imports do not create duplicate canonical records.
+- Imported candidates remain unverified and unpublished until explicit maintainer review and evidence-based verification.
 - Abuse controls are in place before any expansion of public registration.
+- Documentation records source licensing, attribution, refresh policy, and the definition of a countable API.
 
 ## 0.5.0 — Reliable beta
 
