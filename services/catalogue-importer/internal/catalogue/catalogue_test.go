@@ -100,3 +100,27 @@ func TestCuratedStarterV2DatasetValidatesWithoutPublishing(t *testing.T) {
 		}
 	}
 }
+
+func TestDatasetProvenanceValidate(t *testing.T) {
+	valid := DatasetProvenance{
+		Name:        "Starter catalogue",
+		SourceURL:   "https://example.org/catalogue.json",
+		Version:     "v1",
+		RetrievedAt: "2026-11-04T00:00:00Z",
+		License:     "NOASSERTION",
+		Attribution: "APIVault curation; see provider sources",
+	}
+	if err := valid.Validate(); err != nil {
+		t.Fatalf("valid provenance rejected: %v", err)
+	}
+	invalid := valid
+	invalid.RetrievedAt = "yesterday"
+	if err := invalid.Validate(); err == nil {
+		t.Fatal("expected invalid retrieval timestamp to be rejected")
+	}
+	invalid = valid
+	invalid.SourceURL = "http://example.org/catalogue.json"
+	if err := invalid.Validate(); err == nil {
+		t.Fatal("expected non-HTTPS dataset source to be rejected")
+	}
+}

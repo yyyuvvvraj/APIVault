@@ -239,5 +239,13 @@
         }
       ]
     }
-  ]
+  ],
+  "dataset": {
+    "name": "APIVault curated starter dataset",
+    "sourceUrl": "https://github.com/yyyuvvvraj/APIVault/tree/dev/services/catalogue-importer/data/curated-starter-v1.json",
+    "version": "v1",
+    "retrievedAt": "2026-11-04T00:00:00Z",
+    "license": "NOASSERTION",
+    "attribution": "APIVault-curated metadata; API-specific rights, licenses and usage terms remain governed by each provider and are documented in per-record sources."
+  }
 }

@@ -424,6 +424,12 @@ model ContributorProfile {
 model CatalogueImportRun {
   id               String                @id @db.VarChar(80)
   inputFingerprint String                @db.VarChar(64)
+  datasetName      String?               @db.VarChar(160)
+  datasetSourceUrl String?               @db.Text
+  datasetVersion   String?               @db.VarChar(80)
+  retrievedAt      DateTime?             @db.Timestamptz(6)
+  license          String?               @db.VarChar(120)
+  attribution      String?               @db.Text
   totalRecords     Int
   processedRecords Int                   @default(0)
   batchSize        Int

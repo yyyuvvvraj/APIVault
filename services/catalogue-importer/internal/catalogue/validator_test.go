@@ -5,6 +5,16 @@ import (
 	"testing"
 )
 
+func TestCanonicalHomepage(t *testing.T) {
+	got, err := canonicalHomepage("https://www.Example.com/docs/?utm_source=x#top")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "example.com/docs" {
+		t.Fatalf("canonical homepage = %q", got)
+	}
+}
+
 func TestIsPublicIP(t *testing.T) {
 	cases := []struct {
 		value string

@@ -23,6 +23,7 @@ type URLCheck struct {
 
 type APIValidation struct {
 	Slug          string     `json:"slug"`
+	HomepageURL   string     `json:"homepageUrl"`
 	Name          string     `json:"name"`
 	Provider      string     `json:"provider"`
 	Verdict       string     `json:"verdict"`
@@ -31,13 +32,22 @@ type APIValidation struct {
 	ReviewReasons []string   `json:"reviewReasons,omitempty"`
 }
 
+type CatalogueConflict struct {
+	Kind               string `json:"kind"`
+	APISlug            string `json:"apiSlug"`
+	ConflictingAPISlug string `json:"conflictingApiSlug"`
+	Key                string `json:"key"`
+	Severity           string `json:"severity"`
+}
+
 type ValidationReport struct {
-	GeneratedAt         time.Time       `json:"generatedAt"`
-	Total               int             `json:"total"`
-	ValidatedCandidates int             `json:"validatedCandidates"`
-	ReviewRequired      int             `json:"reviewRequired"`
-	Rejected            int             `json:"rejected"`
-	Results             []APIValidation `json:"results"`
+	GeneratedAt         time.Time           `json:"generatedAt"`
+	Total               int                 `json:"total"`
+	ValidatedCandidates int                 `json:"validatedCandidates"`
+	ReviewRequired      int                 `json:"reviewRequired"`
+	Rejected            int                 `json:"rejected"`
+	Results             []APIValidation     `json:"results"`
+	Conflicts           []CatalogueConflict `json:"conflicts"`
 }
 
 // ValidateLive checks public HTTPS evidence URLs. A clean result is a candidate
@@ -83,10 +93,11 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 			for item := range tasks {
 				api := item.api
 				result := APIValidation{
-					Slug:     api.Slug,
-					Name:     api.Name,
-					Provider: api.Provider.Name,
-					Verdict:  "VALIDATED_CANDIDATE",
+					Slug:        api.Slug,
+					HomepageURL: api.HomepageURL,
+					Name:        api.Name,
+					Provider:    api.Provider.Name,
+					Verdict:     "VALIDATED_CANDIDATE",
 				}
 				urls := []string{api.HomepageURL}
 				if api.DocumentationURL != "" {
@@ -129,16 +140,36 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 	close(tasks)
 	wg.Wait()
 
-	seen := make(map[string]string)
+	seenNames := make(map[string]string)
+	seenHomepages := make(map[string]APIValidation)
 	for i := range report.Results {
 		result := &report.Results[i]
-		key := strings.ToLower(strings.Join(strings.Fields(result.Provider+" "+result.Name), " "))
-		if prior, ok := seen[key]; ok {
+		nameKey := strings.ToLower(strings.Join(strings.Fields(result.Provider+" "+result.Name), " "))
+		if prior, ok := seenNames[nameKey]; ok {
 			result.DuplicateOf = prior
 			result.Verdict = "REVIEW_REQUIRED"
 			result.ReviewReasons = append(result.ReviewReasons, "possible duplicate of "+prior)
+			report.Conflicts = append(report.Conflicts, CatalogueConflict{
+				Kind:               "PROVIDER_NAME_DUPLICATE",
+				APISlug:            result.Slug,
+				ConflictingAPISlug: prior,
+				Key:                nameKey,
+				Severity:           "HIGH",
+			})
 		} else {
-			seen[key] = result.Slug
+			seenNames[nameKey] = result.Slug
+		}
+		if homepageKey, err := canonicalHomepage(result.HomepageURL); err == nil {
+			if prior, ok := seenHomepages[homepageKey]; ok && !strings.EqualFold(prior.Provider, result.Provider) {
+				result.Verdict = "REVIEW_REQUIRED"
+				result.ReviewReasons = append(result.ReviewReasons, "homepage also referenced by provider "+prior.Provider+" ("+prior.Slug+")")
+				report.Conflicts = append(report.Conflicts, CatalogueConflict{
+					Kind: "CROSS_PROVIDER_HOMEPAGE_COLLISION", APISlug: result.Slug,
+					ConflictingAPISlug: prior.Slug, Key: homepageKey, Severity: "MEDIUM",
+				})
+			} else {
+				seenHomepages[homepageKey] = *result
+			}
 		}
 		switch result.Verdict {
 		case "VALIDATED_CANDIDATE":
@@ -151,6 +182,19 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 		sort.Strings(result.ReviewReasons)
 	}
 	return report
+}
+
+func canonicalHomepage(raw string) (string, error) {
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" {
+		return "", fmt.Errorf("invalid HTTPS homepage")
+	}
+	host := strings.ToLower(strings.TrimPrefix(parsed.Hostname(), "www."))
+	path := strings.TrimRight(parsed.EscapedPath(), "/")
+	if path == "" {
+		path = "/"
+	}
+	return host + path, nil
 }
 
 func checkPublicURL(ctx context.Context, client *http.Client, raw string) URLCheck {
