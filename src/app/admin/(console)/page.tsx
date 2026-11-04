@@ -5,6 +5,7 @@ import {
   SubmissionStatus,
 } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
+import { formatQueueAge, getImportProgress } from "@/lib/admin/operations-metrics";
 
 function MetricCard({ label, value, note, accent }: { label: string; value: number; note: string; accent: string }) {
   return (
@@ -33,6 +34,10 @@ export default async function AdminDashboardPage() {
     totalCategories,
     recentApis,
     recentSubmissions,
+    failedImportRuns,
+    runningImportRuns,
+    latestImportRun,
+    oldestOpenSubmission,
   ] = await Promise.all([
     db.api.count(),
     db.api.count({ where: { verificationStatus: VerificationStatus.VERIFIED, status: ApiStatus.ACTIVE } }),
@@ -48,6 +53,17 @@ export default async function AdminDashboardPage() {
       take: 5,
       orderBy: { createdAt: "desc" },
       select: { id: true, kind: true, status: true, submitterName: true, submitterGithub: true, createdAt: true },
+    }),
+    db.catalogueImportRun.count({ where: { status: "FAILED" } }),
+    db.catalogueImportRun.count({ where: { status: "RUNNING" } }),
+    db.catalogueImportRun.findFirst({
+      orderBy: { createdAt: "desc" },
+      select: { id: true, datasetName: true, status: true, totalRecords: true, processedRecords: true, createdAt: true, completedAt: true, errorSummary: true },
+    }),
+    db.apiSubmission.findFirst({
+      where: { status: { in: [SubmissionStatus.PENDING, SubmissionStatus.IN_REVIEW] } },
+      orderBy: { createdAt: "asc" },
+      select: { createdAt: true },
     }),
   ]);
 
@@ -68,6 +84,44 @@ export default async function AdminDashboardPage() {
         <MetricCard label="Awaiting verification" value={pendingApiReviews} note="Catalogue records awaiting evidence review" accent="bg-amber-400" />
         <MetricCard label="Open submissions" value={pendingSubmissions} note="Community items pending moderation" accent="bg-orange-400" />
         <MetricCard label="Categories" value={totalCategories} note="Available catalogue categories" accent="bg-rose-400" />
+      </section>
+
+
+      <section aria-label="Operations health" className="mt-6 grid gap-5 xl:grid-cols-2">
+        <article className="rounded-2xl border border-white/[0.08] bg-[#10151e] p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-extrabold text-white">Import pipeline</h2>
+              <p className="mt-1 text-xs text-slate-500">Latest resumable catalogue ingestion run</p>
+            </div>
+            <Link href="/admin/freshness" className="text-xs font-bold text-rose-400 hover:text-rose-300">Freshness →</Link>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-rose-400/10 px-3 py-1.5 font-bold text-rose-300">{failedImportRuns} failed</span>
+            <span className="rounded-full bg-sky-400/10 px-3 py-1.5 font-bold text-sky-300">{runningImportRuns} running</span>
+          </div>
+          {latestImportRun ? (
+            <div className="mt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-bold text-slate-200">{latestImportRun.datasetName || "Unnamed dataset"}</p>
+                <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">{latestImportRun.status}</span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">{latestImportRun.processedRecords.toLocaleString("en-IN")} / {latestImportRun.totalRecords.toLocaleString("en-IN")} records · {formatQueueAge(latestImportRun.createdAt)} ago</p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-cyan-400" style={{ width: `${getImportProgress(latestImportRun.processedRecords, latestImportRun.totalRecords)}%` }} />
+              </div>
+              {latestImportRun.errorSummary && <p className="mt-3 break-words text-xs leading-5 text-rose-300">{latestImportRun.errorSummary}</p>}
+            </div>
+          ) : <p className="mt-4 text-xs text-slate-500">No resumable import runs have been recorded yet.</p>}
+        </article>
+
+        <article className="rounded-2xl border border-white/[0.08] bg-[#10151e] p-5">
+          <h2 className="text-sm font-extrabold text-white">Moderation ageing</h2>
+          <p className="mt-1 text-xs text-slate-500">How long the oldest open community item has waited</p>
+          <p className="mt-4 text-3xl font-black tracking-tight text-white">{oldestOpenSubmission ? formatQueueAge(oldestOpenSubmission.createdAt) : "—"}</p>
+          <p className="mt-1 text-xs text-slate-500">{pendingSubmissions.toLocaleString("en-IN")} open submission{pendingSubmissions === 1 ? "" : "s"} · oldest first</p>
+          <Link href="/admin/submissions" className="mt-4 inline-flex text-xs font-bold text-rose-400 hover:text-rose-300">Open prioritized inbox →</Link>
+        </article>
       </section>
 
       <section className="mt-8 grid gap-5 xl:grid-cols-[1.35fr_1fr]">
