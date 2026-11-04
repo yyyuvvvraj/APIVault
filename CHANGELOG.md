@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.0] - Unreleased
+## [0.3.0] - 2026-11-04
 
 ### Added
 - Playground requests now expose the exact request URL, response size, and a copyable cURL command for reproducible integrations.
