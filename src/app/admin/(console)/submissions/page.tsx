@@ -31,6 +31,12 @@ export default async function AdminSubmissionsPage() {
     const conditions: Prisma.ApiWhereInput[] = [];
     if (typeof payload.homepageUrl === "string") {
       conditions.push({ homepageUrl: { equals: payload.homepageUrl, mode: "insensitive" } });
+      try {
+        const host = new URL(payload.homepageUrl).hostname.toLowerCase().replace(/^www\\./, "");
+        if (host) conditions.push({ homepageUrl: { contains: host, mode: "insensitive" } });
+      } catch {
+        // Invalid URLs are rejected by submission validation; skip host-based lookup defensively.
+      }
     }
     if (typeof payload.name === "string" && typeof payload.providerName === "string") {
       conditions.push({
