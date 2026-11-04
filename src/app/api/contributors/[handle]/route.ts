@@ -9,7 +9,7 @@ export async function GET(_request: Request, context: Context) {
   const profile = await getPrisma().contributorProfile.findFirst({
     where: { handle: handle.toLowerCase() },
     select: {
-      handle: true, displayName: true, bio: true, websiteUrl: true, githubUrl: true, createdAt: true,
+      isPublic: true, handle: true, displayName: true, bio: true, websiteUrl: true, githubUrl: true, createdAt: true,
       user: { select: { submissions: { where: { status: "APPROVED" }, select: { id: true } } } },
     },
   });
