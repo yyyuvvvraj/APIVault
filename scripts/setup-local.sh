@@ -14,6 +14,7 @@ command -v npm >/dev/null 2>&1 || fail "npm is required."
 command -v docker >/dev/null 2>&1 || fail "Docker with the Compose plugin is required."
 node -e 'const major = Number(process.versions.node.split(".")[0]); if (major !== 24) process.exit(1)' || fail "This project requires Node.js 24.x; found $(node --version)."
 docker compose version >/dev/null 2>&1 || fail "Docker Compose v2 is required. Start or install Docker Desktop / Docker Engine."
+docker info >/dev/null 2>&1 || fail "The Docker daemon is not running. Start Docker Desktop / Docker Engine and retry."
 
 if [[ ! -f .env ]]; then
   cp .env.example .env
