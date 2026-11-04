@@ -93,7 +93,7 @@ go test ./...
 go run ./cmd/catalogue-validate -input data/curated-starter-v1.json -live=true -output validation-report.json
 ```
 
-The GitHub Actions workflow runs static validation for pull requests and live HTTPS checks on its weekly schedule or manual dispatch. It checks metadata/schema, HTTPS source reachability, HTTP response status, and likely duplicates (provider + normalized API name). URL checks are concurrency-limited and reject localhost/private-network DNS results. The report is uploaded as a workflow artifact.
+The GitHub Actions workflow statically validates both curated starter manifests on pull requests and performs weekly live HTTPS checks. Manual dispatch accepts a manifest path under `data/*.json`, so larger reviewed manifests can use the same pipeline. It checks metadata/schema, HTTPS source reachability, HTTP response status, provider/name duplicates, and cross-provider homepage collisions. URL checks are concurrency-limited, reject private/special-use DNS results, and pin outbound connections to the validated public IP to reduce DNS-rebinding risk. Machine-readable reports are uploaded as workflow artifacts.
 
 A `VALIDATED_CANDIDATE` means the record passed automated structural and reachability checks and has official source references declared in its manifest. It does **not** prove domain ownership, license compatibility, accuracy of pricing/authentication claims, or API functionality. It never changes database verification or publication state. `REVIEW_REQUIRED` records are routed for human review; do not bulk-promote them.
 

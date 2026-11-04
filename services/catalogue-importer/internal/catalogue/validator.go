@@ -76,6 +76,12 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 	var wg sync.WaitGroup
 	client := &http.Client{
 		Timeout: timeout,
+		Transport: &http.Transport{
+			DialContext:           dialPublicContext,
+			TLSHandshakeTimeout:   timeout,
+			ResponseHeaderTimeout: timeout,
+			IdleConnTimeout:       30 * time.Second,
+		},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 3 {
 				return fmt.Errorf("too many redirects")
@@ -230,6 +236,43 @@ func checkPublicURL(ctx context.Context, client *http.Client, raw string) URLChe
 		check.Error = fmt.Sprintf("HTTP %d", resp.StatusCode)
 	}
 	return check
+}
+
+// dialPublicContext pins each connection to a DNS result after rejecting private
+// and special-use addresses. This prevents a second DNS lookup from rebinding an
+// otherwise public evidence hostname to an internal service.
+func dialPublicContext(ctx context.Context, network, address string) (net.Conn, error) {
+	host, port, err := net.SplitHostPort(address)
+	if err != nil {
+		return nil, fmt.Errorf("invalid destination address: %w", err)
+	}
+	var ips []net.IPAddr
+	if parsed := net.ParseIP(host); parsed != nil {
+		ips = []net.IPAddr{{IP: parsed}}
+	} else {
+		ips, err = net.DefaultResolver.LookupIPAddr(ctx, host)
+		if err != nil {
+			return nil, fmt.Errorf("DNS lookup failed: %w", err)
+		}
+	}
+	if len(ips) == 0 {
+		return nil, fmt.Errorf("DNS returned no addresses")
+	}
+	for _, entry := range ips {
+		if !isPublicIP(entry.IP) {
+			return nil, fmt.Errorf("host resolves to a non-public IP address")
+		}
+	}
+	dialer := &net.Dialer{Timeout: 8 * time.Second, KeepAlive: 30 * time.Second}
+	var lastErr error
+	for _, entry := range ips {
+		conn, dialErr := dialer.DialContext(ctx, network, net.JoinHostPort(entry.IP.String(), port))
+		if dialErr == nil {
+			return conn, nil
+		}
+		lastErr = dialErr
+	}
+	return nil, fmt.Errorf("could not connect to public DNS addresses: %w", lastErr)
 }
 
 func ensurePublicHost(ctx context.Context, host string) error {
