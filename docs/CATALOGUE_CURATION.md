@@ -1,6 +1,6 @@
 # Curating the APIVault starter catalogue
 
-The initial curated import is stored at [services/catalogue-importer/data/curated-starter-v1.json](../services/catalogue-importer/data/curated-starter-v1.json).
+The curated candidate catalogue is maintained as two reviewable batches: [v1](../services/catalogue-importer/data/curated-starter-v1.json) and [v2](../services/catalogue-importer/data/curated-starter-v2.json). Together they contain thirteen candidates; neither file is an instruction to publish records.
 
 ## Curation rules
 
@@ -15,7 +15,7 @@ The initial curated import is stored at [services/catalogue-importer/data/curate
 
 ## Starter dataset
 
-The starter file contains five entries across developer tools, finance, science and education, and weather. It is a review queue, not an assertion that the records have completed APIVault verification.
+The v1 batch contains five entries and v2 adds eight more across developer tools, finance, science and education, weather, data, media, and geospatial services. Both batches are review queues, not assertions that the records have completed APIVault verification.
 
 | API | Main category | Review focus |
 |---|---|---|
@@ -33,8 +33,9 @@ From the repository root:
 cd services/catalogue-importer
 go test ./...
 go run ./cmd/catalogue-importer -input data/curated-starter-v1.json
+go run ./cmd/catalogue-importer -input data/curated-starter-v2.json
 ```
 
-The importer defaults to dry-run and performs no database writes. The curated file should only be applied after a maintainer has reviewed its source links and confirmed that the target database is the intended environment.
+The importer defaults to dry-run and performs no database writes. CI validates both batches in dry-run mode on every pull request. The curated file should only be applied after a maintainer has reviewed its source links and confirmed that the target database is the intended environment.
 
-To apply after review, use the documented `-apply` flag and `DATABASE_URL_UNPOOLED` for the intended database. Do not apply the placeholder file under `examples/`.
+To apply after review, use the documented `-apply` flag and `DATABASE_URL_UNPOOLED` for the intended database. Do not apply the placeholder file under `examples/`. Public publication additionally requires an explicit maintainer verification, publication timestamp, documentation URL, category, authentication classification, and official HTTPS source evidence.

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseCatalogueFilters } from "../../src/lib/catalogue/search";
+import { parseCatalogueFilters, rankCatalogueResults, tokenizeCatalogueQuery } from "../../src/lib/catalogue/search";
 
 test("catalogue filters use safe defaults for empty input", () => {
   assert.deepEqual(
@@ -17,10 +17,10 @@ test("catalogue filters use safe defaults for empty input", () => {
   );
 });
 
-test("catalogue filters normalize and retain supported values", () => {
+test("catalogue filters normalize whitespace and retain supported values", () => {
   assert.deepEqual(
     parseCatalogueFilters({
-      q: "  weather api  ",
+      q: "  weather   api  ",
       category: " WEATHER-ENVIRONMENT ",
       pricing: "FREEMIUM",
       auth: "API_KEY",
@@ -79,4 +79,50 @@ test("catalogue filters accept all supported discovery sorts", () => {
 
 test("catalogue filters reject unsupported sort values", () => {
   assert.equal(parseCatalogueFilters({ sort: "random" }).sort, "relevance");
+});
+
+test("search tokenization removes duplicate terms and caps work", () => {
+  assert.deepEqual(tokenizeCatalogueQuery(" Weather  API weather "), ["weather", "api"]);
+  assert.equal(tokenizeCatalogueQuery("a b c d e f g h i").length, 8);
+});
+
+test("relevance ranking prefers exact API names over broad description matches", () => {
+  const base = {
+    summary: "Weather data for developers",
+    description: "An API that can provide weather information",
+    provider: { name: "Example Provider", slug: "example-provider" },
+    categories: [{ category: { name: "Weather", slug: "weather" } }],
+    tags: [],
+    featured: false,
+    verifiedAt: null,
+    updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+  };
+  const broad = { ...base, name: "Forecast Data", slug: "forecast-data" };
+  const exact = { ...base, name: "Weather API", slug: "weather-api" };
+
+  assert.deepEqual(rankCatalogueResults([broad, exact], "weather api").map((item) => item.name), ["Weather API", "Forecast Data"]);
+});
+
+test("relevance ranking uses featured, verification, and update dates as tie breakers", () => {
+  const base = {
+    name: "Weather API",
+    slug: "weather-api",
+    summary: "Weather",
+    description: null,
+    provider: { name: "Example", slug: "example" },
+    categories: [],
+    tags: [],
+    featured: false,
+    updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+  };
+  const older = { ...base, verifiedAt: new Date("2026-01-01T00:00:00.000Z") };
+  const newer = { ...base, verifiedAt: new Date("2026-02-01T00:00:00.000Z") };
+  const featured = { ...base, featured: true, verifiedAt: null };
+
+  assert.equal(rankCatalogueResults([older, featured], "weather")[0]?.featured, true);
+  assert.equal(rankCatalogueResults([older, newer], "weather")[0]?.verifiedAt?.toISOString(), "2026-02-01T00:00:00.000Z");
+
+  const recent = { ...base, verifiedAt: null, updatedAt: new Date("2026-03-01T00:00:00.000Z") };
+  const stale = { ...base, verifiedAt: null, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
+  assert.equal(rankCatalogueResults([stale, recent], "weather")[0]?.updatedAt.toISOString(), "2026-03-01T00:00:00.000Z");
 });

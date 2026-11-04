@@ -1,0 +1,339 @@
+{
+  "apis": [
+    {
+      "slug": "jsonplaceholder",
+      "name": "JSONPlaceholder",
+      "summary": "A free fake REST API for prototyping and testing applications with posts, comments, albums, photos, todos, and users.",
+      "description": "JSONPlaceholder is a lightweight fake REST API intended for demos, prototyping, and automated tests. It provides predictable resources and supports common HTTP methods without requiring account credentials.",
+      "provider": {
+        "slug": "typicode",
+        "name": "Typicode",
+        "homepageUrl": "https://typicode.com/"
+      },
+      "homepageUrl": "https://jsonplaceholder.typicode.com/",
+      "documentationUrl": "https://jsonplaceholder.typicode.com/guide/",
+      "baseUrl": "https://jsonplaceholder.typicode.com",
+      "pricingModel": "FREE",
+      "pricingSummary": "Public demo service; review current usage guidance before relying on it for production workloads.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "developer-tools"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Public demo endpoints do not require authentication."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://jsonplaceholder.typicode.com/",
+          "title": "JSONPlaceholder homepage",
+          "isOfficial": true,
+          "notes": "Service overview and endpoint examples."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://jsonplaceholder.typicode.com/guide/",
+          "title": "JSONPlaceholder guide",
+          "isOfficial": true,
+          "notes": "Official usage guide and supported resources."
+        }
+      ]
+    },
+    {
+      "slug": "rest-countries",
+      "name": "REST Countries API",
+      "summary": "Retrieve country information including names, capitals, regions, population, currencies, languages, flags, and borders.",
+      "description": "REST Countries exposes country metadata through REST endpoints. The project publishes endpoint documentation and response fields; consumers should check current service limits and data attribution requirements.",
+      "provider": {
+        "slug": "rest-countries",
+        "name": "REST Countries",
+        "homepageUrl": "https://restcountries.com/"
+      },
+      "homepageUrl": "https://restcountries.com/",
+      "documentationUrl": "https://restcountries.com/",
+      "baseUrl": "https://restcountries.com/v3.1",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No pricing claim is made in this starter record; confirm current hosting and usage terms.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "data-analytics",
+        "science-education"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Public country lookup endpoints are documented without an API key."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://restcountries.com/",
+          "title": "REST Countries project",
+          "isOfficial": true,
+          "notes": "Official project homepage and endpoint reference."
+        }
+      ]
+    },
+    {
+      "slug": "pokeapi",
+      "name": "PokéAPI",
+      "summary": "A comprehensive Pokémon data API covering Pokémon, species, abilities, moves, items, locations, and game metadata.",
+      "description": "PokéAPI provides a RESTful interface to structured Pokémon game data. It is useful for learning, demos, and hobby projects; clients should cache responses and follow the service's published fair-use guidance.",
+      "provider": {
+        "slug": "pokeapi",
+        "name": "PokéAPI",
+        "homepageUrl": "https://pokeapi.co/"
+      },
+      "homepageUrl": "https://pokeapi.co/",
+      "documentationUrl": "https://pokeapi.co/docs/v2",
+      "baseUrl": "https://pokeapi.co/api/v2",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No commercial pricing statement is asserted; verify current service policy before production use.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education",
+        "developer-tools"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "The documented public REST endpoints do not require an API key."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://pokeapi.co/",
+          "title": "PokéAPI homepage",
+          "isOfficial": true,
+          "notes": "Official API overview."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://pokeapi.co/docs/v2",
+          "title": "PokéAPI v2 documentation",
+          "isOfficial": true,
+          "notes": "Endpoint and resource documentation."
+        }
+      ]
+    },
+    {
+      "slug": "dummyjson",
+      "name": "DummyJSON",
+      "summary": "A mock REST API with sample products, carts, users, posts, comments, todos, and authentication examples.",
+      "description": "DummyJSON offers mock JSON endpoints for frontend development, prototypes, and API integration exercises. Its data is synthetic and should not be treated as authoritative real-world information.",
+      "provider": {
+        "slug": "dummyjson",
+        "name": "DummyJSON",
+        "homepageUrl": "https://dummyjson.com/"
+      },
+      "homepageUrl": "https://dummyjson.com/",
+      "documentationUrl": "https://dummyjson.com/docs",
+      "baseUrl": "https://dummyjson.com",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "This starter record makes no paid-service or SLA claim; confirm current usage terms.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "developer-tools"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Most sample endpoints are public; authentication examples are provided for demonstration."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://dummyjson.com/",
+          "title": "DummyJSON homepage",
+          "isOfficial": true,
+          "notes": "Official mock API and feature overview."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://dummyjson.com/docs",
+          "title": "DummyJSON documentation",
+          "isOfficial": true,
+          "notes": "Endpoint reference and sample response documentation."
+        }
+      ]
+    },
+    {
+      "slug": "coingecko-api",
+      "name": "CoinGecko API",
+      "summary": "Cryptocurrency market data including prices, market capitalization, trading volume, exchange data, and historical market information.",
+      "description": "CoinGecko provides cryptocurrency market data through a documented API. Authentication, request limits, availability, and commercial terms depend on the current plan; verify the current official documentation before integration.",
+      "provider": {
+        "slug": "coingecko",
+        "name": "CoinGecko",
+        "homepageUrl": "https://www.coingecko.com/"
+      },
+      "homepageUrl": "https://www.coingecko.com/",
+      "documentationUrl": "https://docs.coingecko.com/",
+      "baseUrl": "https://api.coingecko.com/api/v3",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "Plans and limits may change. Consult official API plan and pricing documentation before use.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "finance",
+        "data-analytics"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Current API plans use an API key; exact header/query requirements and access tiers should be verified in the official docs."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.coingecko.com/",
+          "title": "CoinGecko homepage",
+          "isOfficial": true,
+          "notes": "Provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://docs.coingecko.com/",
+          "title": "CoinGecko API documentation",
+          "isOfficial": true,
+          "notes": "Official endpoint, authentication, and rate-limit documentation."
+        }
+      ]
+    },
+    {
+      "slug": "open-food-facts-api",
+      "name": "Open Food Facts API",
+      "summary": "Open food product database API with ingredients, nutrition facts, allergens, labels, brands, and barcode-based product lookup.",
+      "description": "Open Food Facts exposes food product data contributed by its community. Data is available through documented endpoints and is subject to the project's database and API terms, including attribution and rate-limit guidance.",
+      "provider": {
+        "slug": "open-food-facts",
+        "name": "Open Food Facts",
+        "homepageUrl": "https://world.openfoodfacts.org/"
+      },
+      "homepageUrl": "https://world.openfoodfacts.org/",
+      "documentationUrl": "https://openfoodfacts.github.io/openfoodfacts-server/api/",
+      "baseUrl": "https://world.openfoodfacts.org/api/v2",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No paid-tier claim is made; review current API and database licence/usage terms.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "data-analytics",
+        "science-education"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Public product lookup endpoints are available without an API key; write and privileged endpoints have separate requirements."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://world.openfoodfacts.org/",
+          "title": "Open Food Facts",
+          "isOfficial": true,
+          "notes": "Official product database homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://openfoodfacts.github.io/openfoodfacts-server/api/",
+          "title": "Open Food Facts API documentation",
+          "isOfficial": true,
+          "notes": "Official API endpoints, authentication, and usage guidance."
+        }
+      ]
+    },
+    {
+      "slug": "wikimedia-rest-api",
+      "name": "Wikimedia REST API",
+      "summary": "REST endpoints for accessing Wikimedia project content, page summaries, metadata, revisions, and related public information.",
+      "description": "Wikimedia provides REST APIs for accessing content and metadata from Wikimedia projects. Use descriptive user-agent identification, follow project-specific rate limits and policies, and respect the licence and attribution requirements for reused content.",
+      "provider": {
+        "slug": "wikimedia",
+        "name": "Wikimedia Foundation",
+        "homepageUrl": "https://www.wikimedia.org/"
+      },
+      "homepageUrl": "https://www.wikimedia.org/",
+      "documentationUrl": "https://www.mediawiki.org/wiki/API:REST_API",
+      "baseUrl": "https://en.wikipedia.org/api/rest_v1",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No API price is asserted; follow Wikimedia project terms, policies, and usage limits.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "media",
+        "science-education"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Many public read endpoints are available without authentication; privileged actions have separate authentication requirements."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.wikimedia.org/",
+          "title": "Wikimedia Foundation",
+          "isOfficial": true,
+          "notes": "Provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://www.mediawiki.org/wiki/API:REST_API",
+          "title": "MediaWiki REST API documentation",
+          "isOfficial": true,
+          "notes": "Official REST API reference."
+        }
+      ]
+    },
+    {
+      "slug": "geonames-api",
+      "name": "GeoNames Web Services",
+      "summary": "Geographical database services for place names, postal codes, administrative divisions, elevation, time zones, and geographic search.",
+      "description": "GeoNames offers web services over a large geographical database. Access uses a GeoNames username parameter and is governed by service-specific daily limits and terms; verify current account and usage requirements.",
+      "provider": {
+        "slug": "geonames",
+        "name": "GeoNames",
+        "homepageUrl": "https://www.geonames.org/"
+      },
+      "homepageUrl": "https://www.geonames.org/",
+      "documentationUrl": "https://www.geonames.org/export/web-services.html",
+      "baseUrl": "https://api.geonames.org",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "Service limits and commercial terms vary; check the current official service description and account policy.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "maps-geospatial",
+        "data-analytics"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Requests use a GeoNames account username parameter; confirm current registration and access requirements."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.geonames.org/",
+          "title": "GeoNames",
+          "isOfficial": true,
+          "notes": "Official geographical database homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://www.geonames.org/export/web-services.html",
+          "title": "GeoNames web services",
+          "isOfficial": true,
+          "notes": "Official service endpoints, parameters, and limits."
+        }
+      ]
+    }
+  ]
+}

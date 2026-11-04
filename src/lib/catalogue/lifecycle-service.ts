@@ -28,6 +28,9 @@ export async function updateApiLifecycle(
   if (!api) throw new Error("The API record no longer exists.");
 
   if (nextVerification === VerificationStatus.VERIFIED) {
+    if (!api.documentationUrl?.startsWith("https://")) {
+      throw new Error("Verification requires an official HTTPS documentation URL.");
+    }
     const hasOfficialHomepage = api.sources.some(
       (source) => source.sourceKind === "OFFICIAL_HOMEPAGE" && source.isOfficial && source.url === api.homepageUrl,
     );

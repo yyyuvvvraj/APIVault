@@ -15,7 +15,9 @@ Third-party directory pages can help discovery but are not sufficient evidence f
 
 ## Review checklist
 
-Before setting an entry to `VERIFIED`, a maintainer should confirm:
+Before setting an entry to `VERIFIED`, a maintainer must confirm the publication prerequisites: an HTTPS developer documentation URL, an official homepage source whose URL exactly matches the API homepage, at least one category, and at least one explicit authentication classification. The public catalogue independently enforces these fields, an official HTTPS source, a publication timestamp, `ACTIVE` status, and `VERIFIED` status for both listings and detail lookups.
+
+A maintainer should then confirm:
 1. The API and provider are identifiable and the links resolve to the expected service.
 2. The summary accurately reflects the official description.
 3. Authentication information is supported by documentation.
@@ -28,6 +30,10 @@ Before setting an entry to `VERIFIED`, a maintainer should confirm:
 The admin verification action requires a non-empty review note. The note should identify the material claims checked or explain why an entry was verified with unknown fields. The note is retained in the immutable revision summary.
 
 When an admin marks an API as `VERIFIED`, APIVault records the current timestamp in `lastCheckedAt` and `checkedAt` for every linked source. The review page displays these timestamps, and the revision snapshot captures them. This timestamp records the maintainer's review action; it does not independently prove that a URL was reachable or that every claim is correct.
+
+## Automated evidence-coverage hints
+
+The maintainer verification queue checks that homepage, documentation, pricing, and authentication evidence is linked to official provider sources where those fields are known. It also flags official source records without a review timestamp and records whose official source review timestamps are older than 180 days. These are completeness and freshness hints, not an automatic verdict: a maintainer must open the sources, verify the claims, and record a review note. A timestamp means a maintainer recorded a review action; it does not guarantee that the source remains accurate between reviews.
 
 ## Unknown is an acceptable value
 

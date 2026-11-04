@@ -41,7 +41,7 @@ Review these controls before changing URL handling or adding request headers. Ne
 
 ## Local development
 
-Set the following values in the gitignored `.env` file:
+Go 1.25 or newer is a required development toolchain dependency for this repository. The verifier worker runs separately and may be started only when homepage-check processing is needed. Set the following values in the gitignored `.env` file:
 
 ```env
 VERIFIER_SHARED_SECRET=replace-with-a-random-secret-at-least-32-characters

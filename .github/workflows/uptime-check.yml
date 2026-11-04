@@ -1,0 +1,26 @@
+name: Hosted uptime smoke check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apivault-hosted-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke-check:
+    if: ${{ vars.APIVAULT_BASE_URL != '' }}
+    name: Check hosted readiness and public contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out smoke-check script
+        uses: actions/checkout@v7
+      - name: Run hosted smoke checks
+        env:
+          APIVAULT_BASE_URL: ${{ vars.APIVAULT_BASE_URL }}
+        run: bash scripts/smoke-check.sh

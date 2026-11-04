@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/db";
+import { authenticateApiKey } from "@/lib/api-keys";
 
 export const PUBLIC_API_RATE_LIMIT = 120;
 export const PUBLIC_API_RATE_WINDOW_SECONDS = 60;
@@ -26,6 +27,7 @@ export function hashClientIp(ip: string): string {
   return createHash("sha256").update(ip).digest("hex");
 }
 
+
 export async function consumeRateLimit(
   key: string,
   options: { limit?: number; windowSeconds?: number; now?: Date } = {},
@@ -47,7 +49,6 @@ export async function consumeRateLimit(
     limit,
   );
 
-  // Opportunistic cleanup prevents inactive client keys from accumulating forever.
   if (Math.random() < 0.01) {
     void prisma.$executeRawUnsafe('DELETE FROM "ApiRateLimitBucket" WHERE "expiresAt" < $1', now).catch(() => undefined);
   }
@@ -71,18 +72,47 @@ export function rateLimitHeaders(decision: RateLimitDecision): Record<string, st
   };
 }
 
+
 export async function enforcePublicApiRateLimit(
   request: Request,
 ): Promise<{ headers: Record<string, string>; response: NextResponse | null }> {
-  const key = hashClientIp(getClientIp(request.headers));
-  const decision = await consumeRateLimit(key);
+  const ipDecision = await consumeRateLimit(hashClientIp(getClientIp(request.headers)));
+  const suppliedKey = request.headers.get("x-api-key")?.trim() || request.headers.get("authorization")?.match(/^Bearer\s+(av_live_\S+)$/i)?.[1];
+  const apiKey = suppliedKey ? await authenticateApiKey(suppliedKey) : null;
+  const invalidKey = Boolean(suppliedKey && !apiKey);
+  if (invalidKey) {
+    return {
+      headers: rateLimitHeaders(ipDecision),
+      response: NextResponse.json(
+        { error: "invalid_api_key", message: "The supplied APIVault API key is invalid, expired, or revoked." },
+        { status: 401, headers: { "Cache-Control": "no-store", "WWW-Authenticate": "Bearer" } },
+      ),
+    };
+  }
+
+  let decision = ipDecision;
+  if (apiKey) {
+    const keyDecision = await consumeRateLimit(hashClientIp(`api-key:${apiKey.id}`));
+    if (!keyDecision.allowed || keyDecision.remaining < ipDecision.remaining) decision = keyDecision;
+    if (!keyDecision.allowed) {
+      const headers = rateLimitHeaders(keyDecision);
+      return {
+        headers,
+        response: NextResponse.json(
+          { error: "rate_limit_exceeded", message: "This API key has exceeded its request limit. Please wait before retrying." },
+          { status: 429, headers: { ...headers, "Retry-After": String(keyDecision.retryAfterSeconds) } },
+        ),
+      };
+    }
+  }
+
   const headers = rateLimitHeaders(decision);
-  if (!decision.allowed) {
+  if (!ipDecision.allowed) {
     return {
       headers,
       response: NextResponse.json(
-        { error: "rate_limit_exceeded", message: "Too many requests. Please wait before retrying." },
-        { status: 429, headers: { ...headers, "Retry-After": String(decision.retryAfterSeconds) } },
+        { error: "rate_limit_exceeded", message: "Too many requests from this client. Please wait before retrying." },
+        { status: 429, headers: { ...headers, "Retry-After": String(ipDecision.retryAfterSeconds) } },
       ),
     };
   }

@@ -22,6 +22,7 @@ test("administrator can sign in, create and verify an API, and moderate a submis
   await page.getByLabel(/Provider name/).fill("E2E Lifecycle Provider");
   await page.getByLabel(/Short summary/).fill("An API created by the APIVault browser test.");
   await page.getByLabel(/Official homepage/).fill("https://e2e-lifecycle.example.test");
+  await page.getByLabel(/Documentation URL/).fill("https://e2e-lifecycle.example.test/docs");
   await page.locator('input[name="categorySlugs"]').first().check();
   await page.locator('input[name="authMethods"][value="API_KEY"]').check();
   await page.getByRole("button", { name: "Create unverified API" }).click();
@@ -35,6 +36,9 @@ test("administrator can sign in, create and verify an API, and moderate a submis
   await expect(page.getByRole("status")).toContainText("verified and published");
   await page.goto("/apis/e2e-lifecycle-api");
   await expect(page.getByRole("heading", { name: "E2E Lifecycle API" })).toBeVisible();
+  await expect(page.getByText("Review current", { exact: true })).toBeVisible();
+  await expect(page.getByText("Next review due", { exact: true })).toBeVisible();
+  await expect(page.getByText(/90-day catalogue review cadence/)).toBeVisible();
 
   await page.goto("/admin/submissions");
   const submission = page.locator("article").filter({ hasText: "E2E Community Member" });

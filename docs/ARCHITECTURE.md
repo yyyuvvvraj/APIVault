@@ -55,7 +55,8 @@ PostgreSQL
 
 The browser never talks directly to PostgreSQL. Route handlers expose explicit public DTOs; do not return raw Prisma records.
 
-## Application boundaries
+## Architecture diagram\n\n```mermaid\nflowchart TB\n  subgraph Client[Client boundary]\n    Browser[Browser]\n  end\n  subgraph Web[Next.js application boundary]\n    UI[Public and admin pages]\n    Routes[REST, auth and internal route handlers]\n    Auth[Session and role authorization]\n    Domain[Catalogue, validation, moderation and publication policy]\n    UI --> Auth\n    UI --> Domain\n    Routes --> Auth\n    Routes --> Domain\n  end\n  subgraph Data[Persistence boundary]\n    Prisma[Prisma Client + PostgreSQL adapter]\n    DB[(PostgreSQL)]\n    Prisma --> DB\n  end\n  Browser --> UI\n  Browser --> Routes\n  Domain --> Prisma\n  Worker[Optional Go verifier] -->|authenticated observations only| Routes\n  Domain -->|evidence-gated admin decision| Published[Public catalogue visibility]\n```
+\nThe verifier is intentionally unable to write directly to PostgreSQL or change publication state. Browser requests pass through Next.js; database access remains server-side.\n\n## Application boundaries
 
 - `src/app`: routes, layouts, pages, server actions, and HTTP route handlers.
 - `src/components`: reusable presentation components.
