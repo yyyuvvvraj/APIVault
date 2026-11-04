@@ -4,42 +4,61 @@
 [![Application CI](https://github.com/yyyuvvvraj/APIVault/actions/workflows/application-ci.yml/badge.svg?branch=dev)](https://github.com/yyyuvvvraj/APIVault/actions/workflows/application-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**APIVault is a community-driven directory of useful APIs for developers.**
+**The GitHub of APIs — discovery, verification and community.**
 
-Discover APIs, compare their capabilities and requirements, and contribute reliable, well-documented API listings. APIVault is a web application backed by a curated API catalogue, with a public REST API built from the same canonical records as the catalogue matures.
+APIVault is an open-source API discovery and intelligence platform. Explore a curated catalogue, inspect API capabilities and requirements, review verification evidence, and help improve the directory through community submissions.
+
+The idea is simple: APIs should be as discoverable, reviewable and community-maintained as open-source code.
+
+## What you can do
+
+### Discover APIs
+- Browse, search, filter and sort a structured API catalogue.
+- Open API detail pages with provider information, documentation links and available metadata.
+- Use the read-only, versioned REST API to access published catalogue records.
+
+### Verify with evidence
+- Keep verification evidence and publication status tied to canonical API records.
+- Use the Go-based verifier for API homepage checks.
+- Review verification history and stale observations in the admin tooling.
+
+Verification is evidence-based; a listing is not a guarantee of provider uptime, service quality, security, or continued availability.
+
+### Build with APIVault
+- Explore the interactive API reference and playground at /docs.
+- Read the canonical OpenAPI document at /openapi.json.
+- Create optional read-only API keys from /account when an account has been provisioned.
+
+### Contribute to the catalogue
+- Suggest APIs, corrections and better source metadata.
+- Submissions enter a moderation workflow and are not published automatically.
+- Opt-in contributor profiles and submission history help recognize community work.
+
+## Project status
+
+APIVault is under active development toward its first official v1.0.0 general-availability launch. Incremental 0.x releases will document tested development milestones and be published as GitHub prereleases. Public registration is currently disabled; contributor accounts are provisioned by maintainers. Some catalogue data imports are review-only and require maintainer verification before publication.
+
+See the [v1.0.0 launch plan](docs/LAUNCH_PLAN.md), [release strategy](docs/RELEASE_STRATEGY.md), and [release-readiness checklist](docs/RELEASE_READINESS.md).
 
 ## Technology
 
 - Next.js 16, React 19, TypeScript, and Tailwind CSS 4.
 - PostgreSQL 18 with Prisma ORM 7.
 - Zod for runtime validation.
-- GitHub Actions for repository and application checks.
+- Go verifier service.
+- GitHub Actions for repository, application, browser and container checks.
 
-## Local development
+## Run locally
 
-New contributors should follow the step-by-step [setup guide](docs/SETUP.md). For a concise local development reference, see [local development](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), and [verification policy](docs/VERIFICATION_POLICY.md) before changing catalogue behaviour. See the [catalogue curation guide](docs/CATALOGUE_CURATION.md) for source, pricing, and review requirements. For container builds and GHCR publishing, see the [Docker deployment guide](docs/DOCKER_DEPLOYMENT.md).
+Start with the step-by-step [setup guide](docs/SETUP.md), then use the [local development reference](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), [verification policy](docs/VERIFICATION_POLICY.md), and [catalogue curation guide](docs/CATALOGUE_CURATION.md) before changing catalogue behaviour.
 
 ## Public API
 
-The public API is read-only and currently exposes catalogue listings, individual API records, and categories. See the [API usage policy](docs/API_USAGE_POLICY.md) for current rate limits, caching and conditional request guidance, attribution, and fair-use expectations. The [OpenAPI specification](docs/openapi.json) documents the available endpoints.
-
-## Developer experience
-
-- Interactive API reference and playground: `/docs`.
-- Canonical OpenAPI document: `/openapi.json`.
-- Authenticated account area: `/account` for optional read-only API keys, contributor profiles, and submission history. Sign in at `/account/login`; public registration remains disabled and accounts are provisioned by maintainers.
-- API submissions are moderated and are never published automatically.
+The public API is read-only and exposes published catalogue listings, individual API records, and categories. The [OpenAPI specification](docs/openapi.json) documents the available endpoints. Read the [API usage policy](docs/API_USAGE_POLICY.md) for rate limits, caching, attribution and fair-use expectations.
 
 ## Contributing
 
-Contributions of code, API listings, data corrections, tests, and documentation are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md). API suggestions should include official source links and can be submitted using the [Suggest an API issue form](https://github.com/yyyuvvvraj/APIVault/issues/new?template=api_submission.yml).
-
-## Development workflow
-
-- The dev branch is the default integration branch.
-- Work on short-lived branches such as feature/add-api-catalogue or docs/improve-readme.
-- Open pull requests into dev; do not push directly to protected branches.
-- Stable releases will be prepared from dev and published from stable with version tags. Review the [release-readiness checklist](docs/RELEASE_READINESS.md) before creating a release candidate.
+Contributions of code, API listings, data corrections, tests and documentation are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. API suggestions should include official source links and can be submitted using the [Suggest an API issue form](https://github.com/yyyuvvvraj/APIVault/issues/new?template=api_submission.yml).
 
 ## Community
 
@@ -47,6 +66,14 @@ Contributions of code, API listings, data corrections, tests, and documentation 
 - [Report a bug](https://github.com/yyyuvvvraj/APIVault/issues/new?template=bug_report.yml)
 - [Request a feature](https://github.com/yyyuvvvraj/APIVault/issues/new?template=feature_request.yml)
 - [Security policy](SECURITY.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+
+## Development workflow
+
+- dev is the default integration branch.
+- Work on short-lived branches such as feature/add-api-catalogue or docs/improve-readme.
+- Open pull requests into dev; do not push directly to protected branches.
+- Stable releases are prepared from dev and published from stable with version tags. See the [release strategy](docs/RELEASE_STRATEGY.md).
 
 ## License
 
