@@ -36,9 +36,9 @@ Verification is evidence-based; a listing is not a guarantee of provider uptime,
 
 ## Project status
 
-APIVault is under active development toward its first official v1.0.0 launch. Public registration is currently disabled; contributor accounts are provisioned by maintainers. Some catalogue data imports are review-only and require maintainer verification before publication.
+APIVault is under active development toward its first official v1.0.0 general-availability launch. Incremental 0.x releases will document tested development milestones and be published as GitHub prereleases. Public registration is currently disabled; contributor accounts are provisioned by maintainers. Some catalogue data imports are review-only and require maintainer verification before publication.
 
-See the [v1.0.0 launch plan](docs/LAUNCH_PLAN.md) and [release-readiness checklist](docs/RELEASE_READINESS.md) for the scope and release gates.
+See the [v1.0.0 launch plan](docs/LAUNCH_PLAN.md), [release strategy](docs/RELEASE_STRATEGY.md), and [release-readiness checklist](docs/RELEASE_READINESS.md).
 
 ## Technology
 
@@ -73,7 +73,7 @@ Contributions of code, API listings, data corrections, tests and documentation a
 - dev is the default integration branch.
 - Work on short-lived branches such as feature/add-api-catalogue or docs/improve-readme.
 - Open pull requests into dev; do not push directly to protected branches.
-- Stable releases are prepared from dev and published from stable with version tags. Review the [release-readiness checklist](docs/RELEASE_READINESS.md) before creating a release candidate.
+- Stable releases are prepared from dev and published from stable with version tags. See the [release strategy](docs/RELEASE_STRATEGY.md).
 
 ## License
 
