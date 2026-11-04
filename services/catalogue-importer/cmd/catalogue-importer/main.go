@@ -52,7 +52,7 @@ func main() {
 		fatalf("DATABASE_URL_UNPOOLED or DATABASE_URL is required when -apply is used")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
 	config, err := pgxpool.ParseConfig(databaseURL)
