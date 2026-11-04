@@ -77,10 +77,10 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 	client := &http.Client{
 		Timeout: timeout,
 		Transport: &http.Transport{
-			DialContext:            dialPublicContext,
-			TLSHandshakeTimeout:    timeout,
-			ResponseHeaderTimeout:  timeout,
-			IdleConnTimeout:        30 * time.Second,
+			DialContext:           dialPublicContext,
+			TLSHandshakeTimeout:   timeout,
+			ResponseHeaderTimeout: timeout,
+			IdleConnTimeout:       30 * time.Second,
 		},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 3 {
