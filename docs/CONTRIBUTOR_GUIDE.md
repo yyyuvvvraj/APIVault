@@ -54,3 +54,8 @@ When public, the profile page exposes the display name, handle, optional bio, op
 - `/submit` — suggest a new API or an evidence-backed update.
 - `/account/submissions` — track review status and maintainer notes.
 - `/account/profile` — manage your optional public contributor profile.
+
+
+## Profile visibility checks
+
+Before enabling public visibility, review the exact fields shown in the profile form. Public profiles expose only the display name, handle, optional bio, optional website/GitHub links, join month, and approved-contribution count. They do not expose account email, internal user IDs, submission contents, review notes, or pending/rejected contribution counts. You can make the profile private again at any time; public profile pages and API responses then return not found.
