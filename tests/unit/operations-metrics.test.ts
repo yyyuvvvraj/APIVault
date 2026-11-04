@@ -1,17 +1,16 @@
-import { describe, expect, it } from "vitest";
-import { formatQueueAge, getImportProgress } from "@/lib/admin/operations-metrics";
+import assert from "node:assert/strict";
+import test from "node:test";
+import { formatQueueAge, getImportProgress } from "../../src/lib/admin/operations-metrics";
 
-describe("operations metrics", () => {
-  it("formats queue age without negative values", () => {
-    const now = new Date("2026-11-04T12:00:00.000Z");
-    expect(formatQueueAge(new Date("2026-11-02T11:00:00.000Z"), now)).toBe("2d 1h");
-    expect(formatQueueAge(new Date("2026-11-04T13:00:00.000Z"), now)).toBe("0h");
-  });
+test("formats queue age without negative values", () => {
+  const now = new Date("2026-11-04T12:00:00.000Z");
+  assert.equal(formatQueueAge(new Date("2026-11-02T11:00:00.000Z"), now), "2d 1h");
+  assert.equal(formatQueueAge(new Date("2026-11-04T13:00:00.000Z"), now), "0h");
+});
 
-  it("clamps import progress and handles empty runs", () => {
-    expect(getImportProgress(1, 4)).toBe(25);
-    expect(getImportProgress(5, 4)).toBe(100);
-    expect(getImportProgress(-1, 4)).toBe(0);
-    expect(getImportProgress(0, 0)).toBe(0);
-  });
+test("clamps import progress and handles empty runs", () => {
+  assert.equal(getImportProgress(1, 4), 25);
+  assert.equal(getImportProgress(5, 4), 100);
+  assert.equal(getImportProgress(-1, 4), 0);
+  assert.equal(getImportProgress(0, 0), 0);
 });
