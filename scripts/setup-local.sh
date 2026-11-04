@@ -21,19 +21,21 @@ if [[ ! -f .env ]]; then
   printf 'Created .env from .env.example. Review the local-only values before continuing.\n'
 fi
 
-if ! grep -q '^BETTER_AUTH_SECRET=.' .env; then
-  node --input-type=module <<'NODE'
+node --input-type=module <<'NODE'
 import { randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 const path = ".env";
 const contents = readFileSync(path, "utf8");
-const secret = randomBytes(32).toString("base64url");
-const updated = contents.replace(/^BETTER_AUTH_SECRET=.*$/m, `BETTER_AUTH_SECRET="${secret}"`);
-if (updated === contents) throw new Error("BETTER_AUTH_SECRET entry is missing from .env");
-writeFileSync(path, updated, { mode: 0o600 });
+const match = contents.match(/^BETTER_AUTH_SECRET=(.*)$/m);
+if (!match) throw new Error("BETTER_AUTH_SECRET entry is missing from .env");
+const configured = match[1].trim().replace(/^["']|["']$/g, "").trim();
+if (!configured) {
+  const secret = randomBytes(32).toString("base64url");
+  const updated = contents.replace(/^BETTER_AUTH_SECRET=.*$/m, `BETTER_AUTH_SECRET="${secret}"`);
+  writeFileSync(path, updated, { mode: 0o600 });
+  console.log("Generated a unique local Better Auth secret in .env.");
+}
 NODE
-  printf 'Generated a unique local Better Auth secret in .env.\n'
-fi
 
 printf '\n[1/5] Installing locked dependencies...\n'
 npm ci
