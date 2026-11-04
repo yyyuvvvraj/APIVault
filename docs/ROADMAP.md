@@ -10,7 +10,7 @@ This roadmap is an execution order, not a claim that future capabilities already
 - **0.2.0 — Catalogue quality and discovery:** improve the quality and usefulness of the catalogue before optimizing for raw listing count.
 - **0.3.0 — Developer platform:** make API integration easier to understand, test, and monitor.
 - **0.4.0 — Community operations:** improve contributor workflows, moderation throughput, and transparent change history.
-- **0.5.0 — Beta hardening:** demonstrate a dependable, observable beta with repeatable deployment and recovery procedures.
+- **0.5.0 — Reliable beta and 1,000-API catalogue:** demonstrate a dependable, observable beta and deliver at least 1,000 distinct, evidence-backed catalogue APIs. This catalogue threshold is a release acceptance gate, not a stretch goal.
 - **1.0.0 — General availability:** the first official GA release, only after every v1 release gate is evidenced and approved.
 
 ## 0.2.0 — Catalogue quality and discovery
@@ -72,7 +72,14 @@ A raw endpoint URL is not a catalogue record. Count distinct API products/servic
 - Abuse controls are in place before any expansion of public registration.
 - Documentation records source licensing, attribution, refresh policy, and the definition of a countable API.
 
-## 0.5.0 — Reliable beta
+## 0.5.0 — Reliable beta and 1,000-API catalogue
+
+### Catalogue acceptance gate (mandatory)
+- At least **1,000 distinct API products/services** are present in the canonical catalogue by the 0.5.0 release candidate.
+- Count only records that pass the catalogue's publication and verification policy; pending, unverified, duplicate, archived, endpoint-only, version-only, and mirror records do not count.
+- Every counted API has a provider, category, official HTTPS source evidence, and reviewed verification/publication state.
+- Publish a reproducible count report with the query or script, generated timestamp, and breakdown by category/provider.
+- If the count is below 1,000, 0.5.0 is not release-ready. Do not lower quality gates to hit the number.
 
 ### Deliverables
 - A documented deployment path with environment validation and safe migration execution.
