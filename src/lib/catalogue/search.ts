@@ -25,7 +25,7 @@ function oneOf<T extends string>(value: string, options: readonly { value: T }[]
 }
 
 export function tokenizeCatalogueQuery(query: string): string[] {
-  return [...new Set(query.toLocaleLowerCase().trim().split(/\\s+/).filter(Boolean))].slice(0, 8);
+  return [...new Set(query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean))].slice(0, 8);
 }
 
 export type SearchableCatalogueRecord = {
@@ -102,7 +102,7 @@ export function parseCatalogueFilters(input: SearchInput, defaultLimit = 12): Ca
   const supportedSorts: readonly SortOption[] = ["relevance", "recent", "verified", "newest", "name"];
 
   return {
-    q: first(input.q).trim().replace(/\\s+/g, " ").slice(0, 100),
+    q: first(input.q).trim().replace(/\s+/g, " ").slice(0, 100),
     category: first(input.category).trim().toLowerCase().slice(0, 100),
     pricing: oneOf(first(input.pricing), PRICING_OPTIONS),
     auth: oneOf(first(input.auth), AUTH_OPTIONS),
