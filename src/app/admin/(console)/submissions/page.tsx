@@ -32,7 +32,7 @@ export default async function AdminSubmissionsPage() {
     if (typeof payload.homepageUrl === "string") {
       conditions.push({ homepageUrl: { equals: payload.homepageUrl, mode: "insensitive" } });
       try {
-        const host = new URL(payload.homepageUrl).hostname.toLowerCase().replace(/^www\\./, "");
+        const host = new URL(payload.homepageUrl).hostname.toLowerCase().replace(/^www\./, "");
         if (host) conditions.push({ homepageUrl: { contains: host, mode: "insensitive" } });
       } catch {
         // Invalid URLs are rejected by submission validation; skip host-based lookup defensively.
@@ -55,12 +55,12 @@ export default async function AdminSubmissionsPage() {
     : [];
   const duplicateHints = new Map(submissions.map((submission) => [
     submission.id,
-    findSubmissionDuplicateCandidates(
+    submission.kind === "CREATE" ? findSubmissionDuplicateCandidates(
       submission.payload && typeof submission.payload === "object" && !Array.isArray(submission.payload)
         ? submission.payload as DuplicateSubmissionInput : {},
       possibleDuplicates,
       submission.targetApiId,
-    ),
+    ) : [],
   ]));
 
   return (
