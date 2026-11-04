@@ -73,7 +73,7 @@ export default async function ApisPage({ searchParams }: PageProps) {
                 {filters.auth !== "ALL" && <input type="hidden" name="auth" value={filters.auth} />}
                 <label htmlFor="sort" className="text-slate-500">Sort</label>
                 <select id="sort" name="sort" defaultValue={filters.sort} className="rounded-lg border border-white/10 bg-[#14171d] px-2 py-1.5 font-semibold text-slate-300">
-                  <option value="relevance">Featured</option>
+                  <option value="relevance">Most relevant</option>
                   <option value="recent">Recently updated</option>
                   <option value="verified">Recently verified</option>
                   <option value="newest">Newest added</option>
