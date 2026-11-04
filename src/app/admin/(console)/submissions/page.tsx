@@ -21,6 +21,7 @@ export default async function AdminSubmissionsPage() {
     include: {
       targetApi: { select: { name: true, slug: true } },
       sources: { select: { id: true, url: true, sourceKind: true } },
+      reviewEvents: { orderBy: { createdAt: "desc" }, take: 10, select: { id: true, previousStatus: true, nextStatus: true, note: true, reviewerUserId: true, createdAt: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 100,
@@ -127,7 +128,21 @@ export default async function AdminSubmissionsPage() {
                 ) : <p className="mt-2 text-xs text-slate-500">No source URLs attached.</p>}
               </div>
             </div>
-            {submission.reviewNote && <p className="mt-3 text-xs text-slate-400">Review note: {submission.reviewNote}</p>}
+            {submission.reviewNote && <p className="mt-3 text-xs text-slate-400">Latest review note: {submission.reviewNote}</p>}
+            {submission.reviewEvents.length > 0 && (
+              <section className="mt-4 rounded-xl border border-white/[0.07] bg-black/20 p-4" aria-label="Moderation audit history">
+                <h3 className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Moderation history</h3>
+                <ol className="mt-3 space-y-3">
+                  {submission.reviewEvents.map((event) => (
+                    <li key={event.id} className="border-l border-cyan-400/30 pl-3">
+                      <p className="text-xs font-bold text-slate-200">{event.previousStatus.replaceAll("_", " ")} → {event.nextStatus.replaceAll("_", " ")}</p>
+                      <p className="mt-1 text-[10px] text-slate-500">{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(event.createdAt)} · Reviewer {event.reviewerUserId}</p>
+                      {event.note && <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-400">{event.note}</p>}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
             <AdminSubmissionReviewActions submissionId={submission.id} currentStatus={submission.status}/>
             <AdminSubmissionApprovalButton submissionId={submission.id} currentStatus={submission.status}/>
           </article>

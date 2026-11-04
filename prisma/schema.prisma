@@ -258,6 +258,7 @@ model ApiSubmission {
   reviewedAt      DateTime?          @db.Timestamptz(6)
   targetApi       Api?               @relation(fields: [targetApiId], references: [id], onDelete: SetNull)
   sources         SubmissionSource[]
+  reviewEvents    SubmissionReviewEvent[]
   createdAt       DateTime           @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime           @updatedAt @db.Timestamptz(6)
 
@@ -457,4 +458,19 @@ model CatalogueImportBatch {
 
   @@unique([runId, batchNumber])
   @@index([runId, status])
+}
+
+
+model SubmissionReviewEvent {
+  id             String           @id @default(uuid()) @db.Uuid
+  submissionId   String           @db.Uuid
+  submission     ApiSubmission    @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  previousStatus SubmissionStatus
+  nextStatus     SubmissionStatus
+  note           String?          @db.Text
+  reviewerUserId String           @db.VarChar(128)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
+
+  @@index([submissionId, createdAt])
+  @@index([reviewerUserId, createdAt])
 }
