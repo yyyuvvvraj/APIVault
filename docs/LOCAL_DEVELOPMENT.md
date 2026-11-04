@@ -3,12 +3,13 @@
 ## Requirements
 
 - Node.js 24.x LTS (see `.nvmrc`); Node 26 is not supported by the package engine range.
+- Go 1.25 or newer (required for the verifier and catalogue-importer services).
 - npm bundled with Node 24 (npm 10 or newer).
 - For a first-time setup, follow the more detailed [SETUP.md](SETUP.md) guide.
 - Docker Desktop or Docker Engine with Compose.
 - Git.
 
-## Fast path\n\nAfter installing Node.js 24.x and Docker Compose, run this from the repository root:\n\n```bash\nnpm run setup:local\n```\n\nThe script creates a local-only `.env` when absent, generates a random local Better Auth secret, installs locked dependencies, starts PostgreSQL, waits for readiness, applies migrations, and seeds categories. It is safe to rerun for dependency and database setup; it does not reset or delete the database volume. It does not provision an administrator or add API records.\n\nFor manual setup or troubleshooting, continue below.\n\n## 1. Clone and configure
+## Fast path\n\nAfter installing Node.js 24.x, Go 1.25+, and Docker Compose, run this from the repository root:\n\n```bash\nnpm run setup:local\n```\n\nThe script requires and verifies Go, validates and tests both Go services, creates a local-only `.env` when absent, generates a local Better Auth secret, installs dependencies, starts PostgreSQL, applies migrations, and seeds categories. It is safe to rerun for dependency and database setup; it does not reset or delete the database volume. It does not provision an administrator or add API records.\n\nFor manual setup or troubleshooting, continue below.\n\n## 1. Clone and configure
 
 ```bash
 git clone https://github.com/yyyuvvvraj/APIVault.git
@@ -63,9 +64,10 @@ Open http://localhost:3000. The catalogue starts empty until verified API entrie
 
 ## Quality checks
 
-Run the same checks used by Application CI:
+Run the same checks used by CI, including Go:
 
 ```bash
+npm run verify:go
 npm test
 npm run db:deploy
 npm run test:integration
@@ -76,9 +78,9 @@ npm run build
 
 See [TESTING.md](TESTING.md) for current coverage, test strategy, and known gaps. To run browser E2E locally, install Playwright with `npm install --no-save @playwright/test@1.56.1`, install Chromium with `npx playwright install chromium`, and run `npx playwright test` against a disposable seeded database. Unit tests do not replace database integration, authorization, or browser-based end-to-end tests.
 
-## Optional Go verifier worker
+## Go services (required toolchain; optional worker runtime)
 
-Configure `VERIFIER_SHARED_SECRET` (at least 32 random characters) and `APIVAULT_INTERNAL_URL` in `.env`, start Next.js and PostgreSQL, then run:
+Go is a required project language. Both Go services are formatted, tested, vetted, and built by `npm run verify:go` and mandatory GitHub Actions checks. The verifier worker runs separately; start it when homepage checks are needed. Configure `VERIFIER_SHARED_SECRET` (at least 32 random characters) and `APIVAULT_INTERNAL_URL` in `.env`, start Next.js and PostgreSQL, then run:
 
 ```bash
 docker compose --profile workers up --build verifier
