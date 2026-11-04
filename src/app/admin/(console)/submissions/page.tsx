@@ -1,4 +1,6 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
+import { findSubmissionDuplicateCandidates, type DuplicateSubmissionInput } from "@/lib/submissions/duplicate-detection";
 import { AdminSubmissionReviewActions } from "@/components/admin-submission-review-actions";
 import { AdminSubmissionApprovalButton } from "@/components/admin-submission-approval-button";
 
@@ -13,7 +15,8 @@ const statusTone: Record<string, string> = {
 };
 
 export default async function AdminSubmissionsPage() {
-  const submissions = await getPrisma().apiSubmission.findMany({
+  const prisma = getPrisma();
+  const submissions = await prisma.apiSubmission.findMany({
     include: {
       targetApi: { select: { name: true, slug: true } },
       sources: { select: { id: true, url: true, sourceKind: true } },
@@ -21,6 +24,38 @@ export default async function AdminSubmissionsPage() {
     orderBy: { createdAt: "desc" },
     take: 100,
   });
+
+  const duplicateConditions: Prisma.ApiWhereInput[] = submissions.flatMap((submission) => {
+    if (submission.kind !== "CREATE" || !submission.payload || typeof submission.payload !== "object" || Array.isArray(submission.payload)) return [];
+    const payload = submission.payload as DuplicateSubmissionInput;
+    const conditions: Prisma.ApiWhereInput[] = [];
+    if (typeof payload.homepageUrl === "string") {
+      conditions.push({ homepageUrl: { equals: payload.homepageUrl, mode: "insensitive" } });
+    }
+    if (typeof payload.name === "string" && typeof payload.providerName === "string") {
+      conditions.push({
+        name: { equals: payload.name, mode: "insensitive" },
+        provider: { is: { name: { equals: payload.providerName, mode: "insensitive" } } },
+      });
+    }
+    return conditions;
+  });
+  const possibleDuplicates = duplicateConditions.length
+    ? await prisma.api.findMany({
+        where: { OR: duplicateConditions },
+        select: { id: true, slug: true, name: true, homepageUrl: true, provider: { select: { name: true } } },
+        take: 500,
+      })
+    : [];
+  const duplicateHints = new Map(submissions.map((submission) => [
+    submission.id,
+    findSubmissionDuplicateCandidates(
+      submission.payload && typeof submission.payload === "object" && !Array.isArray(submission.payload)
+        ? submission.payload as DuplicateSubmissionInput : {},
+      possibleDuplicates,
+      submission.targetApiId,
+    ),
+  ]));
 
   return (
     <>
@@ -41,6 +76,20 @@ export default async function AdminSubmissionsPage() {
               <span className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide ${statusTone[submission.status]}`}>{submission.status.replaceAll("_", " ")}</span>
             </div>
             {submission.targetApi && <p className="mt-3 text-xs text-slate-400">Target API: {submission.targetApi.name} ({submission.targetApi.slug})</p>}
+            {(duplicateHints.get(submission.id) ?? []).length > 0 && (
+              <section aria-label="Possible duplicate APIs" className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.04] p-3">
+                <p className="text-[10px] font-extrabold uppercase tracking-wide text-amber-300">Possible catalogue duplicates — manual review required</p>
+                <ul className="mt-2 space-y-1.5">
+                  {(duplicateHints.get(submission.id) ?? []).map((candidate) => (
+                    <li key={candidate.id} className="text-xs text-slate-300">
+                      <a href={`/admin/apis/${candidate.slug}/review`} className="font-bold text-amber-200 hover:underline">{candidate.name}</a>
+                      <span className="text-slate-500"> · {candidate.providerName} · {candidate.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-[10px] text-slate-500">These are conservative name/provider or homepage matches, not an automatic rejection or proof that records are identical.</p>
+              </section>
+            )}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl bg-black/20 p-3">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Submitted details</p>
