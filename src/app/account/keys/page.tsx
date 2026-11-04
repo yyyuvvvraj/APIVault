@@ -13,7 +13,7 @@ export default async function ApiKeysPage() {
   const records = await getPrisma().apiKey.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    select: { id: true, name: true, keyPrefix: true, expiresAt: true, lastUsedAt: true, revokedAt: true, createdAt: true },
+    select: { id: true, name: true, keyPrefix: true, scopes: true, expiresAt: true, lastUsedAt: true, revokedAt: true, createdAt: true },
   });
   const initialKeys = records.map((key) => ({
     ...key,
