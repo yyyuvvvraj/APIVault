@@ -14,4 +14,4 @@ For correctness, relevance sorting ranks the complete filtered result set before
 
 ## Public visibility
 
-Public listings and detail lookups require `ACTIVE` lifecycle status, `VERIFIED` verification status, a publication timestamp, documentation URL, at least one category, an explicit authentication-method record, and at least one official HTTPS source. Starter imports remain `PENDING_REVIEW`; the importer cannot publish or feature records. Maintainers must review official sources and approve records through the existing verification workflow before they appear publicly.
+Public listings and detail lookups require `ACTIVE` lifecycle status, `VERIFIED` verification status, a publication timestamp, HTTPS documentation URL, at least one category, an explicit authentication-method record, and at least one official HTTPS source. Starter imports remain `PENDING_REVIEW`; the importer cannot publish or feature records. Maintainers must review official sources and approve records through the existing verification workflow before they appear publicly.
