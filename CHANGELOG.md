@@ -4,7 +4,7 @@ All notable changes to APIVault will be documented here.
 
 The format is based on Keep a Changelog, and this project will use Semantic Versioning for stable releases.
 
-## [0.2.0] - Unreleased
+## [0.2.0] - 2026-11-04
 
 ### Changed
 - Catalogue discovery now matches every search term across API names, providers, categories, tags, and descriptions, then ranks exact and high-signal matches ahead of broad text matches.
