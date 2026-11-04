@@ -48,11 +48,11 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		return ImportReport{}, fmt.Errorf("dataset provenance: %w", err)
 	}
 	retrievedAt, _ := time.Parse(time.RFC3339, file.Dataset.RetrievedAt)
-	batchSize, err := normalizeBatchSize(options.BatchSize)
+	normalizedBatchSize, err := normalizeBatchSize(options.BatchSize)
 	if err != nil {
 		return ImportReport{}, err
 	}
-	options.BatchSize = batchSize
+	options.BatchSize = normalizedBatchSize
 	if options.RunID == "" {
 		id, err := newUUID()
 		if err != nil {
