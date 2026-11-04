@@ -84,7 +84,7 @@ test("approval fails and rolls back provider creation when submitted category is
   const submission = await createSubmission(`missing-${suffix}`, "-rollback");
 
   await assert.rejects(
-    prisma.$transaction((tx) => applySubmissionApproval(tx, submission.id, "")),
+    prisma.$transaction((tx) => applySubmissionApproval(tx, submission.id, "", "integration-reviewer")),
     /categories no longer exist/,
   );
 
