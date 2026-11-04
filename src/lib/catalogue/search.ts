@@ -25,7 +25,7 @@ function oneOf<T extends string>(value: string, options: readonly { value: T }[]
 }
 
 export function tokenizeCatalogueQuery(query: string): string[] {
-  return [...new Set(query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean))].slice(0, 8);
+  return [...new Set(query.toLowerCase().trim().split(/\s+/).map((token) => token.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "")).filter(Boolean))].slice(0, 8);
 }
 
 export type SearchableCatalogueRecord = {
@@ -42,7 +42,7 @@ export type SearchableCatalogueRecord = {
 };
 
 function relevanceScore(api: SearchableCatalogueRecord, query: string, tokens: string[]): number {
-  const normalize = (value: string | null | undefined) => (value ?? "").toLocaleLowerCase();
+  const normalize = (value: string | null | undefined) => (value ?? "").toLowerCase();
   const name = normalize(api.name);
   const slug = normalize(api.slug);
   const provider = normalize(api.provider.name);
@@ -51,7 +51,7 @@ function relevanceScore(api: SearchableCatalogueRecord, query: string, tokens: s
   const description = normalize(api.description);
   const categories = api.categories.flatMap(({ category }) => [normalize(category.name), normalize(category.slug)]);
   const tags = api.tags.flatMap(({ tag }) => [normalize(tag.name), normalize(tag.slug)]);
-  const phrase = query.toLocaleLowerCase();
+  const phrase = query.toLowerCase();
 
   let score = 0;
   if (name === phrase) score += 1_000;
@@ -69,13 +69,14 @@ function relevanceScore(api: SearchableCatalogueRecord, query: string, tokens: s
   if (description.includes(phrase)) score += 40;
 
   for (const token of tokens) {
-    if (name.includes(token)) score += 30;
-    else if (provider.includes(token) || providerSlug.includes(token)) score += 22;
-    else if (slug.includes(token)) score += 18;
-    else if (categories.some((value) => value.includes(token))) score += 14;
-    else if (tags.some((value) => value.includes(token))) score += 12;
-    else if (summary.includes(token)) score += 8;
-    else if (description.includes(token)) score += 4;
+    // Accumulate independent field signals so cross-field matches rank well.
+    if (name.includes(token)) score += 40;
+    if (provider.includes(token) || providerSlug.includes(token)) score += 28;
+    if (slug.includes(token)) score += 24;
+    if (categories.some((value) => value.includes(token))) score += 20;
+    if (tags.some((value) => value.includes(token))) score += 16;
+    if (summary.includes(token)) score += 10;
+    if (description.includes(token)) score += 5;
   }
   return score;
 }
