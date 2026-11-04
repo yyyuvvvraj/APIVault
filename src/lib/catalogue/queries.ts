@@ -29,12 +29,23 @@ const apiDetailInclude = {
 export type ApiCardRecord = Prisma.ApiGetPayload<{ include: typeof apiCardInclude }>;
 export type ApiDetailRecord = Prisma.ApiGetPayload<{ include: typeof apiDetailInclude }>;
 
+function publicVisibilityWhere(): Prisma.ApiWhereInput {
+  return {
+    status: ApiStatus.ACTIVE,
+    verificationStatus: VerificationStatus.VERIFIED,
+    publishedAt: { not: null },
+    documentationUrl: { not: null },
+    categories: { some: {} },
+    authMethods: { some: {} },
+    sources: { some: { isOfficial: true, url: { startsWith: "https://" } } },
+  };
+}
+
 function buildWhere(filters: CatalogueFilters): Prisma.ApiWhereInput {
   const tokens = tokenizeCatalogueQuery(filters.q);
 
   return {
-    status: ApiStatus.ACTIVE,
-    verificationStatus: VerificationStatus.VERIFIED,
+    ...publicVisibilityWhere(),
     ...(tokens.length
       ? {
           AND: tokens.map((token) => ({
@@ -115,8 +126,7 @@ export async function getApiBySlug(slug: string) {
   const api = await getPrisma().api.findFirst({
     where: {
       slug,
-      status: ApiStatus.ACTIVE,
-      verificationStatus: VerificationStatus.VERIFIED,
+      ...publicVisibilityWhere(),
     },
     include: apiDetailInclude,
   });
