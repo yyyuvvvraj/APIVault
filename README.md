@@ -2,6 +2,7 @@
 
 [![Repository checks](https://github.com/yyyuvvvraj/APIVault/actions/workflows/repository-checks.yml/badge.svg?branch=dev)](https://github.com/yyyuvvvraj/APIVault/actions/workflows/repository-checks.yml)
 [![Application CI](https://github.com/yyyuvvvraj/APIVault/actions/workflows/application-ci.yml/badge.svg?branch=dev)](https://github.com/yyyuvvvraj/APIVault/actions/workflows/application-ci.yml)
+[![Go Verifier CI](https://github.com/yyyuvvvraj/APIVault/actions/workflows/verifier-ci.yml/badge.svg?branch=dev)](https://github.com/yyyuvvvraj/APIVault/actions/workflows/verifier-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **The GitHub of APIs — discovery, verification and community.**
@@ -56,7 +57,7 @@ flowchart TD
   Admin[Maintainer console] -->|review and lifecycle actions| Domain
 ```
 
-The browser never connects directly to PostgreSQL. Public endpoints serialize only published records; the optional verifier reports observations but cannot publish or verify records by itself. See the full [architecture guide](docs/ARCHITECTURE.md).
+The browser never connects directly to PostgreSQL. Public endpoints serialize only published records; the Go verifier reports observations but cannot publish or verify records by itself. See the full [architecture guide](docs/ARCHITECTURE.md).
 
 ## Technology
 
@@ -68,7 +69,7 @@ The browser never connects directly to PostgreSQL. Public endpoints serialize on
 
 ## Run locally
 
-For a guided first-time setup, install Node.js 24 and Docker Compose, clone the repository, then run `npm run setup:local`. The script creates a local `.env` if needed, generates a local auth secret, installs dependencies, starts PostgreSQL, applies migrations, and seeds categories. It does not create an administrator or sample API listings. For manual setup and troubleshooting, use the step-by-step [setup guide](docs/SETUP.md) and [local development reference](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), [verification policy](docs/VERIFICATION_POLICY.md), and [catalogue curation guide](docs/CATALOGUE_CURATION.md) before changing catalogue behaviour.
+For a guided first-time setup, install Node.js 24, Go 1.25+, and Docker Compose, clone the repository, then run `npm run setup:local`. The script requires Go, validates both Go services, creates a local `.env` if needed, generates a local auth secret, installs dependencies, starts PostgreSQL, applies migrations, and seeds categories. It does not create an administrator or sample API listings. For manual setup and troubleshooting, use the step-by-step [setup guide](docs/SETUP.md) and [local development reference](docs/LOCAL_DEVELOPMENT.md). Read the [architecture](docs/ARCHITECTURE.md), [canonical data model](docs/DATA_MODEL.md), [verification policy](docs/VERIFICATION_POLICY.md), and [catalogue curation guide](docs/CATALOGUE_CURATION.md) before changing catalogue behaviour.
 
 ## Public API
 
