@@ -76,8 +76,7 @@ func main() {
 	if err != nil {
 		fatalf("catalogue import failed (resume with -run-id %q): %v", report.RunID, err)
 	}
-	fmt.Printf("Import successful: run=%s processed=%d/%d batches=%d skipped=%d batch-size=%d\\n", report.RunID, report.ProcessedRecords, report.TotalRecords, report.CompletedBatches, report.SkippedBatches, report.BatchSize)
-	fmt.Printf("Import successful: %d API record(s) processed transactionally.\n", len(file.APIs))
+	fmt.Printf("Import successful: run=%s dataset=%s processed=%d/%d batches=%d skipped=%d batch-size=%d\n", report.RunID, report.DatasetName, report.ProcessedRecords, report.TotalRecords, report.CompletedBatches, report.SkippedBatches, report.BatchSize)
 }
 
 func fatalf(format string, args ...any) {
