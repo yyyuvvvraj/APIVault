@@ -29,6 +29,7 @@ export async function transitionSubmissionReview(
   id: string,
   next: SubmissionStatus,
   note: string,
+  reviewerUserId: string,
 ) {
   const current = await tx.apiSubmission.findUnique({
     where: { id },
@@ -52,6 +53,16 @@ export async function transitionSubmissionReview(
   if (result.count !== 1) {
     throw new Error("This submission was updated by another reviewer. Refresh and review the latest status.");
   }
+
+  await tx.submissionReviewEvent.create({
+    data: {
+      submissionId: id,
+      previousStatus: current.status,
+      nextStatus: next,
+      note: note.trim() || null,
+      reviewerUserId,
+    },
+  });
 
   return tx.apiSubmission.findUniqueOrThrow({ where: { id } });
 }
