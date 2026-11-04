@@ -14,13 +14,13 @@ import (
 var slugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 
 type File struct {
-	APIs    []API              `json:"apis"`
+	APIs    []API             `json:"apis"`
 	Dataset DatasetProvenance `json:"dataset"`
 }
 
 type DatasetProvenance struct {
 	Name        string `json:"name"`
-	SourceURL    string `json:"sourceUrl"`
+	SourceURL   string `json:"sourceUrl"`
 	Version     string `json:"version"`
 	RetrievedAt string `json:"retrievedAt"`
 	License     string `json:"license"`
