@@ -2,7 +2,7 @@
 
 This guide gets a fresh clone of APIVault running locally. Follow it in order; you do not need to install PostgreSQL directly because Docker Compose runs the database for you.
 
-> **Supported setup:** Node.js 24 LTS, npm, Git, and Docker Desktop / Docker Engine with the Compose plugin. The commands below work on macOS, Windows (PowerShell or Git Bash), and Linux. On Windows, use WSL 2 for the smoothest Docker + Node development experience.
+> **Supported setup:** Node.js 24 LTS, Go 1.25+, npm, Git, and Docker Desktop / Docker Engine with the Compose plugin. The commands below work on macOS, Windows (PowerShell or Git Bash), and Linux. On Windows, use WSL 2 for the smoothest Docker + Node development experience.
 
 ## 1. Install the prerequisites
 
@@ -13,9 +13,10 @@ Install these before cloning the project:
 | Git | Current stable | `git --version` |
 | Node.js | 24.x (the repository's `.nvmrc`) | `node --version` |
 | npm | Bundled with Node 24; npm 10+ | `npm --version` |
+| Go | 1.25 or newer (required) | `go version` |
 | Docker | Docker Desktop / Engine with Compose v2 | `docker --version` and `docker compose version` |
 
-**Important: use Node 24.** The project declares Node `>=24 <25`. Node 20, 22, or 26 can cause engine warnings or inconsistent dependency/build behaviour.
+**Important: use Node 24 and Go 1.25+.** The project declares Node `>=24 <25`. Node 20, 22, or 26 can cause engine warnings or inconsistent dependency/build behaviour.
 
 ### Switch to Node 24
 
@@ -191,7 +192,7 @@ PostgreSQL-backed integration tests use a disposable database. Only run them aga
 npm run test:integration
 ```
 
-For the Go verifier worker, Go 1.25+ is required. The worker is optional for normal website development. See [GO_VERIFIER.md](GO_VERIFIER.md) for configuration and worker-specific commands.
+Go 1.25+ is a required project toolchain dependency even when working on the web application. Both Go services are part of normal validation. The verifier worker runs separately and can be started when needed. See [GO_VERIFIER.md](GO_VERIFIER.md) for configuration and worker-specific commands.
 
 ## 10. Common setup problems
 
