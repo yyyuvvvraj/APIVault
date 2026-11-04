@@ -34,7 +34,7 @@ function publicVisibilityWhere(): Prisma.ApiWhereInput {
     status: ApiStatus.ACTIVE,
     verificationStatus: VerificationStatus.VERIFIED,
     publishedAt: { not: null },
-    documentationUrl: { not: null },
+    documentationUrl: { startsWith: "https://" },
     categories: { some: {} },
     authMethods: { some: {} },
     sources: { some: { isOfficial: true, url: { startsWith: "https://" } } },
