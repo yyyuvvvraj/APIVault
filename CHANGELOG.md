@@ -8,7 +8,8 @@ The format is based on Keep a Changelog, and this project will use Semantic Vers
 
 ### Changed
 - Catalogue discovery now matches every search term across API names, providers, categories, tags, and descriptions, then ranks exact and high-signal matches ahead of broad text matches.
-- Catalogue search ranking uses stable featured, verification-date, update-date, and name tie-breakers; combined category, pricing, and authentication filters remain conjunctive.
+- Catalogue search ranking uses stable featured, verification-date, update-date, and name tie-breakers; token matches accumulate across independent metadata fields and punctuation around search terms is ignored.
+- Public listings and detail lookups require HTTPS homepage and documentation URLs plus official HTTPS homepage evidence, alongside the existing verification, publication, category, and authentication prerequisites.
 
 ### Quality
 - Search ranking, tokenization, whitespace normalization, and multi-filter public visibility have deterministic unit and PostgreSQL integration coverage.
