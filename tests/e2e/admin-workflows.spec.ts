@@ -49,6 +49,50 @@ test("administrator can sign in, create and verify an API, and moderate a submis
   await expect(submission).toContainText("REJECTED");
 });
 
+
+test("moderator records the full review lifecycle and approval keeps the API unpublished pending verification", async ({ page }) => {
+  await page.goto("/admin/login");
+  await page.getByLabel("Email address").fill(adminEmail);
+  await page.getByLabel("Password").fill(adminPassword);
+  await page.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(page).toHaveURL(/\/admin(?:\?.*)?$/);
+
+  await page.goto("/admin/submissions");
+  const submission = page.locator("article").filter({ hasText: "E2E Approval Community Member" });
+  await expect(submission).toBeVisible();
+
+  await submission.locator('select[name="nextStatus"]').selectOption("IN_REVIEW");
+  await submission.getByRole("button", { name: "Save review decision" }).click();
+  await expect(submission).toContainText("IN REVIEW");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("PENDING → IN REVIEW");
+
+  await submission.locator('select[name="nextStatus"]').selectOption("CHANGES_REQUESTED");
+  await submission.locator('textarea[name="reviewNote"]').fill("Please provide clearer pricing evidence.");
+  await submission.getByRole("button", { name: "Save review decision" }).click();
+  await expect(submission).toContainText("CHANGES REQUESTED");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("IN REVIEW → CHANGES REQUESTED");
+
+  await submission.locator('select[name="nextStatus"]').selectOption("IN_REVIEW");
+  await submission.locator('textarea[name="reviewNote"]').fill("Updated evidence reviewed.");
+  await submission.getByRole("button", { name: "Save review decision" }).click();
+  await expect(submission).toContainText("IN REVIEW");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("CHANGES REQUESTED → IN REVIEW");
+
+  await submission.getByLabel("Approval note (optional)").fill("Evidence reviewed; approve for verification queue.");
+  await submission.getByRole("button", { name: "Approve and apply to catalogue" }).click();
+  await expect(submission).toContainText("Submission approved and applied to /e2e-approval-lifecycle-api. The API remains hidden pending verification.");
+  await expect(submission).toContainText("APPROVED");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("IN REVIEW → APPROVED");
+
+  const publicApiResponse = await page.request.get("/api/v1/apis/e2e-approval-lifecycle-api");
+  expect(publicApiResponse.status()).toBe(404);
+
+  await page.goto("/admin/review-queue");
+  const pendingApi = page.locator("article").filter({ hasText: "E2E Approval Lifecycle API" });
+  await expect(pendingApi).toBeVisible();
+  await expect(pendingApi).toContainText("Pending review");
+});
+
 test("authenticated non-admin users are denied admin pages", async ({ page }) => {
   const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
   const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";

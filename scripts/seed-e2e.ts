@@ -38,6 +38,34 @@ async function main() {
     },
   });
 
+
+  await prisma.apiSubmission.create({
+    data: {
+      kind: SubmissionKind.CREATE,
+      status: SubmissionStatus.PENDING,
+      submitterName: "E2E Approval Community Member",
+      submitterGithub: "e2e-approval-community",
+      payload: {
+        name: "E2E Approval Lifecycle API",
+        providerName: "E2E Approval Lifecycle Provider",
+        summary: "A fixture proposal used to test approval and pending verification.",
+        homepageUrl: "https://e2e-approval.example.test",
+        documentationUrl: "https://e2e-approval.example.test/docs",
+        categorySlugs: [category.slug],
+        authMethods: ["API_KEY"],
+        pricingModel: "FREEMIUM",
+        sourceUrls: ["https://e2e-approval.example.test/pricing"],
+        submitterGithub: "e2e-approval-community",
+      },
+      sources: {
+        create: [{
+          sourceKind: SourceKind.OFFICIAL_HOMEPAGE,
+          url: "https://e2e-approval.example.test",
+        }],
+      },
+    },
+  });
+
   const email = process.env.E2E_USER_EMAIL;
   const password = process.env.E2E_USER_PASSWORD;
   if (!email || !password) throw new Error("E2E_USER_EMAIL and E2E_USER_PASSWORD are required.");
