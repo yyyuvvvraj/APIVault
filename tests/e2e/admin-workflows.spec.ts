@@ -55,7 +55,7 @@ test("moderator records the full review lifecycle and approval keeps the API unp
   await page.getByLabel("Email address").fill(adminEmail);
   await page.getByLabel("Password").fill(adminPassword);
   await page.getByRole("button", { name: "Sign in to APIVault" }).click();
-  await expect(page).toHaveURL(/\\/admin(?:\\?.*)?$/);
+  await expect(page).toHaveURL(/\/admin(?:\?.*)?$/);
 
   await page.goto("/admin/submissions");
   const submission = page.locator("article").filter({ hasText: "E2E Approval Community Member" });
@@ -64,25 +64,25 @@ test("moderator records the full review lifecycle and approval keeps the API unp
   await submission.locator('select[name="nextStatus"]').selectOption("IN_REVIEW");
   await submission.getByRole("button", { name: "Save review decision" }).click();
   await expect(submission).toContainText("IN REVIEW");
-  await expect(submission.getByLabel("Moderation history")).toContainText("PENDING → IN REVIEW");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("PENDING → IN REVIEW");
 
   await submission.locator('select[name="nextStatus"]').selectOption("CHANGES_REQUESTED");
   await submission.locator('textarea[name="reviewNote"]').fill("Please provide clearer pricing evidence.");
   await submission.getByRole("button", { name: "Save review decision" }).click();
   await expect(submission).toContainText("CHANGES REQUESTED");
-  await expect(submission.getByLabel("Moderation history")).toContainText("IN REVIEW → CHANGES REQUESTED");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("IN REVIEW → CHANGES REQUESTED");
 
   await submission.locator('select[name="nextStatus"]').selectOption("IN_REVIEW");
   await submission.locator('textarea[name="reviewNote"]').fill("Updated evidence reviewed.");
   await submission.getByRole("button", { name: "Save review decision" }).click();
   await expect(submission).toContainText("IN REVIEW");
-  await expect(submission.getByLabel("Moderation history")).toContainText("CHANGES REQUESTED → IN REVIEW");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("CHANGES REQUESTED → IN REVIEW");
 
   await submission.getByLabel("Approval note (optional)").fill("Evidence reviewed; approve for verification queue.");
   await submission.getByRole("button", { name: "Approve and apply to catalogue" }).click();
   await expect(submission).toContainText("Submission approved and applied to /e2e-approval-lifecycle-api. The API remains hidden pending verification.");
   await expect(submission).toContainText("APPROVED");
-  await expect(submission.getByLabel("Moderation history")).toContainText("IN REVIEW → APPROVED");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("IN REVIEW → APPROVED");
 
   const publicApiResponse = await page.request.get("/api/v1/apis/e2e-approval-lifecycle-api");
   expect(publicApiResponse.status()).toBe(404);
