@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0] - 2026-11-10
+
+### Added
+- Contributor submission and private tracking journeys, opt-in public profiles, tested privacy controls, and a more actionable moderation queue with auditable reviewer decisions.
+- Resumable, bounded catalogue imports with dry-run validation, durable batch checkpoints, idempotent upserts, dataset provenance, duplicate/conflict reporting, and operator-visible recovery diagnostics.
+- Operational views for moderation age, catalogue freshness, and import quality.
+
+### Security
+- Enforce administrator authorization at the Server Action mutation boundary, with browser coverage that replays an administrator mutation as a non-admin and verifies no database change.
+- Restrict the authentication rate-limit test override to the isolated CI E2E environment; production throttling remains enabled.
+
+### Quality
+- Expand browser coverage for contributor submission, moderation transitions, profile privacy, and direct Server Action authorization.
+- Exercise PostgreSQL importer recovery and same-run concurrency with the Go race detector.
+
+### Known limitations
+- This is a 0.x prerelease, not a production/GA launch. Hosted monitoring, external alert delivery, automated backup scheduling, and an isolated restore drill remain operational readiness work for the 0.5.0 beta gate.
+- No third-party source-specific ingestion adapters ship in this milestone. The importer accepts operator-supplied manifests; the curated starter manifests use `NOASSERTION` at dataset level and do not claim redistribution rights. Imported candidates remain pending/unverified until explicit maintainer review.
+
 ## [0.3.0] - 2026-11-04
 
 ### Added
