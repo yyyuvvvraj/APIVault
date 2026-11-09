@@ -76,3 +76,10 @@ The workflow uses PostgreSQL 18 client tools, requires TLS, encrypts the dump wi
 Run `npm run catalogue:report` with a read-only database connection to produce JSON evidence with timestamp, eligible count, exclusions, and category/provider breakdown. The report mechanically requires ACTIVE + VERIFIED + published records, provider, category, and official HTTPS source evidence, and deduplicates normalized provider/name pairs. Human review must still exclude mirrors, aliases, endpoint-only records, versions, and records whose provider terms do not permit inclusion.
 
 The manual `.github/workflows/catalogue-release-report.yml` workflow produces a 90-day evidence artifact. Configure `APIVAULT_REPORT_DATABASE_URL` as a read-only repository secret. Set `enforce_1000` to true when evaluating a release candidate; the workflow then fails if fewer than 1,000 eligible records are present.
+
+
+## External uptime alert webhook
+
+The hosted uptime workflow can notify an operator-controlled webhook after a failed smoke check. Configure the repository Actions secret `APIVAULT_ALERT_WEBHOOK_URL`; optionally configure `APIVAULT_ALERT_WEBHOOK_TOKEN` for bearer authentication. The receiver must accept a JSON POST containing `text`, `status`, `repository`, `workflow`, `run_url`, and `base_url`.
+
+Run the workflow manually with `send_test_alert=true` to test delivery without intentionally breaking the hosted service. A successful HTTP response proves only that the receiver accepted the request; record that the named operator actually received and acknowledged the notification. If the webhook secret is absent, the notification job warns and skips sending.
