@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Keep every build/runtime stage aligned with .nvmrc and package.json engines.
-FROM node:24-alpine AS base
+FROM node:26-alpine AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
