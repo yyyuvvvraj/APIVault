@@ -1,4 +1,4 @@
-test("forged admin Server Action requests are rejected for a signed-in non-admin", async ({ browser }) => {
+test("forged admin Server Action requests are rejected for a signed-in non-admin", async ({ browser }, testInfo) => {
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
   let capturedRequest: {
@@ -36,8 +36,13 @@ test("forged admin Server Action requests are rejected for a signed-in non-admin
   await expect.poll(() => capturedRequest).toBeTruthy();
   await adminContext.close();
 
-  const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
-  const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+  const retryRun = testInfo.retry > 0;
+  const userEmail = retryRun
+    ? process.env.E2E_USER_RETRY_EMAIL ?? "apivault-user-e2e-retry@example.test"
+    : process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = retryRun
+    ? process.env.E2E_USER_RETRY_PASSWORD ?? "E2E-user-retry-only-password-12345"
+    : process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
   const userContext = await browser.newContext();
   const userPage = await userContext.newPage();
 
@@ -68,7 +73,8 @@ test("forged admin Server Action requests are rejected for a signed-in non-admin
     [200, 303].includes(forgedResponse.status()),
     `Unexpected Server Action response: ${forgedResponse.status()} ${forgedResponse.statusText()} headers=${JSON.stringify(forgedResponse.headers())} body=${forgedBody.slice(0, 1200)}`,
   ).toBeTruthy();
-  expect(decodeURIComponent(redirectEvidence)).toContain(redirectTarget);
+  const normalizedRedirectEvidence = redirectEvidence.replace(/%3A/gi, ":").replace(/%2F/gi, "/").replace(/%3F/gi, "?").replace(/%3D/gi, "=").replace(/%26/gi, "&");
+  expect(normalizedRedirectEvidence).toContain(redirectTarget);
 
   const categoriesResponse = await userContext.request.get("/api/v1/categories", {
     headers: { "cache-control": "no-cache" },
