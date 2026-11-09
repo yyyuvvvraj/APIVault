@@ -55,6 +55,11 @@ The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, a
 
 The readiness policy is unit-tested with successful and failed database-check functions. The route itself runs a real `SELECT 1` against the configured PostgreSQL connection and does not expose connection details in its response.
 
+
+## Go catalogue importer recovery tests
+
+The migrated PostgreSQL integration test `TestImportResumablePostgresRecoveryAndConcurrency` covers same-run concurrency and recovery after an interrupted batch. It also forces a database-side category lookup failure, verifies that the failed batch's diagnostic survives the rolled-back transaction, creates the missing category, and retries the exact same manifest and run ID. The retry must complete the batch, clear its error summary, and complete the run. Application CI runs this test with Go's race detector.
+
 ## Go verifier tests
 
 The independent worker uses Go's standard test runner and has no third-party Go module dependencies:
