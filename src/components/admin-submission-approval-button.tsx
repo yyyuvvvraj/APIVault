@@ -15,7 +15,17 @@ export function AdminSubmissionApprovalButton({
   const [state, action, pending] = useActionState(approveSubmissionAction, initialState);
   const allowed = currentStatus === "IN_REVIEW";
 
-  if (!allowed) return null;
+  if (!allowed) {
+    if (!state.message) return null;
+    return (
+      <p
+        role={state.status === "error" ? "alert" : "status"}
+        className={`mt-3 text-xs ${state.status === "error" ? "text-rose-300" : "text-emerald-300"}`}
+      >
+        {state.message}
+      </p>
+    );
+  }
 
   return (
     <form action={action} className="mt-3 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.04] p-4">

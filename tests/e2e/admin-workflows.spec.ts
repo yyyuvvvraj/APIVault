@@ -50,7 +50,12 @@ test("administrator can sign in, create and verify an API, and moderate a submis
 });
 
 
-test("moderator records the full review lifecycle and approval keeps the API unpublished pending verification", async ({ page }) => {
+test("moderator records the full review lifecycle and approval keeps the API unpublished pending verification", async ({ page }, testInfo) => {
+  const retryRun = testInfo.retry > 0;
+  const submitterName = retryRun ? "E2E Approval Retry Community Member" : "E2E Approval Community Member";
+  const apiName = retryRun ? "E2E Approval Lifecycle Retry API" : "E2E Approval Lifecycle API";
+  const apiSlug = retryRun ? "e2e-approval-lifecycle-retry-api" : "e2e-approval-lifecycle-api";
+
   await page.goto("/admin/login");
   await page.getByLabel("Email address").fill(adminEmail);
   await page.getByLabel("Password").fill(adminPassword);
@@ -58,7 +63,7 @@ test("moderator records the full review lifecycle and approval keeps the API unp
   await expect(page).toHaveURL(/\/admin(?:\?.*)?$/);
 
   await page.goto("/admin/submissions");
-  const submission = page.locator("article").filter({ hasText: "E2E Approval Community Member" });
+  const submission = page.locator("article").filter({ hasText: submitterName }).filter({ hasText: apiName });
   await expect(submission).toBeVisible();
 
   await submission.locator('select[name="nextStatus"]').selectOption("IN_REVIEW");
@@ -80,15 +85,15 @@ test("moderator records the full review lifecycle and approval keeps the API unp
 
   await submission.getByLabel("Approval note (optional)").fill("Evidence reviewed; approve for verification queue.");
   await submission.getByRole("button", { name: "Approve and apply to catalogue" }).click();
-  await expect(submission).toContainText("Submission approved and applied to /e2e-approval-lifecycle-api. The API remains hidden pending verification.");
+  await expect(submission).toContainText(`Submission approved and applied to /${apiSlug}. The API remains hidden pending verification.`);
   await expect(submission).toContainText("APPROVED");
   await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("IN REVIEW → APPROVED");
 
-  const publicApiResponse = await page.request.get("/api/v1/apis/e2e-approval-lifecycle-api");
+  const publicApiResponse = await page.request.get(`/api/v1/apis/${apiSlug}`);
   expect(publicApiResponse.status()).toBe(404);
 
   await page.goto("/admin/review-queue");
-  const pendingApi = page.locator("article").filter({ hasText: "E2E Approval Lifecycle API" });
+  const pendingApi = page.locator("article").filter({ hasText: apiName });
   await expect(pendingApi).toBeVisible();
   await expect(pendingApi).toContainText("Pending review");
 });
@@ -113,10 +118,17 @@ test("authenticated non-admin users are denied admin pages", async ({ page }) =>
 });
 
 
-test("contributor can submit an API, track it privately, and control public profile visibility", async ({ page }) => {
-  const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
-  const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
-  const handle = "e2e-contributor";
+test("contributor can submit an API, track it privately, and control public profile visibility", async ({ page }, testInfo) => {
+  const retryRun = testInfo.retry > 0;
+  const userEmail = retryRun
+    ? process.env.E2E_USER_RETRY_EMAIL ?? "apivault-user-e2e-retry@example.test"
+    : process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = retryRun
+    ? process.env.E2E_USER_RETRY_PASSWORD ?? "E2E-user-retry-only-password-12345"
+    : process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+  const suffix = retryRun ? "-retry" : "";
+  const handle = `e2e-contributor${suffix}`;
+  const submissionName = `E2E Contributor${retryRun ? " Retry" : ""} Submission API`;
 
   await page.goto("/account/login");
   await page.getByLabel("Email address").fill(userEmail);
@@ -125,7 +137,7 @@ test("contributor can submit an API, track it privately, and control public prof
   await expect(page).toHaveURL(/\/account(?:\?.*)?$/);
 
   await page.goto("/submit");
-  await page.getByLabel("API name").fill("E2E Contributor Submission API");
+  await page.getByLabel("API name").fill(submissionName);
   await page.getByLabel("Provider").fill("E2E Contributor Provider");
   await page.getByLabel("Short summary").fill("An API submitted by a contributor browser test.");
   await page.getByLabel("Official API homepage").fill("https://contributor-api.example.test");
@@ -138,13 +150,13 @@ test("contributor can submit an API, track it privately, and control public prof
   await expect(page.getByRole("status")).toContainText("Submission received");
 
   await page.goto("/account/submissions");
-  const ownSubmission = page.locator("article").filter({ hasText: "E2E Contributor Submission API" });
+  const ownSubmission = page.locator("article").filter({ hasText: submissionName });
   await expect(ownSubmission).toBeVisible();
   await expect(ownSubmission).toContainText("PENDING");
 
   await page.goto("/account/profile");
   await page.getByLabel("Public handle").fill(handle);
-  await page.getByLabel("Display name").fill("E2E Public Contributor");
+  await page.getByRole("textbox", { name: "Display name", exact: true }).fill("E2E Public Contributor");
   await page.getByLabel("Bio (280 characters)").fill("Contributor profile visibility is covered by an end-to-end test.");
   await page.getByLabel("Website URL (HTTPS)").fill("https://contributor.example.test");
   await page.getByLabel("GitHub profile URL").fill("https://github.com/e2e-contributor");
