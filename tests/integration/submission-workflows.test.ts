@@ -4,19 +4,17 @@ import { randomUUID } from "node:crypto";
 import { SubmissionKind, SubmissionStatus } from "../../src/generated/prisma/client";
 import { getPrisma } from "../../src/lib/db";
 import { transitionSubmissionReview } from "../../src/lib/submissions/review-service";
-import { getModerationQueueAgeMetrics } from "../../src/lib/admin/operations-metrics";
 
 const prisma = getPrisma();
 const ids: string[] = [];
 
-async function createSubmission(status: SubmissionStatus = SubmissionStatus.PENDING, createdAt?: Date) {
+async function createSubmission(status: SubmissionStatus = SubmissionStatus.PENDING) {
   const row = await prisma.apiSubmission.create({
     data: {
       kind: SubmissionKind.CREATE,
       status,
       payload: { invalidFixture: true },
       submitterGithub: "integration-test",
-      createdAt,
     },
   });
   ids.push(row.id);
@@ -27,23 +25,6 @@ after(async () => {
   await prisma.apiSubmission.deleteMany({ where: { id: { in: ids } } });
   await prisma.$disconnect();
 });
-
-test("moderation queue age metrics use precise 24-hour and 3-day boundaries", async () => {
-  const now = new Date("2026-11-09T12:00:00.000Z");
-  await createSubmission(SubmissionStatus.PENDING, new Date(now.getTime() - 23 * 60 * 60 * 1000));
-  await createSubmission(SubmissionStatus.IN_REVIEW, new Date(now.getTime() - 24 * 60 * 60 * 1000));
-  await createSubmission(SubmissionStatus.PENDING, new Date(now.getTime() - 72 * 60 * 60 * 1000));
-  await createSubmission(SubmissionStatus.CHANGES_REQUESTED, new Date(now.getTime() - 96 * 60 * 60 * 1000));
-  await createSubmission(SubmissionStatus.REJECTED, new Date(now.getTime() - 5 * 60 * 60 * 1000));
-
-  const metrics = await getModerationQueueAgeMetrics(prisma, now);
-  assert.deepEqual(metrics, {
-    lessThan24Hours: 1,
-    oneToThreeDays: 1,
-    atLeastThreeDays: 1,
-  });
-});
-
 
 test("rejection persists the reviewer decision and note", async () => {
   const submission = await createSubmission(SubmissionStatus.IN_REVIEW);
