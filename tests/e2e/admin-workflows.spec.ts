@@ -98,6 +98,79 @@ test("moderator records the full review lifecycle and approval keeps the API unp
   await expect(pendingApi).toContainText("Pending review");
 });
 
+test("forged admin Server Action requests are rejected for a signed-in non-admin", async ({ browser }) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  let capturedRequest: {
+    url: string;
+    headers: Record<string, string>;
+    body: string;
+  } | undefined;
+
+  await adminPage.goto("/admin/login");
+  await adminPage.getByLabel("Email address").fill(adminEmail);
+  await adminPage.getByLabel("Password").fill(adminPassword);
+  await adminPage.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(adminPage).toHaveURL(/\\/admin(?:\\?.*)?$/);
+
+  await adminPage.route("**/admin/categories**", async (route) => {
+    const request = route.request();
+    const headers = await request.allHeaders();
+    if (request.method() === "POST" && headers["next-action"]) {
+      capturedRequest = {
+        url: request.url(),
+        headers,
+        body: request.postData() ?? "",
+      };
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  const slug = `e2e-forged-action-${Date.now()}`;
+  await adminPage.goto("/admin/categories");
+  await adminPage.getByLabel("Name", { exact: true }).fill("E2E Forged Action Probe");
+  await adminPage.getByLabel("Slug", { exact: true }).fill(slug);
+  await adminPage.getByRole("button", { name: "Create category" }).click();
+  await expect.poll(() => capturedRequest).toBeTruthy();
+  await adminContext.close();
+
+  const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+  const userContext = await browser.newContext();
+  const userPage = await userContext.newPage();
+
+  await userPage.goto("/account/login");
+  await userPage.getByLabel("Email address").fill(userEmail);
+  await userPage.getByLabel("Password").fill(userPassword);
+  await userPage.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(userPage).toHaveURL(/\\/account(?:\\?.*)?$/);
+
+  const forwardedHeaders = Object.fromEntries(
+    Object.entries(capturedRequest!.headers).filter(([name]) =>
+      !["cookie", "host", "content-length", "connection", "accept-encoding"].includes(name),
+    ),
+  );
+  const forgedResponse = await userContext.request.post(capturedRequest!.url, {
+    headers: forwardedHeaders,
+    data: capturedRequest!.body,
+    maxRedirects: 0,
+  });
+
+  expect(forgedResponse.status()).toBe(303);
+  expect(forgedResponse.headers().location).toContain("/admin/login?error=not-authorized");
+
+  const categoriesResponse = await userContext.request.get("/api/v1/categories", {
+    headers: { "cache-control": "no-cache" },
+  });
+  expect(categoriesResponse.ok()).toBeTruthy();
+  const categories = await categoriesResponse.json();
+  expect(categories.data.map((category: { slug: string }) => category.slug)).not.toContain(slug);
+
+  await userContext.close();
+});
+
 test("contributor can submit an API, track it privately, and control public profile visibility", async ({ page }, testInfo) => {
   const retryRun = testInfo.retry > 0;
   const userEmail = retryRun
