@@ -93,7 +93,7 @@ test("moderator records the full review lifecycle and approval keeps the API unp
   expect(publicApiResponse.status()).toBe(404);
 
   await page.goto("/admin/review-queue");
-  const pendingApi = page.locator("article").filter({ hasText: "E2E Approval Lifecycle API" });
+  const pendingApi = page.locator("article").filter({ hasText: apiName });
   await expect(pendingApi).toBeVisible();
   await expect(pendingApi).toContainText("Pending review");
 });
