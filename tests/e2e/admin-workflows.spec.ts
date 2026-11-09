@@ -111,7 +111,7 @@ test("forged admin Server Action requests are rejected for a signed-in non-admin
   await adminPage.getByLabel("Email address").fill(adminEmail);
   await adminPage.getByLabel("Password").fill(adminPassword);
   await adminPage.getByRole("button", { name: "Sign in to APIVault" }).click();
-  await expect(adminPage).toHaveURL(/\\/admin(?:\\?.*)?$/);
+  await expect(adminPage).toHaveURL(/\/admin(?:\?.*)?$/);
 
   await adminPage.route("**/admin/categories**", async (route) => {
     const request = route.request();
@@ -145,7 +145,7 @@ test("forged admin Server Action requests are rejected for a signed-in non-admin
   await userPage.getByLabel("Email address").fill(userEmail);
   await userPage.getByLabel("Password").fill(userPassword);
   await userPage.getByRole("button", { name: "Sign in to APIVault" }).click();
-  await expect(userPage).toHaveURL(/\\/account(?:\\?.*)?$/);
+  await expect(userPage).toHaveURL(/\/account(?:\?.*)?$/);
 
   const forwardedHeaders = Object.fromEntries(
     Object.entries(capturedRequest!.headers).filter(([name]) =>
