@@ -3,7 +3,6 @@ import { betterAuth } from "better-auth";
 import { admin } from "better-auth/plugins";
 import { getPrisma } from "@/lib/db";
 import { isAuthRateLimitEnabled } from "@/lib/auth-rate-limit";
-import { isAuthRateLimitEnabled } from "@/lib/auth-rate-limit";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 
