@@ -2,6 +2,7 @@ import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth";
 import { admin } from "better-auth/plugins";
 import { getPrisma } from "@/lib/db";
+import { isAuthRateLimitEnabled } from "@/lib/auth-rate-limit";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 
@@ -24,7 +25,7 @@ export const auth = betterAuth({
   },
   // The isolated Playwright database uses repeated sign-ins from one runner IP;
   // keep production rate limiting enabled while avoiding test-only throttling.
-  rateLimit: { enabled: process.env.E2E_TEST_MODE !== "true" },
+  rateLimit: { enabled: isAuthRateLimitEnabled() },
   plugins: [admin()],
   trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000"],
 });
