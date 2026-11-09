@@ -67,7 +67,7 @@ jobs:
         run: npm run db:deploy
 
       - name: Set up Go for importer integration tests
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: services/catalogue-importer/go.mod
           cache-dependency-path: services/catalogue-importer/go.sum
