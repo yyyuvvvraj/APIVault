@@ -55,7 +55,7 @@ This roadmap is an execution order, not a claim that future capabilities already
 - Separate discovery candidates from canonical catalogue records: bulk imports must land in a review/staging state and must never auto-verify, auto-feature, or auto-publish APIs.
 - Add source adapters only for datasets whose licenses, attribution, freshness, and provider usage terms permit the intended collection and redistribution.
 
-### Implementation status (updated 2026-11-04)
+### Implementation status (updated 2026-11-09)
 
 The following 0.4.0 components are implemented on `dev` and have focused regression coverage merged:
 - Contributor profile privacy projection and regression tests.
@@ -63,8 +63,9 @@ The following 0.4.0 components are implemented on `dev` and have focused regress
 - Moderation prioritization and operator-facing health/quality metrics.
 - Resumable, bounded, idempotent importer with durable checkpoints and same-run PostgreSQL advisory locking.
 - PostgreSQL-backed recovery and concurrent-run integration test, executed in Application CI with `go test -race`; the test passed on the merged importer fix.
+- Browser coverage for contributor submission and private submission tracking, public-profile opt-in/opt-out privacy, authenticated non-admin denial, and the moderation lifecycle from pending through changes requested and approval. Approval leaves the resulting API unpublished and pending verification (PRs #122–#124).
 
-The merged CI evidence for the importer fix includes successful Go importer/verifier checks, Application CI (including the PostgreSQL recovery/concurrency test, 91 unit tests, and 17 database integration tests), Docker build, and repository hygiene. This is meaningful implementation evidence, not a declaration that the entire 0.4.0 milestone is release-ready.
+The merged CI evidence for the importer fix includes successful Go importer/verifier checks, Application CI (including the PostgreSQL recovery/concurrency test, 91 unit tests, and 17 database integration tests), Docker build, and repository hygiene. PR #124 subsequently passed Application CI, Go importer, Go verifier, Docker build, and repository hygiene. Browser journeys are implemented in the Playwright suite; they must still pass on the exact release candidate. This is meaningful implementation evidence, not a declaration that the entire 0.4.0 milestone is release-ready.
 
 Before preparing a 0.4.0 release snapshot, complete and record a single acceptance review covering the end-to-end contributor submission and moderation journeys, privacy behavior in the integrated UI/API, operational metrics and their definitions, source/license/attribution eligibility for every ingestion adapter, failure/recovery operator procedures, and all required browser, application, verifier, and container checks on the exact release candidate. Update this section with links to the evidence and any remaining exceptions. Keep `stable` unchanged until every gate is satisfied.
 

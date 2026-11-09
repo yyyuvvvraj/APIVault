@@ -5,7 +5,7 @@ import {
   SubmissionStatus,
 } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
-import { formatQueueAge, getImportProgress } from "@/lib/admin/operations-metrics";
+import { formatQueueAge, getImportProgress, getModerationQueueAgeMetrics } from "@/lib/admin/operations-metrics";
 
 function MetricCard({ label, value, note, accent }: { label: string; value: number; note: string; accent: string }) {
   return (
@@ -26,6 +26,7 @@ function dateLabel(value: Date) {
 
 export default async function AdminDashboardPage() {
   const db = getPrisma();
+  const now = new Date();
   const [
     totalApis,
     verifiedApis,
@@ -38,6 +39,7 @@ export default async function AdminDashboardPage() {
     runningImportRuns,
     latestImportRun,
     oldestOpenSubmission,
+    moderationAgeMetrics,
   ] = await Promise.all([
     db.api.count(),
     db.api.count({ where: { verificationStatus: VerificationStatus.VERIFIED, status: ApiStatus.ACTIVE } }),
@@ -65,6 +67,7 @@ export default async function AdminDashboardPage() {
       orderBy: { createdAt: "asc" },
       select: { createdAt: true },
     }),
+    getModerationQueueAgeMetrics(db, now),
   ]);
 
   return (
@@ -120,6 +123,12 @@ export default async function AdminDashboardPage() {
           <p className="mt-1 text-xs text-slate-500">How long the oldest open community item has waited</p>
           <p className="mt-4 text-3xl font-black tracking-tight text-white">{oldestOpenSubmission ? formatQueueAge(oldestOpenSubmission.createdAt) : "—"}</p>
           <p className="mt-1 text-xs text-slate-500">{pendingSubmissions.toLocaleString("en-IN")} open submission{pendingSubmissions === 1 ? "" : "s"} · oldest first</p>
+          <div aria-label="Moderation queue age bands" className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-xl bg-white/[0.04] p-3"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Under 24h</p><p className="mt-1 text-xl font-black text-emerald-300">{moderationAgeMetrics.lessThan24Hours.toLocaleString("en-IN")}</p></div>
+            <div className="rounded-xl bg-white/[0.04] p-3"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">1–3 days</p><p className="mt-1 text-xl font-black text-amber-300">{moderationAgeMetrics.oneToThreeDays.toLocaleString("en-IN")}</p></div>
+            <div className="rounded-xl bg-white/[0.04] p-3"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">3+ days</p><p className="mt-1 text-xl font-black text-rose-300">{moderationAgeMetrics.atLeastThreeDays.toLocaleString("en-IN")}</p></div>
+          </div>
+          <p className="mt-2 text-[10px] text-slate-500">Age is measured from submission creation. Only PENDING and IN_REVIEW items count; CHANGES_REQUESTED waits on the contributor.</p>
           <Link href="/admin/submissions" className="mt-4 inline-flex text-xs font-bold text-rose-400 hover:text-rose-300">Open prioritized inbox →</Link>
         </article>
       </section>
