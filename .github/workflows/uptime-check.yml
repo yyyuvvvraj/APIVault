@@ -2,6 +2,12 @@ name: Hosted uptime smoke check
 
 on:
   workflow_dispatch:
+    inputs:
+      send_test_alert:
+        description: Send a controlled test notification to the configured alert webhook
+        required: true
+        default: false
+        type: boolean
   schedule:
     - cron: "*/15 * * * *"
 
@@ -24,3 +30,28 @@ jobs:
         env:
           APIVAULT_BASE_URL: ${{ vars.APIVAULT_BASE_URL }}
         run: bash scripts/smoke-check.sh
+
+  notify:
+    name: Notify external alert receiver
+    if: ${{ failure() || inputs.send_test_alert }}
+    needs: [smoke-check]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send failure or test notification
+        env:
+          ALERT_WEBHOOK_URL: ${{ secrets.APIVAULT_ALERT_WEBHOOK_URL }}
+          ALERT_WEBHOOK_TOKEN: ${{ secrets.APIVAULT_ALERT_WEBHOOK_TOKEN }}
+          SMOKE_RESULT: ${{ needs.smoke-check.result }}
+          BASE_URL: ${{ vars.APIVAULT_BASE_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$ALERT_WEBHOOK_URL" ]]; then
+            echo "::warning::APIVAULT_ALERT_WEBHOOK_URL is not configured; external notification was not sent."
+            exit 0
+          fi
+          payload="$(jq -n --arg status "$SMOKE_RESULT" --arg repository "$GITHUB_REPOSITORY" --arg workflow "$GITHUB_WORKFLOW" --arg run_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --arg base_url "$BASE_URL" '{text: ("APIVault uptime check: " + $status), status: $status, repository: $repository, workflow: $workflow, run_url: $run_url, base_url: $base_url}')"
+          headers=(-H "Content-Type: application/json")
+          if [[ -n "$ALERT_WEBHOOK_TOKEN" ]]; then
+            headers+=(-H "Authorization: Bearer $ALERT_WEBHOOK_TOKEN")
+          fi
+          curl --fail --silent --show-error --max-time 20 --retry 2 --retry-all-errors "${headers[@]}" --data "$payload" "$ALERT_WEBHOOK_URL"
