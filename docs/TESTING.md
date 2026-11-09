@@ -27,7 +27,7 @@ The unit suite covers reverse-proxy client address extraction, one-way address h
 
 `tests/unit/admin-action-authorization.test.ts` checks the admin server-action modules for the shared `requireAdmin()` guard and verifies it appears before form-data reads or database access. This is a regression guard against accidentally omitting the guard when adding a new action module; update its explicit module list whenever a new admin server-action module is introduced.
 
-The source-level check does not simulate Better Auth cookies, sessions, or a non-admin account. Browser E2E currently covers unauthenticated route denial and administrator sign-in. Real authenticated non-admin session coverage remains an explicit follow-up.
+The source-level check is complemented by a real browser session test: a seeded ordinary user signs in successfully, then is denied access to protected admin pages. The test verifies the authorization redirect and message rather than treating an unauthenticated redirect as proof of role enforcement.
 
 ## Submission workflow tests
 
@@ -49,7 +49,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds disposable administrator and ordinary-user credential accounts plus a submission fixture, builds and starts the app, then exercises unauthenticated admin denial, authenticated non-admin denial across protected admin pages, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. The standard-user fixture has no admin role and uses a CI-only password hash created through Better Auth's password hasher. Credentials are test-only CI values and must never be reused outside disposable environments.
+The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds disposable administrator and ordinary-user credential accounts plus a submission fixture, builds and starts the app, then exercises unauthenticated admin denial, authenticated non-admin denial across protected admin pages, administrator sign-in, API creation, evidence-based verification/publication, submission rejection, the complete moderation transition and approval lifecycle, and contributor submission, private submission tracking, and public-profile opt-in/opt-out. The standard-user fixture has no admin role and uses a CI-only password hash created through Better Auth's password hasher. Credentials are test-only CI values and must never be reused outside disposable environments.
 
 ## Operational readiness tests
 
