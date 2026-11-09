@@ -51,6 +51,9 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 	runID := "it-" + suffix
 	firstSlug := "it-api-one-" + suffix
 	secondSlug := "it-api-two-" + suffix
+	failureCategorySlug := "it-missing-category-" + suffix
+	failureSlug := "it-api-failure-" + suffix
+	failureRunID := "it-failure-" + suffix
 
 	defer func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -168,9 +171,6 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 	// A database-side failure rolls back the batch transaction. Its diagnostic
 	// must nevertheless survive outside that transaction so operators can see
 	// which batch failed, and the same run ID must recover after the cause is fixed.
-	failureCategorySlug := "it-missing-category-" + suffix
-	failureSlug := "it-api-failure-" + suffix
-	failureRunID := "it-failure-" + suffix
 	failureFile := file
 	failureFile.APIs = []API{
 		integrationAPI(failureSlug, "Failure recovery integration API", providerSlug, failureCategorySlug, suffix),
