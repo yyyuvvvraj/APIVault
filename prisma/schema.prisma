@@ -258,6 +258,7 @@ model ApiSubmission {
   reviewedAt      DateTime?          @db.Timestamptz(6)
   targetApi       Api?               @relation(fields: [targetApiId], references: [id], onDelete: SetNull)
   sources         SubmissionSource[]
+  reviewEvents    SubmissionReviewEvent[]
   createdAt       DateTime           @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime           @updatedAt @db.Timestamptz(6)
 
@@ -418,4 +419,58 @@ model ContributorProfile {
   updatedAt   DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([isPublic, handle])
+}
+
+
+model CatalogueImportRun {
+  id               String                @id @db.VarChar(80)
+  inputFingerprint String                @db.VarChar(64)
+  datasetName      String?               @db.VarChar(160)
+  datasetSourceUrl String?               @db.Text
+  datasetVersion   String?               @db.VarChar(80)
+  retrievedAt      DateTime?             @db.Timestamptz(6)
+  license          String?               @db.VarChar(120)
+  attribution      String?               @db.Text
+  totalRecords     Int
+  processedRecords Int                   @default(0)
+  batchSize        Int
+  status           String                @default("RUNNING") @db.VarChar(16)
+  errorSummary     String?               @db.Text
+  batches          CatalogueImportBatch[]
+  createdAt        DateTime              @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime              @updatedAt @db.Timestamptz(6)
+  completedAt      DateTime?             @db.Timestamptz(6)
+
+  @@index([status, updatedAt])
+}
+
+model CatalogueImportBatch {
+  id             String             @id @default(uuid()) @db.Uuid
+  runId          String             @db.VarChar(80)
+  run            CatalogueImportRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  batchNumber    Int
+  recordCount    Int
+  processedCount Int                @default(0)
+  status         String             @default("RUNNING") @db.VarChar(16)
+  errorSummary   String?            @db.Text
+  startedAt      DateTime           @default(now()) @db.Timestamptz(6)
+  completedAt    DateTime?          @db.Timestamptz(6)
+
+  @@unique([runId, batchNumber])
+  @@index([runId, status])
+}
+
+
+model SubmissionReviewEvent {
+  id             String           @id @default(uuid()) @db.Uuid
+  submissionId   String           @db.Uuid
+  submission     ApiSubmission    @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  previousStatus SubmissionStatus
+  nextStatus     SubmissionStatus
+  note           String?          @db.Text
+  reviewerUserId String           @db.VarChar(128)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
+
+  @@index([submissionId, createdAt])
+  @@index([reviewerUserId, createdAt])
 }

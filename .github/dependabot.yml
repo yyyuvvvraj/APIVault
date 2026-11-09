@@ -6,9 +6,12 @@ updates:
       interval: weekly
     open-pull-requests-limit: 10
     groups:
-      npm-dependencies:
+      npm-patch-minor:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: gomod
     directory: /services/verifier
     schedule:

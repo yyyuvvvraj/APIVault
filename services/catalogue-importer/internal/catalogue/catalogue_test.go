@@ -100,3 +100,53 @@ func TestCuratedStarterV2DatasetValidatesWithoutPublishing(t *testing.T) {
 		}
 	}
 }
+
+func TestDatasetProvenanceValidate(t *testing.T) {
+	valid := DatasetProvenance{
+		Name:        "Starter catalogue",
+		SourceURL:   "https://example.org/catalogue.json",
+		Version:     "v1",
+		RetrievedAt: "2026-11-04T00:00:00Z",
+		License:     "NOASSERTION",
+		Attribution: "APIVault curation; see provider sources",
+	}
+	if err := valid.Validate(); err != nil {
+		t.Fatalf("valid provenance rejected: %v", err)
+	}
+	invalid := valid
+	invalid.RetrievedAt = "yesterday"
+	if err := invalid.Validate(); err == nil {
+		t.Fatal("expected invalid retrieval timestamp to be rejected")
+	}
+	invalid = valid
+	invalid.SourceURL = "http://example.org/catalogue.json"
+	if err := invalid.Validate(); err == nil {
+		t.Fatal("expected non-HTTPS dataset source to be rejected")
+	}
+}
+
+func TestNormalizeBatchSize(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   int
+		want    int
+		wantErr bool
+	}{
+		{name: "default", input: 0, want: 100},
+		{name: "minimum", input: 1, want: 1},
+		{name: "maximum", input: 250, want: 250},
+		{name: "negative", input: -1, wantErr: true},
+		{name: "too large", input: 251, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := normalizeBatchSize(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("normalizeBatchSize(%d) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+			}
+			if !tt.wantErr && got != tt.want {
+				t.Fatalf("normalizeBatchSize(%d) = %d, want %d", tt.input, got, tt.want)
+			}
+		})
+	}
+}

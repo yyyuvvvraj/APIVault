@@ -32,12 +32,15 @@ jobs:
     env:
       DATABASE_URL: postgresql://apivault:apivault@localhost:5432/apivault?schema=public
       BETTER_AUTH_SECRET: e2e-only-secret-never-use-outside-ci-1234567890
-      BETTER_AUTH_URL: http://127.0.0.1:3000
+      BETTER_AUTH_URL: http://localhost:3000
+      E2E_TEST_MODE: "true"
       E2E_ADMIN_EMAIL: apivault-e2e@example.test
       E2E_ADMIN_PASSWORD: E2E-only-password-12345
       E2E_USER_EMAIL: apivault-user-e2e@example.test
       E2E_USER_PASSWORD: E2E-user-only-password-12345
-      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      E2E_USER_RETRY_EMAIL: apivault-user-e2e-retry@example.test
+      E2E_USER_RETRY_PASSWORD: E2E-user-retry-only-password-12345
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -62,7 +65,7 @@ jobs:
         run: |
           npm run start > /tmp/apivault-next.log 2>&1 &
           for attempt in $(seq 1 60); do
-            if curl --fail --silent http://127.0.0.1:3000/admin/login > /dev/null; then exit 0; fi
+            if curl --fail --silent http://localhost:3000/admin/login > /dev/null; then exit 0; fi
             sleep 2
           done
           cat /tmp/apivault-next.log

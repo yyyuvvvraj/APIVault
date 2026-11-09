@@ -48,7 +48,7 @@ async function upsertApiSources(
 }
 
 export async function applySubmissionApproval(
-  tx: Prisma.TransactionClient, submissionId: string, reviewerNote: string,
+  tx: Prisma.TransactionClient, submissionId: string, reviewerNote: string, reviewerUserId: string,
 ): Promise<string> {
 
       const submission = await tx.apiSubmission.findUnique({
@@ -212,6 +212,15 @@ export async function applySubmissionApproval(
           status: SubmissionStatus.APPROVED,
           reviewedAt: new Date(),
           reviewNote: reviewerNote || "Approved and applied to the catalogue. The API remains pending verification.",
+        },
+      });
+      await tx.submissionReviewEvent.create({
+        data: {
+          submissionId,
+          previousStatus: SubmissionStatus.IN_REVIEW,
+          nextStatus: SubmissionStatus.APPROVED,
+          note: reviewerNote || "Approved and applied to the catalogue. The API remains pending verification.",
+          reviewerUserId,
         },
       });
 

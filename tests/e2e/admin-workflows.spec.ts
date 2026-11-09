@@ -1,3 +1,92 @@
+test("forged admin Server Action requests are rejected for a signed-in non-admin", async ({ browser }, testInfo) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  let capturedRequest: {
+    url: string;
+    headers: Record<string, string>;
+    body: string;
+  } | undefined;
+
+  await adminPage.goto("/admin/login");
+  await adminPage.getByLabel("Email address").fill(adminEmail);
+  await adminPage.getByLabel("Password").fill(adminPassword);
+  await adminPage.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(adminPage).toHaveURL(/\/admin(?:\?.*)?$/);
+
+  await adminPage.route("**/admin/categories**", async (route) => {
+    const request = route.request();
+    const headers = await request.allHeaders();
+    if (request.method() === "POST" && headers["next-action"]) {
+      capturedRequest = {
+        url: request.url(),
+        headers,
+        body: request.postData() ?? "",
+      };
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  const slug = `e2e-forged-action-${Date.now()}`;
+  await adminPage.goto("/admin/categories");
+  await adminPage.locator("form").filter({ has: adminPage.getByRole("heading", { name: "Create category" }) }).locator('input[name="name"]').fill("E2E Forged Action Probe");
+  await adminPage.locator("form").filter({ has: adminPage.getByRole("heading", { name: "Create category" }) }).locator('input[name="slug"]').fill(slug);
+  await adminPage.getByRole("button", { name: "Create category" }).click();
+  await expect.poll(() => capturedRequest).toBeTruthy();
+  await adminContext.close();
+
+  const retryRun = testInfo.retry > 0;
+  const userEmail = retryRun
+    ? process.env.E2E_USER_RETRY_EMAIL ?? "apivault-user-e2e-retry@example.test"
+    : process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = retryRun
+    ? process.env.E2E_USER_RETRY_PASSWORD ?? "E2E-user-retry-only-password-12345"
+    : process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+  const userContext = await browser.newContext();
+  const userPage = await userContext.newPage();
+
+  await userPage.goto("/account/login");
+  await userPage.getByLabel("Email address").fill(userEmail);
+  await userPage.getByLabel("Password").fill(userPassword);
+  await userPage.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(userPage).toHaveURL(/\/account(?:\?.*)?$/);
+
+  const forwardedHeaders = Object.fromEntries(
+    Object.entries(capturedRequest!.headers).filter(([name]) =>
+      !["cookie", "host", "content-length", "connection", "accept-encoding"].includes(name),
+    ),
+  );
+  const forgedResponse = await userContext.request.post(capturedRequest!.url, {
+    headers: forwardedHeaders,
+    data: capturedRequest!.body,
+    maxRedirects: 0,
+  });
+
+  const forgedBody = await forgedResponse.text();
+  const redirectTarget = "/admin/login?error=not-authorized";
+  const redirectEvidence =
+    forgedResponse.headers()["x-action-redirect"] ??
+    forgedResponse.headers().location ??
+    forgedBody;
+  expect(
+    [200, 303].includes(forgedResponse.status()),
+    `Unexpected Server Action response: ${forgedResponse.status()} ${forgedResponse.statusText()} headers=${JSON.stringify(forgedResponse.headers())} body=${forgedBody.slice(0, 1200)}`,
+  ).toBeTruthy();
+  const normalizedRedirectEvidence = redirectEvidence.replace(/%3A/gi, ":").replace(/%2F/gi, "/").replace(/%3F/gi, "?").replace(/%3D/gi, "=").replace(/%26/gi, "&");
+  expect(normalizedRedirectEvidence).toContain(redirectTarget);
+
+  const categoriesResponse = await userContext.request.get("/api/v1/categories", {
+    headers: { "cache-control": "no-cache" },
+  });
+  expect(categoriesResponse.ok()).toBeTruthy();
+  const categories = await categoriesResponse.json();
+  expect(categories.data.map((category: { slug: string }) => category.slug)).not.toContain(slug);
+
+  await userContext.close();
+});
+
+
 import { expect, test } from "@playwright/test";
 
 const adminEmail = process.env.E2E_ADMIN_EMAIL ?? "apivault-e2e@example.test";
@@ -49,21 +138,133 @@ test("administrator can sign in, create and verify an API, and moderate a submis
   await expect(submission).toContainText("REJECTED");
 });
 
-test("authenticated non-admin users are denied admin pages", async ({ page }) => {
-  const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
-  const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+
+test("moderator records the full review lifecycle and approval keeps the API unpublished pending verification", async ({ page }, testInfo) => {
+  const retryRun = testInfo.retry > 0;
+  const submitterName = retryRun ? "E2E Approval Retry Community Member" : "E2E Approval Community Member";
+  const apiName = retryRun ? "E2E Approval Lifecycle Retry API" : "E2E Approval Lifecycle API";
+  const apiSlug = retryRun ? "e2e-approval-lifecycle-retry-api" : "e2e-approval-lifecycle-api";
 
   await page.goto("/admin/login");
+  await page.getByLabel("Email address").fill(adminEmail);
+  await page.getByLabel("Password").fill(adminPassword);
+  await page.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(page).toHaveURL(/\/admin(?:\?.*)?$/);
+
+  await page.goto("/admin/submissions");
+  const submission = page.locator("article").filter({ hasText: submitterName }).filter({ hasText: apiName });
+  await expect(submission).toBeVisible();
+
+  await submission.locator('select[name="nextStatus"]').selectOption("IN_REVIEW");
+  await submission.getByRole("button", { name: "Save review decision" }).click();
+  await expect(submission).toContainText("IN REVIEW");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("PENDING → IN REVIEW");
+
+  await submission.locator('select[name="nextStatus"]').selectOption("CHANGES_REQUESTED");
+  await submission.locator('textarea[name="reviewNote"]').fill("Please provide clearer pricing evidence.");
+  await submission.getByRole("button", { name: "Save review decision" }).click();
+  await expect(submission).toContainText("CHANGES REQUESTED");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("IN REVIEW → CHANGES REQUESTED");
+
+  await submission.locator('select[name="nextStatus"]').selectOption("IN_REVIEW");
+  await submission.locator('textarea[name="reviewNote"]').fill("Updated evidence reviewed.");
+  await submission.getByRole("button", { name: "Save review decision" }).click();
+  await expect(submission).toContainText("IN REVIEW");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("CHANGES REQUESTED → IN REVIEW");
+
+  await submission.getByLabel("Approval note (optional)").fill("Evidence reviewed; approve for verification queue.");
+  await submission.getByRole("button", { name: "Approve and apply to catalogue" }).click();
+  await expect(submission).toContainText(`Submission approved and applied to /${apiSlug}. The API remains hidden pending verification.`);
+  await expect(submission).toContainText("APPROVED");
+  await expect(submission.getByRole("region", { name: "Moderation audit history" })).toContainText("IN REVIEW → APPROVED");
+
+  const publicApiResponse = await page.request.get(`/api/v1/apis/${apiSlug}`);
+  expect(publicApiResponse.status()).toBe(404);
+
+  await page.goto("/admin/review-queue");
+  const pendingApi = page.locator("article").filter({ hasText: apiName });
+  await expect(pendingApi).toBeVisible();
+  await expect(pendingApi).toContainText("Pending review");
+});
+
+test("contributor can submit an API, track it privately, and control public profile visibility", async ({ page }, testInfo) => {
+  const retryRun = testInfo.retry > 0;
+  const userEmail = retryRun
+    ? process.env.E2E_USER_RETRY_EMAIL ?? "apivault-user-e2e-retry@example.test"
+    : process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = retryRun
+    ? process.env.E2E_USER_RETRY_PASSWORD ?? "E2E-user-retry-only-password-12345"
+    : process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+  const suffix = retryRun ? "-retry" : "";
+  const handle = `e2e-contributor${suffix}`;
+  const submissionName = `E2E Contributor${retryRun ? " Retry" : ""} Submission API`;
+
+  await page.goto("/account/login");
   await page.getByLabel("Email address").fill(userEmail);
   await page.getByLabel("Password").fill(userPassword);
   await page.getByRole("button", { name: "Sign in to APIVault" }).click();
-  // A successful sign-in must establish a session before authorization is tested.
-  await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
-  await expect(page.getByText("This account does not have administrator access.", { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/account(?:\?.*)?$/);
 
+  // Reuse this authenticated standard-user session to verify every protected
+  // admin route before continuing the contributor journey. This avoids
+  // repeated sign-in requests hitting Better Auth's login rate limit in CI.
   for (const protectedPath of ["/admin", "/admin/apis/new", "/admin/submissions", "/admin/review-queue"]) {
     await page.goto(protectedPath);
     await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
     await expect(page.getByRole("heading", { name: "Welcome back." })).toBeVisible();
   }
+
+  await page.goto("/submit");
+  await page.getByLabel("API name").fill(submissionName);
+  await page.getByLabel("Provider").fill("E2E Contributor Provider");
+  await page.getByLabel("Short summary").fill("An API submitted by a contributor browser test.");
+  await page.getByLabel("Official API homepage").fill("https://contributor-api.example.test");
+  await page.getByLabel("Documentation URL").fill("https://contributor-api.example.test/docs");
+  await page.getByLabel("Category slugs (comma separated)").fill("e2e-testing");
+  await page.getByLabel("Authentication methods").fill("API_KEY");
+  await page.getByLabel("Pricing model").selectOption("FREEMIUM");
+  await page.getByLabel("Official source URLs (one per line)").fill("https://contributor-api.example.test/pricing");
+  await page.getByRole("button", { name: "Submit for review" }).click();
+  await expect(page.getByRole("status")).toContainText("Submission received");
+
+  await page.goto("/account/submissions");
+  const ownSubmission = page.locator("article").filter({ hasText: submissionName });
+  await expect(ownSubmission).toBeVisible();
+  await expect(ownSubmission).toContainText("PENDING");
+
+  await page.goto("/account/profile");
+  await page.getByLabel("Public handle").fill(handle);
+  await page.getByRole("textbox", { name: "Display name", exact: true }).fill("E2E Public Contributor");
+  await page.getByLabel("Bio (280 characters)").fill("Contributor profile visibility is covered by an end-to-end test.");
+  await page.getByLabel("Website URL (HTTPS)").fill("https://contributor.example.test");
+  await page.getByLabel("GitHub profile URL").fill("https://github.com/e2e-contributor");
+  await page.getByLabel(/Make profile public/).check();
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByRole("status")).toContainText("Profile saved.");
+
+  await page.goto(`/contributors/${handle}`);
+  await expect(page.getByRole("heading", { name: "E2E Public Contributor" })).toBeVisible();
+  await expect(page.getByText("Contributor profile visibility is covered by an end-to-end test.")).toBeVisible();
+
+  const publicProfileResponse = await page.request.get(`/api/contributors/${handle}`);
+  expect(publicProfileResponse.status()).toBe(200);
+  const publicProfile = await publicProfileResponse.json();
+  expect(publicProfile.data).toMatchObject({
+    handle,
+    displayName: "E2E Public Contributor",
+    approvedContributions: 0,
+  });
+  expect(JSON.stringify(publicProfile.data)).not.toContain(userEmail);
+  expect(publicProfile.data).not.toHaveProperty("userId");
+  expect(publicProfile.data).not.toHaveProperty("email");
+
+  await page.goto("/account/profile");
+  await page.getByLabel(/Make profile public/).uncheck();
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByRole("status")).toContainText("Profile saved.");
+
+  const privateProfileResponse = await page.request.get(`/api/contributors/${handle}`);
+  expect(privateProfileResponse.status()).toBe(404);
+  const privatePageResponse = await page.request.get(`/contributors/${handle}`);
+  expect(privatePageResponse.status()).toBe(404);
 });

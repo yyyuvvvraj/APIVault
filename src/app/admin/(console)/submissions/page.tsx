@@ -3,6 +3,7 @@ import { getPrisma } from "@/lib/db";
 import { findSubmissionDuplicateCandidates, type DuplicateSubmissionInput } from "@/lib/submissions/duplicate-detection";
 import { AdminSubmissionReviewActions } from "@/components/admin-submission-review-actions";
 import { AdminSubmissionApprovalButton } from "@/components/admin-submission-approval-button";
+import { getModerationPriority } from "@/lib/submissions/moderation-priority";
 
 export const metadata = { title: "Community submissions" };
 
@@ -20,6 +21,7 @@ export default async function AdminSubmissionsPage() {
     include: {
       targetApi: { select: { name: true, slug: true } },
       sources: { select: { id: true, url: true, sourceKind: true } },
+      reviewEvents: { orderBy: { createdAt: "desc" }, take: 10, select: { id: true, previousStatus: true, nextStatus: true, note: true, reviewerUserId: true, createdAt: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 100,
@@ -63,6 +65,23 @@ export default async function AdminSubmissionsPage() {
     ) : [],
   ]));
 
+  const priorityBySubmission = new Map(submissions.map((submission) => {
+    const duplicateCount = (duplicateHints.get(submission.id) ?? []).length;
+    return [submission.id, getModerationPriority({
+      status: submission.status,
+      kind: submission.kind,
+      createdAt: submission.createdAt,
+      payload: submission.payload,
+      sourceKinds: submission.sources.map((source) => source.sourceKind),
+      duplicateCount,
+      hasTargetApi: Boolean(submission.targetApi),
+    })] as const;
+  }));
+  submissions.sort((a, b) => {
+    const scoreDelta = (priorityBySubmission.get(b.id)?.score ?? 0) - (priorityBySubmission.get(a.id)?.score ?? 0);
+    return scoreDelta || a.createdAt.getTime() - b.createdAt.getTime();
+  });
+
   return (
     <>
       <header className="mb-7">
@@ -79,9 +98,10 @@ export default async function AdminSubmissionsPage() {
                 <p className="text-sm font-extrabold text-white">{submission.kind === "CREATE" ? "New API suggestion" : "Update request"}</p>
                 <p className="mt-1 text-xs text-slate-500">{submission.submitterName || "Community member"}{submission.submitterGithub ? " · @" + submission.submitterGithub : ""} · {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(submission.createdAt)}</p>
               </div>
-              <span className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide ${statusTone[submission.status]}`}>{submission.status.replaceAll("_", " ")}</span>
+              <div className="flex items-center gap-2"><span className="rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-2.5 py-1.5 text-[10px] font-extrabold text-cyan-200">Priority {priorityBySubmission.get(submission.id)?.score ?? 0}</span><span className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide ${statusTone[submission.status]}`}>{submission.status.replaceAll("_", " ")}</span></div>
             </div>
             {submission.targetApi && <p className="mt-3 text-xs text-slate-400">Target API: {submission.targetApi.name} ({submission.targetApi.slug})</p>}
+            {(priorityBySubmission.get(submission.id)?.reasons ?? []).length > 0 && <p className="mt-2 text-xs leading-5 text-amber-300">Triage signals: {priorityBySubmission.get(submission.id)?.reasons.join(" · ")}</p>}
             {(duplicateHints.get(submission.id) ?? []).length > 0 && (
               <section aria-label="Possible duplicate APIs" className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.04] p-3">
                 <p className="text-[10px] font-extrabold uppercase tracking-wide text-amber-300">Possible catalogue duplicates — manual review required</p>
@@ -108,7 +128,21 @@ export default async function AdminSubmissionsPage() {
                 ) : <p className="mt-2 text-xs text-slate-500">No source URLs attached.</p>}
               </div>
             </div>
-            {submission.reviewNote && <p className="mt-3 text-xs text-slate-400">Review note: {submission.reviewNote}</p>}
+            {submission.reviewNote && <p className="mt-3 text-xs text-slate-400">Latest review note: {submission.reviewNote}</p>}
+            {submission.reviewEvents.length > 0 && (
+              <section className="mt-4 rounded-xl border border-white/[0.07] bg-black/20 p-4" aria-label="Moderation audit history">
+                <h3 className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Moderation history</h3>
+                <ol className="mt-3 space-y-3">
+                  {submission.reviewEvents.map((event) => (
+                    <li key={event.id} className="border-l border-cyan-400/30 pl-3">
+                      <p className="text-xs font-bold text-slate-200">{event.previousStatus.replaceAll("_", " ")} → {event.nextStatus.replaceAll("_", " ")}</p>
+                      <p className="mt-1 text-[10px] text-slate-500">{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(event.createdAt)} · Reviewer {event.reviewerUserId}</p>
+                      {event.note && <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-400">{event.note}</p>}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
             <AdminSubmissionReviewActions submissionId={submission.id} currentStatus={submission.status}/>
             <AdminSubmissionApprovalButton submissionId={submission.id} currentStatus={submission.status}/>
           </article>

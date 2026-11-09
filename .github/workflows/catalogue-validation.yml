@@ -1,0 +1,88 @@
+name: Go API catalogue validation
+
+on:
+  pull_request:
+    paths:
+      - "services/catalogue-importer/**"
+      - "docs/CATALOGUE_CURATION.md"
+      - ".github/workflows/catalogue-validation.yml"
+  workflow_dispatch:
+    inputs:
+      live_checks:
+        description: Check HTTPS evidence URLs
+        required: false
+        default: true
+        type: boolean
+      manifest_path:
+        description: Manifest path under services/catalogue-importer (data/*.json)
+        required: true
+        default: data/curated-starter-v1.json
+        type: string
+  schedule:
+    - cron: "23 3 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalogue-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate catalogue evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Run Go tests
+        working-directory: services/catalogue-importer
+        run: go test ./...
+
+      - name: Validate catalogue schema and evidence
+        working-directory: services/catalogue-importer
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          LIVE_INPUT: ${{ inputs.live_checks }}
+          MANIFEST_INPUT: ${{ inputs.manifest_path }}
+        run: |
+          set -euo pipefail
+          LIVE=true
+          if [ "$EVENT_NAME" = "pull_request" ]; then LIVE=false; fi
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$LIVE_INPUT" = "false" ]; then LIVE=false; fi
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$MANIFEST_INPUT" in
+              data/*.json) ;;
+              *) echo "manifest_path must point to data/*.json" >&2; exit 1 ;;
+            esac
+            manifests=("$MANIFEST_INPUT")
+          else
+            manifests=("data/curated-starter-v1.json" "data/curated-starter-v2.json")
+          fi
+
+          for manifest in "${manifests[@]}"; do
+            report="$RUNNER_TEMP/$(basename "$manifest" .json)-validation-report.json"
+            echo "Validating $manifest (live=$LIVE)"
+            go run ./cmd/catalogue-validate \
+              -input "$manifest" \
+              -live="$LIVE" \
+              -output "$report"
+          done
+
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: catalogue-validation-reports
+          path: ${{ runner.temp }}/*-validation-report.json
+          if-no-files-found: warn
+          retention-days: 30
