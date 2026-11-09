@@ -66,6 +66,34 @@ async function main() {
     },
   });
 
+
+  await prisma.apiSubmission.create({
+    data: {
+      kind: SubmissionKind.CREATE,
+      status: SubmissionStatus.PENDING,
+      submitterName: "E2E Approval Retry Community Member",
+      submitterGithub: "e2e-approval-retry-community",
+      payload: {
+        name: "E2E Approval Lifecycle Retry API",
+        providerName: "E2E Approval Lifecycle Retry Provider",
+        summary: "A retry-safe fixture proposal used to test approval and pending verification.",
+        homepageUrl: "https://e2e-approval-retry.example.test",
+        documentationUrl: "https://e2e-approval-retry.example.test/docs",
+        categorySlugs: [category.slug],
+        authMethods: ["API_KEY"],
+        pricingModel: "FREEMIUM",
+        sourceUrls: ["https://e2e-approval-retry.example.test/pricing"],
+        submitterGithub: "e2e-approval-retry-community",
+      },
+      sources: {
+        create: [{
+          sourceKind: SourceKind.OFFICIAL_HOMEPAGE,
+          url: "https://e2e-approval-retry.example.test",
+        }],
+      },
+    },
+  });
+
   const email = process.env.E2E_USER_EMAIL;
   const password = process.env.E2E_USER_PASSWORD;
   if (!email || !password) throw new Error("E2E_USER_EMAIL and E2E_USER_PASSWORD are required.");
@@ -91,6 +119,30 @@ async function main() {
     accountId: user.id,
     password: hashedPassword,
   });
+
+  const retryEmail = process.env.E2E_USER_RETRY_EMAIL;
+  const retryPassword = process.env.E2E_USER_RETRY_PASSWORD;
+  if (!retryEmail || !retryPassword) throw new Error("E2E_USER_RETRY_EMAIL and E2E_USER_RETRY_PASSWORD are required.");
+
+  await prisma.user.deleteMany({ where: { email: retryEmail } });
+  const retryUser = await context.internalAdapter.createUser(
+    {
+      name: "APIVault E2E Retry User",
+      email: retryEmail,
+      emailVerified: true,
+      role: "user",
+      banned: false,
+    },
+    { method: "test" },
+  );
+  const retryHashedPassword = await context.password.hash(retryPassword);
+  await context.internalAdapter.createAccount({
+    userId: retryUser.id,
+    providerId: "credential",
+    accountId: retryUser.id,
+    password: retryHashedPassword,
+  });
+
 }
 
 main()

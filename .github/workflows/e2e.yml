@@ -37,6 +37,8 @@ jobs:
       E2E_ADMIN_PASSWORD: E2E-only-password-12345
       E2E_USER_EMAIL: apivault-user-e2e@example.test
       E2E_USER_PASSWORD: E2E-user-only-password-12345
+      E2E_USER_RETRY_EMAIL: apivault-user-e2e-retry@example.test
+      E2E_USER_RETRY_PASSWORD: E2E-user-retry-only-password-12345
       PLAYWRIGHT_BASE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v7
