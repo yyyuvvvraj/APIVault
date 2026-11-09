@@ -1,3 +1,92 @@
+test("forged admin Server Action requests are rejected for a signed-in non-admin", async ({ browser }, testInfo) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  let capturedRequest: {
+    url: string;
+    headers: Record<string, string>;
+    body: string;
+  } | undefined;
+
+  await adminPage.goto("/admin/login");
+  await adminPage.getByLabel("Email address").fill(adminEmail);
+  await adminPage.getByLabel("Password").fill(adminPassword);
+  await adminPage.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(adminPage).toHaveURL(/\/admin(?:\?.*)?$/);
+
+  await adminPage.route("**/admin/categories**", async (route) => {
+    const request = route.request();
+    const headers = await request.allHeaders();
+    if (request.method() === "POST" && headers["next-action"]) {
+      capturedRequest = {
+        url: request.url(),
+        headers,
+        body: request.postData() ?? "",
+      };
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  const slug = `e2e-forged-action-${Date.now()}`;
+  await adminPage.goto("/admin/categories");
+  await adminPage.locator("form").filter({ has: adminPage.getByRole("heading", { name: "Create category" }) }).locator('input[name="name"]').fill("E2E Forged Action Probe");
+  await adminPage.locator("form").filter({ has: adminPage.getByRole("heading", { name: "Create category" }) }).locator('input[name="slug"]').fill(slug);
+  await adminPage.getByRole("button", { name: "Create category" }).click();
+  await expect.poll(() => capturedRequest).toBeTruthy();
+  await adminContext.close();
+
+  const retryRun = testInfo.retry > 0;
+  const userEmail = retryRun
+    ? process.env.E2E_USER_RETRY_EMAIL ?? "apivault-user-e2e-retry@example.test"
+    : process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
+  const userPassword = retryRun
+    ? process.env.E2E_USER_RETRY_PASSWORD ?? "E2E-user-retry-only-password-12345"
+    : process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
+  const userContext = await browser.newContext();
+  const userPage = await userContext.newPage();
+
+  await userPage.goto("/account/login");
+  await userPage.getByLabel("Email address").fill(userEmail);
+  await userPage.getByLabel("Password").fill(userPassword);
+  await userPage.getByRole("button", { name: "Sign in to APIVault" }).click();
+  await expect(userPage).toHaveURL(/\/account(?:\?.*)?$/);
+
+  const forwardedHeaders = Object.fromEntries(
+    Object.entries(capturedRequest!.headers).filter(([name]) =>
+      !["cookie", "host", "content-length", "connection", "accept-encoding"].includes(name),
+    ),
+  );
+  const forgedResponse = await userContext.request.post(capturedRequest!.url, {
+    headers: forwardedHeaders,
+    data: capturedRequest!.body,
+    maxRedirects: 0,
+  });
+
+  const forgedBody = await forgedResponse.text();
+  const redirectTarget = "/admin/login?error=not-authorized";
+  const redirectEvidence =
+    forgedResponse.headers()["x-action-redirect"] ??
+    forgedResponse.headers().location ??
+    forgedBody;
+  expect(
+    [200, 303].includes(forgedResponse.status()),
+    `Unexpected Server Action response: ${forgedResponse.status()} ${forgedResponse.statusText()} headers=${JSON.stringify(forgedResponse.headers())} body=${forgedBody.slice(0, 1200)}`,
+  ).toBeTruthy();
+  const normalizedRedirectEvidence = redirectEvidence.replace(/%3A/gi, ":").replace(/%2F/gi, "/").replace(/%3F/gi, "?").replace(/%3D/gi, "=").replace(/%26/gi, "&");
+  expect(normalizedRedirectEvidence).toContain(redirectTarget);
+
+  const categoriesResponse = await userContext.request.get("/api/v1/categories", {
+    headers: { "cache-control": "no-cache" },
+  });
+  expect(categoriesResponse.ok()).toBeTruthy();
+  const categories = await categoriesResponse.json();
+  expect(categories.data.map((category: { slug: string }) => category.slug)).not.toContain(slug);
+
+  await userContext.close();
+});
+
+
 import { expect, test } from "@playwright/test";
 
 const adminEmail = process.env.E2E_ADMIN_EMAIL ?? "apivault-e2e@example.test";
