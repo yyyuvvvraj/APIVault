@@ -8,28 +8,47 @@ const protectedActions = [
   "src/app/admin/(console)/apis/lifecycle-actions.ts",
   "src/app/admin/(console)/submissions/actions.ts",
   "src/app/admin/(console)/submissions/approval-actions.ts",
+  "src/app/admin/(console)/categories/actions.ts",
 ] as const;
 
-test("every admin server-action module enforces requireAdmin before handling input or data", () => {
+test("every admin server action authorizes before reading input or accessing data", () => {
   for (const path of protectedActions) {
     const source = readFileSync(path, "utf8");
     assert.match(source, /import\s*\{\s*requireAdmin\s*\}\s*from\s*["']@\/lib\/admin-auth["']/,
       `${path} must import the shared administrator guard`);
 
-    const actionStart = source.search(/export\s+async\s+function\s+\w+Action\s*\(/);
-    assert.notEqual(actionStart, -1, `${path} must export a server action`);
-    const guardPosition = source.indexOf("await requireAdmin();", actionStart);
-    assert.notEqual(guardPosition, -1, `${path} must call requireAdmin()`);
+    const actions = [...source.matchAll(/export\s+async\s+function\s+(\w+Action)\s*\(/g)];
+    assert.ok(actions.length > 0, `${path} must export at least one server action`);
 
-    const firstInputOrDatabaseAccess = [
-      source.indexOf("formData.get(", actionStart),
-      source.indexOf("getPrisma()", actionStart),
-      source.indexOf("prisma.$transaction", actionStart),
-    ].filter((position) => position >= 0).sort((a, b) => a - b)[0];
+    for (let index = 0; index < actions.length; index += 1) {
+      const action = actions[index];
+      const actionStart = action.index ?? -1;
+      const actionEnd = actions[index + 1]?.index ?? source.length;
+      const actionSource = source.slice(actionStart, actionEnd);
+      const guardPosition = actionSource.indexOf("await requireAdmin();");
+      assert.notEqual(guardPosition, -1,
+        `${path}#${action[1]} must call requireAdmin()`);
 
-    assert.ok(
-      firstInputOrDatabaseAccess === undefined || guardPosition < firstInputOrDatabaseAccess,
-      `${path} must authorize before reading untrusted form input or accessing the database`,
-    );
+      const accessPatterns = [
+        "formData.get(",
+        "formData.getAll(",
+        "value(formData,",
+        "formString(formData,",
+        "formStringArray(formData,",
+        "stringField(formData,",
+        "stringArray(formData,",
+        "getPrisma(",
+        "prisma.$transaction(",
+      ];
+      const firstInputOrDatabaseAccess = accessPatterns
+        .map((pattern) => actionSource.indexOf(pattern))
+        .filter((position) => position >= 0)
+        .sort((a, b) => a - b)[0];
+
+      assert.ok(
+        firstInputOrDatabaseAccess === undefined || guardPosition < firstInputOrDatabaseAccess,
+        `${path}#${action[1]} must authorize before reading untrusted form input or accessing the database`,
+      );
+    }
   }
 });

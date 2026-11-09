@@ -11,7 +11,7 @@ export async function approveSubmissionAction(
   _previous: ApprovalState,
   formData: FormData,
 ): Promise<ApprovalState> {
-  await requireAdmin();
+  const session = await requireAdmin();
   const submissionId = String(formData.get("submissionId") ?? "");
   const reviewerNote = String(formData.get("reviewerNote") ?? "").trim();
 
@@ -20,7 +20,7 @@ export async function approveSubmissionAction(
 
   try {
     const slug = await getPrisma().$transaction((tx) =>
-      applySubmissionApproval(tx, submissionId, reviewerNote),
+      applySubmissionApproval(tx, submissionId, reviewerNote, session.user.id),
     );
 
     revalidatePath("/admin");

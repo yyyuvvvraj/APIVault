@@ -14,6 +14,8 @@ import (
 func main() {
 	inputPath := flag.String("input", "", "path to a catalogue JSON file")
 	apply := flag.Bool("apply", false, "write validated records to PostgreSQL; without this flag the command is a dry run")
+	runID := flag.String("run-id", "", "stable import run ID; reuse it to resume a failed import")
+	batchSize := flag.Int("batch-size", 100, "records per transaction (1-250)")
 	flag.Parse()
 
 	if *inputPath == "" {
@@ -38,7 +40,7 @@ func main() {
 
 	if !*apply {
 		fmt.Printf("Dry run successful: validated %d API record(s). No database connection or writes were made.\n", len(file.APIs))
-		fmt.Println("Review the input, then pass -apply to import transactionally.")
+		fmt.Println("Review the input, then pass -apply to import in resumable batches.")
 		return
 	}
 
@@ -50,7 +52,7 @@ func main() {
 		fatalf("DATABASE_URL_UNPOOLED or DATABASE_URL is required when -apply is used")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
 	config, err := pgxpool.ParseConfig(databaseURL)
@@ -70,11 +72,11 @@ func main() {
 	if err := pool.Ping(ctx); err != nil {
 		fatalf("PostgreSQL health check failed: %v", err)
 	}
-	if err := catalogue.Import(ctx, pool, file); err != nil {
-		fatalf("catalogue import failed; transaction rolled back: %v", err)
+	report, err := catalogue.ImportResumable(ctx, pool, file, catalogue.ImportOptions{RunID: *runID, BatchSize: *batchSize})
+	if err != nil {
+		fatalf("catalogue import failed (resume with -run-id %q): %v", report.RunID, err)
 	}
-
-	fmt.Printf("Import successful: %d API record(s) processed transactionally.\n", len(file.APIs))
+	fmt.Printf("Import successful: run=%s dataset=%s processed=%d/%d batches=%d skipped=%d batch-size=%d\n", report.RunID, report.DatasetName, report.ProcessedRecords, report.TotalRecords, report.CompletedBatches, report.SkippedBatches, report.BatchSize)
 }
 
 func fatalf(format string, args ...any) {

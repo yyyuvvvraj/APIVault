@@ -14,7 +14,7 @@ export async function updateSubmissionReviewAction(
   _previous: SubmissionReviewState,
   formData: FormData,
 ): Promise<SubmissionReviewState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const id = String(formData.get("submissionId") ?? "");
   const nextStatus = String(formData.get("nextStatus") ?? "");
@@ -35,7 +35,7 @@ export async function updateSubmissionReviewAction(
 
   try {
     await getPrisma().$transaction(async (tx) => {
-      await transitionSubmissionReview(tx, id, nextStatus as SubmissionStatus, note);
+      await transitionSubmissionReview(tx, id, nextStatus as SubmissionStatus, note, session.user.id);
     });
 
     revalidatePath("/admin/submissions");

@@ -8,12 +8,37 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 
 type File struct {
-	APIs []API `json:"apis"`
+	APIs    []API             `json:"apis"`
+	Dataset DatasetProvenance `json:"dataset"`
+}
+
+type DatasetProvenance struct {
+	Name        string `json:"name"`
+	SourceURL   string `json:"sourceUrl"`
+	Version     string `json:"version"`
+	RetrievedAt string `json:"retrievedAt"`
+	License     string `json:"license"`
+	Attribution string `json:"attribution"`
+}
+
+func (d DatasetProvenance) Validate() error {
+	if strings.TrimSpace(d.Name) == "" || strings.TrimSpace(d.Version) == "" ||
+		strings.TrimSpace(d.License) == "" || strings.TrimSpace(d.Attribution) == "" {
+		return fmt.Errorf("dataset provenance requires name, version, license, and attribution")
+	}
+	if err := httpsURL(d.SourceURL, "dataset.sourceUrl", true); err != nil {
+		return err
+	}
+	if _, err := time.Parse(time.RFC3339, d.RetrievedAt); err != nil {
+		return fmt.Errorf("dataset.retrievedAt must be an RFC3339 timestamp")
+	}
+	return nil
 }
 
 type API struct {
@@ -70,13 +95,13 @@ func valueSet(values ...string) map[string]struct{} {
 }
 
 func Decode(reader io.Reader) (File, error) {
-	const maxInputBytes = 5 << 20
+	const maxInputBytes = 64 << 20
 	raw, err := io.ReadAll(io.LimitReader(reader, maxInputBytes+1))
 	if err != nil {
 		return File{}, fmt.Errorf("read catalogue JSON: %w", err)
 	}
 	if len(raw) > maxInputBytes {
-		return File{}, fmt.Errorf("catalogue JSON exceeds the 5 MiB input limit")
+		return File{}, fmt.Errorf("catalogue JSON exceeds the 64 MiB input limit")
 	}
 
 	decoder := json.NewDecoder(bytes.NewReader(raw))
@@ -100,8 +125,8 @@ func (file File) Validate() error {
 	if len(file.APIs) == 0 {
 		return fmt.Errorf("catalogue must contain at least one API")
 	}
-	if len(file.APIs) > 500 {
-		return fmt.Errorf("catalogue contains %d APIs; maximum is 500 per import", len(file.APIs))
+	if len(file.APIs) > 10000 {
+		return fmt.Errorf("catalogue contains %d APIs; maximum is 10,000 per manifest", len(file.APIs))
 	}
 
 	seenSlugs := make(map[string]struct{}, len(file.APIs))
@@ -246,6 +271,11 @@ func httpsURL(value, field string, required bool) error {
 }
 
 func (api API) Normalized() API {
+	// Normalization must not mutate slices owned by the caller. ImportResumable
+	// may be invoked concurrently with the same input manifest.
+	api.Categories = append([]string(nil), api.Categories...)
+	api.AuthMethods = append([]AuthMethod(nil), api.AuthMethods...)
+	api.Sources = append([]Source(nil), api.Sources...)
 	api.Slug = strings.TrimSpace(api.Slug)
 	api.Name = strings.TrimSpace(api.Name)
 	api.Summary = strings.TrimSpace(api.Summary)
@@ -284,7 +314,7 @@ func defaultValue(value, fallback string) string {
 }
 
 func (file File) Normalize() File {
-	normalized := File{APIs: make([]API, len(file.APIs))}
+	normalized := File{APIs: make([]API, len(file.APIs)), Dataset: file.Dataset}
 	for i, api := range file.APIs {
 		normalized.APIs[i] = api.Normalized()
 	}

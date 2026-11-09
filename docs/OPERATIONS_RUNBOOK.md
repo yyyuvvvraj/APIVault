@@ -20,6 +20,15 @@ This runbook describes operational controls expected for a hosted v0.1 deploymen
 5. Record elapsed restore time, backup age, row-count checks, failures, and the operator. Delete the isolated restored database and temporary files according to the data-handling policy.
 6. Repeat after schema changes and at least quarterly. A backup is not considered validated until a restore drill succeeds.
 
+
+## Catalogue import failure recovery
+
+- Inspect the failed `CatalogueImportRun` and its `CatalogueImportBatch` rows. A failed batch retains its batch number, record count, zero committed records, and error summary even though the batch transaction was rolled back.
+- Correct the underlying operational cause (for example, seed a required category or restore database connectivity) without changing the manifest or its provenance.
+- Retry with the exact same input file, run ID, and batch size. The importer verifies the input fingerprint, skips completed batches, and resets the failed batch checkpoint before retrying it.
+- Confirm the run reaches `COMPLETED`, the failed batch becomes `COMPLETED`, and its error summary is cleared. Do not assign a new run ID to bypass a failed checkpoint or alter the input while reusing an existing run ID.
+- If the diagnostic row could not be persisted because PostgreSQL was unavailable, use the run-level error summary and application logs; restore database connectivity before retrying.
+
 ## Uptime, readiness, and alerting
 
 - `GET /api/health/ready` checks application-to-database readiness. A 200 means the check passed at that instant; it is not an uptime guarantee.
