@@ -16,9 +16,9 @@ test("developer reference documents the public API integration contract", () => 
   assert.match(reference, /does not increase the default 120 requests/);
 });
 
-test("OpenAPI contract release version matches the developer-platform milestone", () => {
+test("OpenAPI contract release version matches the current application release", () => {
   const source = JSON.parse(readFileSync("src/lib/openapi.json", "utf8"));
   const docs = JSON.parse(readFileSync("docs/openapi.json", "utf8"));
-  assert.equal(source.info.version, "0.3.0");
+  assert.equal(source.info.version, "0.4.0");
   assert.deepEqual(source, docs);
 });
