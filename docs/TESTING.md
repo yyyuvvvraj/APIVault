@@ -27,7 +27,7 @@ The unit suite covers reverse-proxy client address extraction, one-way address h
 
 `tests/unit/admin-action-authorization.test.ts` checks the admin server-action modules for the shared `requireAdmin()` guard and verifies it appears before form-data reads or database access. This is a regression guard against accidentally omitting the guard when adding a new action module; update its explicit module list whenever a new admin server-action module is introduced.
 
-The source-level check does not simulate Better Auth cookies, sessions, or a non-admin account. Browser E2E currently covers unauthenticated route denial and administrator sign-in. Real authenticated non-admin session coverage remains an explicit follow-up.
+The source-level check does not simulate Better Auth cookies or sessions. Browser E2E provisions an ordinary account through Better Auth's credential adapter and signs in through the actual account form. In one session, the test confirms a signed-in non-admin is redirected from `/admin`, `/admin/apis/new`, `/admin/submissions`, and `/admin/review-queue` to the not-authorized login state before continuing through API submission and profile privacy flows. Admin server-action modules are separately checked for `requireAdmin()` before reading form data or accessing the database. This combination covers route-level session enforcement and action-guard placement; it does not directly forge a server-action request under a non-admin cookie.
 
 ## Submission workflow tests
 
@@ -49,7 +49,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds disposable administrator and ordinary-user credential accounts plus a submission fixture, builds and starts the app, then exercises unauthenticated admin denial, authenticated non-admin denial across protected admin pages, administrator sign-in, API creation, evidence-based verification/publication, and submission rejection. The standard-user fixture has no admin role and uses a CI-only password hash created through Better Auth's password hasher. Credentials are test-only CI values and must never be reused outside disposable environments.
+The dedicated Browser E2E workflow provisions an isolated PostgreSQL database, applies migrations, seeds disposable administrator and ordinary-user credential accounts plus isolated moderation/retry fixtures, builds and starts the app, then exercises unauthenticated admin denial, authenticated non-admin denial across protected admin pages, administrator API creation and evidence-based verification/publication, submission rejection, the complete moderation review/approval lifecycle, contributor API submission, and public-profile opt-in/opt-out privacy. Retry attempts use separate standard-user credentials and fixture records so a partially completed first attempt cannot poison a retry. Standard-user fixtures have no admin role and use CI-only password hashes created through Better Auth's password hasher. Credentials are test-only CI values and must never be reused outside disposable environments.
 
 ## Operational readiness tests
 
