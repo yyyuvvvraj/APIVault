@@ -22,6 +22,9 @@ export const auth = betterAuth({
     minPasswordLength: 12,
     maxPasswordLength: 128,
   },
+  // The isolated Playwright database uses repeated sign-ins from one runner IP;
+  // keep production rate limiting enabled while avoiding test-only throttling.
+  rateLimit: { enabled: process.env.E2E_TEST_MODE !== "true" },
   plugins: [admin()],
   trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000"],
 });
