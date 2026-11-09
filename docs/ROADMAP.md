@@ -134,3 +134,10 @@ GA requires all gates in [V1_RELEASE_CHECKLIST.md](V1_RELEASE_CHECKLIST.md) and 
 ## Explicitly not promised
 
 No fixed delivery date, uptime SLA, paid tier, public self-service registration, write API, or provider endorsement is implied by this roadmap.
+
+
+## 0.5.0 execution tracking
+
+See the detailed [v0.5.0 execution plan](V0.5.0_EXECUTION_PLAN.md). The development branch now includes scheduled encrypted backup automation and a manual catalogue release-count evidence workflow. Both require owner-configured secrets and successful evidence runs; neither by itself completes an acceptance gate.
+
+The 1,000 distinct verified API threshold, durable off-site backup, isolated restore drill, external monitoring and alert delivery, centralized observability, hosted validation, and security review remain open until evidence is recorded.

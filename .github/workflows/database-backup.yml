@@ -1,0 +1,78 @@
+name: Scheduled encrypted PostgreSQL backup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apivault-database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Create encrypted PostgreSQL backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Validate backup configuration
+        env:
+          PGHOST: ${{ secrets.APIVAULT_BACKUP_PGHOST }}
+          PGUSER: ${{ secrets.APIVAULT_BACKUP_PGUSER }}
+          PGDATABASE: ${{ secrets.APIVAULT_BACKUP_PGDATABASE }}
+          PGPASSFILE_CONTENT: ${{ secrets.APIVAULT_BACKUP_PGPASSFILE }}
+          BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.APIVAULT_BACKUP_AGE_RECIPIENT }}
+        run: |
+          set -euo pipefail
+          for name in PGHOST PGUSER PGDATABASE PGPASSFILE_CONTENT BACKUP_ENCRYPTION_RECIPIENT; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required repository secret for ${name}."
+              exit 1
+            fi
+          done
+
+      - name: Prepare isolated backup workspace
+        env:
+          PGPASSFILE_CONTENT: ${{ secrets.APIVAULT_BACKUP_PGPASSFILE }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$RUNNER_TEMP/apivault-backups"
+          printf '%s' "$PGPASSFILE_CONTENT" > "$RUNNER_TEMP/apivault-pgpass"
+          chmod 600 "$RUNNER_TEMP/apivault-pgpass"
+
+      - name: Dump and encrypt database
+        env:
+          PGHOST: ${{ secrets.APIVAULT_BACKUP_PGHOST }}
+          PGPORT: ${{ secrets.APIVAULT_BACKUP_PGPORT }}
+          PGUSER: ${{ secrets.APIVAULT_BACKUP_PGUSER }}
+          PGDATABASE: ${{ secrets.APIVAULT_BACKUP_PGDATABASE }}
+          BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.APIVAULT_BACKUP_AGE_RECIPIENT }}
+        run: |
+          set -euo pipefail
+          : "${PGPORT:=5432}"
+          docker run --rm --network host \
+            -e PGHOST -e PGPORT -e PGUSER -e PGDATABASE \
+            -e PGSSLMODE=require \
+            -e PGPASSFILE=/run/secrets/pgpass \
+            -e BACKUP_ENCRYPTION_RECIPIENT \
+            -e BACKUP_DIR=/backup \
+            -e BACKUP_RETENTION_DAYS=14 \
+            -v "$RUNNER_TEMP/apivault-pgpass:/run/secrets/pgpass:ro" \
+            -v "$RUNNER_TEMP/apivault-backups:/backup" \
+            -v "$GITHUB_WORKSPACE/scripts:/scripts:ro" \
+            postgres:18-bookworm bash -ec \
+            'apt-get update -qq && apt-get install -y --no-install-recommends age >/dev/null && bash /scripts/backup-postgres.sh'
+
+      - name: Upload encrypted backup artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: apivault-encrypted-postgres-backup-${{ github.run_id }}
+          path: ${{ runner.temp }}/apivault-backups/*.dump.age
+          if-no-files-found: error
+          retention-days: 14

@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Add scheduled encrypted PostgreSQL backup and reproducible catalogue release-count workflows for v0.5.0 readiness.
+
+### Notes
+- Backup automation requires owner-configured secrets; short-lived encrypted CI artifacts are staging only and do not satisfy durable off-site backup or restore-drill acceptance.
+- The 1,000-API gate remains open until a generated report and human curation review prove at least 1,000 distinct eligible APIs.
+
+
 ## [0.4.0] - 2026-11-10
 
 ### Added

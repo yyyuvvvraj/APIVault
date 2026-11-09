@@ -56,3 +56,23 @@ This runbook describes operational controls expected for a hosted v0.1 deploymen
 ## Release operations evidence
 
 Before v0.1.0 is promoted to `stable`, attach evidence for an isolated restore drill, external monitor/alert delivery, trusted proxy configuration, CSP review, and a hosted smoke check on the exact candidate.
+
+
+## Scheduled encrypted backup workflow
+
+The repository includes `.github/workflows/database-backup.yml`, which runs manually or daily at 02:15 UTC. Configure these repository Actions secrets first:
+
+- `APIVAULT_BACKUP_PGHOST`
+- `APIVAULT_BACKUP_PGPORT` (optional; defaults to 5432)
+- `APIVAULT_BACKUP_PGUSER`
+- `APIVAULT_BACKUP_PGDATABASE`
+- `APIVAULT_BACKUP_PGPASSFILE` (one PostgreSQL passfile line: `host:port:database:username:password`)
+- `APIVAULT_BACKUP_AGE_RECIPIENT` (public age recipient; keep the matching private identity outside Actions)
+
+The workflow uses PostgreSQL 18 client tools, requires TLS, encrypts the dump with age, and uploads only the encrypted file as a short-lived GitHub Actions artifact. The artifact is retained for 14 days and is staging/transport only, not durable off-site storage or a substitute for provider-native backups. Export encrypted artifacts to approved durable storage and perform an isolated restore drill before claiming the backup gate complete. Never upload the age identity or an unencrypted dump.
+
+## Reproducible catalogue release count
+
+Run `npm run catalogue:report` with a read-only database connection to produce JSON evidence with timestamp, eligible count, exclusions, and category/provider breakdown. The report mechanically requires ACTIVE + VERIFIED + published records, provider, category, and official HTTPS source evidence, and deduplicates normalized provider/name pairs. Human review must still exclude mirrors, aliases, endpoint-only records, versions, and records whose provider terms do not permit inclusion.
+
+The manual `.github/workflows/catalogue-release-report.yml` workflow produces a 90-day evidence artifact. Configure `APIVAULT_REPORT_DATABASE_URL` as a read-only repository secret. Set `enforce_1000` to true when evaluating a release candidate; the workflow then fails if fewer than 1,000 eligible records are present.
