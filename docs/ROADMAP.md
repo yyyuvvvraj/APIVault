@@ -55,7 +55,7 @@ This roadmap is an execution order, not a claim that future capabilities already
 - Separate discovery candidates from canonical catalogue records: bulk imports must land in a review/staging state and must never auto-verify, auto-feature, or auto-publish APIs.
 - Add source adapters only for datasets whose licenses, attribution, freshness, and provider usage terms permit the intended collection and redistribution.
 
-### Implementation status (updated 2026-11-04)
+### Implementation status (updated 2026-11-09)
 
 The following 0.4.0 components are implemented on `dev` and have focused regression coverage merged:
 - Contributor profile privacy projection and regression tests.
@@ -63,10 +63,13 @@ The following 0.4.0 components are implemented on `dev` and have focused regress
 - Moderation prioritization and operator-facing health/quality metrics.
 - Resumable, bounded, idempotent importer with durable checkpoints and same-run PostgreSQL advisory locking.
 - PostgreSQL-backed recovery and concurrent-run integration test, executed in Application CI with `go test -race`; the test passed on the merged importer fix.
+- Contributor browser journey covering API submission, private submission tracking, public-profile opt-in/opt-out, and non-disclosure of account email and user ID.
+- Moderation browser journey covering pending, in-review, changes-requested, return-to-review, approval, audit history, and the rule that approval leaves the API unpublished pending verification.
+- Authenticated standard-user browser coverage proving denial across protected admin pages, alongside a source-level regression guard requiring `requireAdmin()` in each admin server-action module before form-data reads or database access. Direct forged server-action requests under a non-admin session remain a separate hardening opportunity.
 
 The merged CI evidence for the importer fix includes successful Go importer/verifier checks, Application CI (including the PostgreSQL recovery/concurrency test, 91 unit tests, and 17 database integration tests), Docker build, and repository hygiene. This is meaningful implementation evidence, not a declaration that the entire 0.4.0 milestone is release-ready.
 
-Before preparing a 0.4.0 release snapshot, complete and record a single acceptance review covering the end-to-end contributor submission and moderation journeys, privacy behavior in the integrated UI/API, operational metrics and their definitions, source/license/attribution eligibility for every ingestion adapter, failure/recovery operator procedures, and all required browser, application, verifier, and container checks on the exact release candidate. Update this section with links to the evidence and any remaining exceptions. Keep `stable` unchanged until every gate is satisfied.
+Before preparing a 0.4.0 release snapshot, complete and record a single acceptance review covering the end-to-end contributor submission and moderation journeys, privacy behavior in the integrated UI/API, operational metrics and their definitions, source/license/attribution eligibility for every ingestion adapter, failure/recovery operator procedures, and all required browser, application, verifier, and container checks on the exact release candidate. The browser coverage above still needs to pass without flaky retries on the exact release candidate, and the direct non-admin server-action request gap must be explicitly accepted or closed. Update this section with links to the evidence and any remaining exceptions. Keep `stable` unchanged until every gate is satisfied.
 
 ### Catalogue scale programme (directional targets, not release guarantees)
 - 1,000 high-quality candidates: prove curation, deduplication, evidence capture, and review throughput.
