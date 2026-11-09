@@ -166,7 +166,6 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 	if status != "COMPLETED" {
 		t.Fatalf("expected completed run after recovery, got %q", status)
 	}
-}
 
 	// A database-side failure rolls back the batch transaction. Its diagnostic
 	// must nevertheless survive outside that transaction so operators can see
@@ -231,6 +230,7 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 		t.Fatalf("expected recovered run to complete, got %q", recoveredRunStatus)
 	}
 
+}
 
 func integrationAPI(slug, name, providerSlug, categorySlug, suffix string) API {
 	return API{
