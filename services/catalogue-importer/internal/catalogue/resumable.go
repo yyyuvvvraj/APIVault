@@ -100,6 +100,7 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		if end > len(file.APIs) {
 			end = len(file.APIs)
 		}
+		batchStartedAt := time.Now().UTC()
 		tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 		if err != nil {
 			return report, fmt.Errorf("begin batch %d: %w", batch, err)
@@ -126,7 +127,7 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		}
 		batchID, idErr := newUUID()
 		if idErr == nil {
-			_, err = tx.Exec(ctx, `INSERT INTO "CatalogueImportBatch" ("id","runId","batchNumber","recordCount","status","startedAt") VALUES ($1::uuid,$2,$3,$4,'RUNNING',$5) ON CONFLICT ("runId","batchNumber") DO UPDATE SET "recordCount"=EXCLUDED."recordCount","status"='RUNNING',"startedAt"=EXCLUDED."startedAt","completedAt"=NULL,"errorSummary"=NULL`, batchID, options.RunID, batch, end-start, time.Now().UTC())
+			_, err = tx.Exec(ctx, `INSERT INTO "CatalogueImportBatch" ("id","runId","batchNumber","recordCount","status","startedAt") VALUES ($1::uuid,$2,$3,$4,'RUNNING',$5) ON CONFLICT ("runId","batchNumber") DO UPDATE SET "recordCount"=EXCLUDED."recordCount","status"='RUNNING',"startedAt"=EXCLUDED."startedAt","completedAt"=NULL,"errorSummary"=NULL`, batchID, options.RunID, batch, end-start, batchStartedAt)
 		} else {
 			err = idErr
 		}
@@ -146,8 +147,25 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		}
 		if err != nil {
 			_ = tx.Rollback(context.Background())
-			if _, statusErr := pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='FAILED',"errorSummary"=$2,"updatedAt"=$3 WHERE "id"=$1`, options.RunID, err.Error(), time.Now().UTC()); statusErr != nil {
-				return report, fmt.Errorf("batch %d failed (%v); could not mark run failed: %w", batch, err, statusErr)
+			failedAt := time.Now().UTC()
+			// The batch transaction is rolled back, so persist its diagnostic in a
+			// separate statement. A retry with the same run ID will reset this row
+			// to RUNNING and clear the error before attempting the batch again.
+			_, batchStatusErr := pool.Exec(ctx, `
+				INSERT INTO "CatalogueImportBatch"
+					("id","runId","batchNumber","recordCount","processedCount","status","errorSummary","startedAt","completedAt")
+				VALUES (gen_random_uuid(),$1,$2,$3,0,'FAILED',$4,$5,$6)
+				ON CONFLICT ("runId","batchNumber") DO UPDATE SET
+					"recordCount"=EXCLUDED."recordCount",
+					"processedCount"=0,
+					"status"='FAILED',
+					"errorSummary"=EXCLUDED."errorSummary",
+					"startedAt"=EXCLUDED."startedAt",
+					"completedAt"=EXCLUDED."completedAt"
+			`, options.RunID, batch, end-start, err.Error(), batchStartedAt, failedAt)
+			_, runStatusErr := pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='FAILED',"errorSummary"=$2,"updatedAt"=$3 WHERE "id"=$1`, options.RunID, err.Error(), failedAt)
+			if batchStatusErr != nil || runStatusErr != nil {
+				return report, fmt.Errorf("batch %d failed: %w (persist batch failure: %v; mark run failed: %v)", batch, err, batchStatusErr, runStatusErr)
 			}
 			return report, fmt.Errorf("batch %d failed; retry with the same run ID: %w", batch, err)
 		}
