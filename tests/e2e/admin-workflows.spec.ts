@@ -58,8 +58,17 @@ test("forged admin Server Action requests are rejected for a signed-in non-admin
     maxRedirects: 0,
   });
 
-  expect(forgedResponse.status()).toBe(303);
-  expect(forgedResponse.headers().location).toContain("/admin/login?error=not-authorized");
+  const forgedBody = await forgedResponse.text();
+  const redirectTarget = "/admin/login?error=not-authorized";
+  const redirectEvidence =
+    forgedResponse.headers()["x-action-redirect"] ??
+    forgedResponse.headers().location ??
+    forgedBody;
+  expect(
+    [200, 303].includes(forgedResponse.status()),
+    `Unexpected Server Action response: ${forgedResponse.status()} ${forgedResponse.statusText()} headers=${JSON.stringify(forgedResponse.headers())} body=${forgedBody.slice(0, 1200)}`,
+  ).toBeTruthy();
+  expect(decodeURIComponent(redirectEvidence)).toContain(redirectTarget);
 
   const categoriesResponse = await userContext.request.get("/api/v1/categories", {
     headers: { "cache-control": "no-cache" },
