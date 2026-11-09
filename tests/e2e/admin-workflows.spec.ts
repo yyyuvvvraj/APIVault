@@ -98,26 +98,6 @@ test("moderator records the full review lifecycle and approval keeps the API unp
   await expect(pendingApi).toContainText("Pending review");
 });
 
-test("authenticated non-admin users are denied admin pages", async ({ page }) => {
-  const userEmail = process.env.E2E_USER_EMAIL ?? "apivault-user-e2e@example.test";
-  const userPassword = process.env.E2E_USER_PASSWORD ?? "E2E-user-only-password-12345";
-
-  await page.goto("/admin/login");
-  await page.getByLabel("Email address").fill(userEmail);
-  await page.getByLabel("Password").fill(userPassword);
-  await page.getByRole("button", { name: "Sign in to APIVault" }).click();
-  // A successful sign-in must establish a session before authorization is tested.
-  await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
-  await expect(page.getByText("This account does not have administrator access.", { exact: true })).toBeVisible();
-
-  for (const protectedPath of ["/admin", "/admin/apis/new", "/admin/submissions", "/admin/review-queue"]) {
-    await page.goto(protectedPath);
-    await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
-    await expect(page.getByRole("heading", { name: "Welcome back." })).toBeVisible();
-  }
-});
-
-
 test("contributor can submit an API, track it privately, and control public profile visibility", async ({ page }, testInfo) => {
   const retryRun = testInfo.retry > 0;
   const userEmail = retryRun
@@ -135,6 +115,15 @@ test("contributor can submit an API, track it privately, and control public prof
   await page.getByLabel("Password").fill(userPassword);
   await page.getByRole("button", { name: "Sign in to APIVault" }).click();
   await expect(page).toHaveURL(/\/account(?:\?.*)?$/);
+
+  // Reuse this authenticated standard-user session to verify every protected
+  // admin route before continuing the contributor journey. This avoids
+  // repeated sign-in requests hitting Better Auth's login rate limit in CI.
+  for (const protectedPath of ["/admin", "/admin/apis/new", "/admin/submissions", "/admin/review-queue"]) {
+    await page.goto(protectedPath);
+    await expect(page).toHaveURL(/\/admin\/login\?error=not-authorized/);
+    await expect(page.getByRole("heading", { name: "Welcome back." })).toBeVisible();
+  }
 
   await page.goto("/submit");
   await page.getByLabel("API name").fill(submissionName);
