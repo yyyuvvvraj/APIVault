@@ -55,10 +55,10 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 	defer func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cleanupCancel()
-		_, _ = pool.Exec(cleanupCtx, `DELETE FROM "Api" WHERE "slug" IN ($1, $2)`, firstSlug, secondSlug)
+		_, _ = pool.Exec(cleanupCtx, `DELETE FROM "Api" WHERE "slug" IN ($1, $2, $3)`, firstSlug, secondSlug, failureSlug)
 		_, _ = pool.Exec(cleanupCtx, `DELETE FROM "ApiProvider" WHERE "slug"=$1`, providerSlug)
-		_, _ = pool.Exec(cleanupCtx, `DELETE FROM "Category" WHERE "slug"=$1`, categorySlug)
-		_, _ = pool.Exec(cleanupCtx, `DELETE FROM "CatalogueImportRun" WHERE "id"=$1`, runID)
+		_, _ = pool.Exec(cleanupCtx, `DELETE FROM "Category" WHERE "slug" IN ($1, $2)`, categorySlug, failureCategorySlug)
+		_, _ = pool.Exec(cleanupCtx, `DELETE FROM "CatalogueImportRun" WHERE "id" IN ($1, $2)`, runID, failureRunID)
 	}()
 
 	now := time.Now().UTC()
@@ -164,6 +164,73 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 		t.Fatalf("expected completed run after recovery, got %q", status)
 	}
 }
+
+	// A database-side failure rolls back the batch transaction. Its diagnostic
+	// must nevertheless survive outside that transaction so operators can see
+	// which batch failed, and the same run ID must recover after the cause is fixed.
+	failureCategorySlug := "it-missing-category-" + suffix
+	failureSlug := "it-api-failure-" + suffix
+	failureRunID := "it-failure-" + suffix
+	failureFile := file
+	failureFile.APIs = []API{
+		integrationAPI(failureSlug, "Failure recovery integration API", providerSlug, failureCategorySlug, suffix),
+	}
+	failureOptions := ImportOptions{RunID: failureRunID, BatchSize: 1}
+	if _, err := ImportResumable(ctx, pool, failureFile, failureOptions); err == nil {
+		t.Fatal("expected import to fail while its category is missing")
+	}
+
+	var failedRunStatus, runError string
+	if err := pool.QueryRow(ctx, `SELECT "status", COALESCE("errorSummary",'') FROM "CatalogueImportRun" WHERE "id"=$1`, failureRunID).Scan(&failedRunStatus, &runError); err != nil {
+		t.Fatalf("read failed import run: %v", err)
+	}
+	if failedRunStatus != "FAILED" || !strings.Contains(runError, failureCategorySlug) {
+		t.Fatalf("unexpected failed run diagnostics: status=%q error=%q", failedRunStatus, runError)
+	}
+
+	var failedBatchStatus, batchError string
+	var failedBatchProcessed int
+	if err := pool.QueryRow(ctx, `SELECT "status", COALESCE("errorSummary",''), "processedCount" FROM "CatalogueImportBatch" WHERE "runId"=$1 AND "batchNumber"=0`, failureRunID).Scan(&failedBatchStatus, &batchError, &failedBatchProcessed); err != nil {
+		t.Fatalf("read failed batch diagnostics: %v", err)
+	}
+	if failedBatchStatus != "FAILED" || !strings.Contains(batchError, failureCategorySlug) || failedBatchProcessed != 0 {
+		t.Fatalf("unexpected failed batch diagnostics: status=%q error=%q processed=%d", failedBatchStatus, batchError, failedBatchProcessed)
+	}
+
+	failureCategoryID, err := newUUID()
+	if err != nil {
+		t.Fatalf("generate recovery category ID: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `
+		INSERT INTO "Category" ("id","slug","name","createdAt","updatedAt")
+		VALUES ($1::uuid,$2,$3,$4,$4)
+	`, failureCategoryID, failureCategorySlug, "Importer failure recovery category", time.Now().UTC()); err != nil {
+		t.Fatalf("create missing category for retry: %v", err)
+	}
+
+	failureReport, err := ImportResumable(ctx, pool, failureFile, failureOptions)
+	if err != nil {
+		t.Fatalf("retry failed batch with same run ID: %v", err)
+	}
+	if failureReport.CompletedBatches != 1 || failureReport.ProcessedRecords != 1 {
+		t.Fatalf("unexpected failed-batch recovery report: %+v", failureReport)
+	}
+	var recoveredBatchStatus, recoveredBatchError string
+	var recoveredBatchProcessed int
+	if err := pool.QueryRow(ctx, `SELECT "status", COALESCE("errorSummary",''), "processedCount" FROM "CatalogueImportBatch" WHERE "runId"=$1 AND "batchNumber"=0`, failureRunID).Scan(&recoveredBatchStatus, &recoveredBatchError, &recoveredBatchProcessed); err != nil {
+		t.Fatalf("read recovered batch checkpoint: %v", err)
+	}
+	if recoveredBatchStatus != "COMPLETED" || recoveredBatchError != "" || recoveredBatchProcessed != 1 {
+		t.Fatalf("failed batch diagnostics were not cleared on recovery: status=%q error=%q processed=%d", recoveredBatchStatus, recoveredBatchError, recoveredBatchProcessed)
+	}
+	var recoveredRunStatus string
+	if err := pool.QueryRow(ctx, `SELECT "status" FROM "CatalogueImportRun" WHERE "id"=$1`, failureRunID).Scan(&recoveredRunStatus); err != nil {
+		t.Fatalf("read recovered run status: %v", err)
+	}
+	if recoveredRunStatus != "COMPLETED" {
+		t.Fatalf("expected recovered run to complete, got %q", recoveredRunStatus)
+	}
+
 
 func integrationAPI(slug, name, providerSlug, categorySlug, suffix string) API {
 	return API{

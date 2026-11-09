@@ -146,8 +146,25 @@ func ImportResumable(ctx context.Context, pool *pgxpool.Pool, file File, options
 		}
 		if err != nil {
 			_ = tx.Rollback(context.Background())
-			if _, statusErr := pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='FAILED',"errorSummary"=$2,"updatedAt"=$3 WHERE "id"=$1`, options.RunID, err.Error(), time.Now().UTC()); statusErr != nil {
-				return report, fmt.Errorf("batch %d failed (%v); could not mark run failed: %w", batch, err, statusErr)
+			failedAt := time.Now().UTC()
+			// The batch transaction is rolled back, so persist its diagnostic in a
+			// separate statement. A retry with the same run ID will reset this row
+			// to RUNNING and clear the error before attempting the batch again.
+			_, batchStatusErr := pool.Exec(ctx, `
+				INSERT INTO "CatalogueImportBatch"
+					("id","runId","batchNumber","recordCount","processedCount","status","errorSummary","startedAt","completedAt")
+				VALUES (gen_random_uuid(),$1,$2,$3,0,'FAILED',$4,$5,$5)
+				ON CONFLICT ("runId","batchNumber") DO UPDATE SET
+					"recordCount"=EXCLUDED."recordCount",
+					"processedCount"=0,
+					"status"='FAILED',
+					"errorSummary"=EXCLUDED."errorSummary",
+					"startedAt"=EXCLUDED."startedAt",
+					"completedAt"=EXCLUDED."completedAt"
+			`, options.RunID, batch, end-start, err.Error(), failedAt)
+			_, runStatusErr := pool.Exec(ctx, `UPDATE "CatalogueImportRun" SET "status"='FAILED',"errorSummary"=$2,"updatedAt"=$3 WHERE "id"=$1`, options.RunID, err.Error(), failedAt)
+			if batchStatusErr != nil || runStatusErr != nil {
+				return report, fmt.Errorf("batch %d failed: %w (persist batch failure: %v; mark run failed: %v)", batch, err, batchStatusErr, runStatusErr)
 			}
 			return report, fmt.Errorf("batch %d failed; retry with the same run ID: %w", batch, err)
 		}
