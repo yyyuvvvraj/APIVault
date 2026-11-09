@@ -134,3 +134,46 @@ GA requires all gates in [V1_RELEASE_CHECKLIST.md](V1_RELEASE_CHECKLIST.md) and 
 ## Explicitly not promised
 
 No fixed delivery date, uptime SLA, paid tier, public self-service registration, write API, or provider endorsement is implied by this roadmap.
+
+## A. Catalogue scale and quality — hard gate
+- [ ] At least 1,000 distinct API products/services in the canonical catalogue.
+- [ ] Count only ACTIVE, VERIFIED, published records with provider, category, and official HTTPS source evidence.
+- [ ] Human-review provider identity, aliases, mirrors, endpoint-only records, versions, and duplicates; a mechanical count is not sufficient.
+- [ ] Record dataset source, license/terms, attribution, retrieval date, and refresh policy. Never ingest or redistribute without permission.
+- [ ] Imported records remain pending/unverified until explicit maintainer review.
+- [ ] Run `npm run catalogue:report`; attach timestamped JSON with exclusions and category/provider breakdown.
+- [ ] If below 1,000, do not publish v0.5.0 and do not weaken quality rules.
+
+The curated starter manifests contain 13 discovery candidates, not 1,000 verified APIs.
+
+## B. Deployability
+- [ ] Document hosting topology, supported Node/PostgreSQL versions, environment variables, trusted proxy, and secret ownership.
+- [ ] Reproduce a clean deployment and controlled migration execution.
+- [ ] Run hosted readiness and public-contract smoke checks on the exact candidate.
+- [ ] Record deployment URL, commit SHA, migration result, smoke-check run, and operator.
+
+## C. Backup and recovery
+- [ ] Configure provider-native point-in-time recovery and record retention/region/access settings.
+- [ ] Configure scheduled encrypted export and verify an artifact.
+- [ ] Copy encrypted backups to durable, access-controlled off-host storage; CI artifacts are staging only.
+- [ ] Restore a real backup into an isolated database with `scripts/restore-postgres.sh`.
+- [ ] Validate migrations, row counts, account/key ownership, and application readiness.
+- [ ] Record backup age, restore duration, checksum, validation, operator, and cleanup.
+
+A successful backup job is not a successful restore drill.
+
+## D. Observability and incident response
+- [ ] External uptime/readiness monitor for `/api/health/ready`.
+- [ ] Centralized logs and metrics with retention, request correlation, and access controls.
+- [ ] Alert destination and named operator; controlled non-production alert delivery evidence.
+- [ ] Verify `/api/ops/metrics` remains protected. Process-local metrics alone do not qualify.
+- [ ] Review incident, rollback/forward-fix, and credential-rotation runbooks.
+
+## E. Security and product quality
+- [ ] Review Better Auth sessions/cookies, admin authorization, registration policy, and secret rotation.
+- [ ] Review CSP observations, HSTS at TLS ingress, trusted proxy/IP handling, and rate limits.
+- [ ] Review verifier egress/SSRF boundaries, concurrency, and credentials.
+- [ ] Resolve critical findings; document owner/mitigation for accepted high findings.
+- [ ] Pass unit, PostgreSQL integration, browser E2E, Go importer/verifier, repository/security, and Docker checks on exact candidate.
+- [ ] Complete responsive and keyboard smoke tests for discovery, API details/docs, playground, account, and moderation.
+
