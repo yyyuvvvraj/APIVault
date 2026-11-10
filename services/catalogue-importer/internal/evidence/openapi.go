@@ -3,6 +3,7 @@ package evidence
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/url"
 	"strings"
 )
@@ -39,8 +40,8 @@ func AnalyzeOpenAPIJSON(raw []byte, providerDomains []string) OpenAPIAnalysis {
 		return result
 	}
 	var extra any
-	if err := decoder.Decode(&extra); err == nil {
-		result.Issues = append(result.Issues, "document must contain exactly one JSON value")
+	if err := decoder.Decode(&extra); err != io.EOF {
+		result.Issues = append(result.Issues, "document must contain exactly one valid JSON value")
 		return result
 	}
 	info, _ := document["info"].(map[string]any)
