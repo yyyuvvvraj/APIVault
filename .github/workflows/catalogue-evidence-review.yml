@@ -1,0 +1,86 @@
+name: Catalogue provider evidence review
+
+on:
+  pull_request:
+    paths:
+      - "services/catalogue-importer/cmd/catalogue-evidence-review/**"
+      - "services/catalogue-importer/internal/evidence/**"
+      - "services/catalogue-importer/data/evidence-review/**"
+      - "services/catalogue-importer/data/evidence-review-template.json"
+      - ".github/workflows/catalogue-evidence-review.yml"
+  push:
+    branches: [dev]
+    paths:
+      - "services/catalogue-importer/cmd/catalogue-evidence-review/**"
+      - "services/catalogue-importer/internal/evidence/**"
+      - "services/catalogue-importer/data/evidence-review/**"
+      - "services/catalogue-importer/data/evidence-review-template.json"
+      - ".github/workflows/catalogue-evidence-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalogue-evidence-review-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate provider evidence submissions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout APIVault
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Test catalogue importer
+        working-directory: services/catalogue-importer
+        run: go test ./...
+
+      - name: Verify Go formatting
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          files="$(gofmt -l $(find . -name '*.go' -type f))"
+          if [[ -n "$files" ]]; then
+            printf 'Go files need gofmt:\n%s\n' "$files"
+            exit 1
+          fi
+
+      - name: Validate committed evidence packs
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/evidence-review-reports"
+          shopt -s nullglob
+          packs=(data/evidence-review/*.json)
+          if (( ${#packs[@]} == 0 )); then
+            echo "No completed evidence packs submitted; validator and tests passed."
+            exit 0
+          fi
+          for pack in "${packs[@]}"; do
+            name="$(basename "$pack" .json)"
+            report="$RUNNER_TEMP/evidence-review-reports/$name.report.json"
+            go run ./cmd/catalogue-evidence-review -input "$pack" -output "$report"
+            jq -e '.total > 0 and .blocked == 0' "$report" >/dev/null || {
+              echo "Evidence pack $pack has blocked or empty submissions."
+              jq '{total, ready, blocked, findings}' "$report"
+              exit 1
+            }
+          done
+
+      - name: Upload evidence review reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: apivault-evidence-review-${{ github.run_id }}
+          path: ${{ runner.temp }}/evidence-review-reports/
+          if-no-files-found: ignore
+          retention-days: 30
