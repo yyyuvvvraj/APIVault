@@ -8,9 +8,9 @@ import (
 func TestAnalyzeOpenAPIJSONAcceptsHTTPSProviderServer(t *testing.T) {
 	document := map[string]any{
 		"openapi": "3.1.0",
-		"info": map[string]any{"title": "Example API", "version": "v1"},
+		"info":    map[string]any{"title": "Example API", "version": "v1"},
 		"servers": []any{map[string]any{"url": "https://api.example.com/v1"}},
-		"paths": map[string]any{"/items": map[string]any{"get": map[string]any{"summary": "List items"}}},
+		"paths":   map[string]any{"/items": map[string]any{"get": map[string]any{"summary": "List items"}}},
 	}
 	raw, _ := json.Marshal(document)
 	result := AnalyzeOpenAPIJSON(raw, []string{"example.com"})
