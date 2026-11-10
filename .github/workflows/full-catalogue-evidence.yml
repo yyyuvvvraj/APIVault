@@ -159,6 +159,8 @@ jobs:
           triage = json.load(open(os.path.join(root, "triage.json"), encoding="utf-8"))
           pages = [json.load(open(p, encoding="utf-8")) for p in sorted(glob.glob(os.path.join(root, "queue-page-*.json")))]
           leads = [item for page in pages for item in page["candidates"]]
+          research_report = json.load(open(os.path.join(root, "high-priority-research.json"), encoding="utf-8"))
+          research_by_id = {item["reviewId"]: item for item in research_report["records"]}
           findings = {}
           for path in glob.glob(os.path.join(root, "evidence-reports", "*.json")):
               report = json.load(open(path, encoding="utf-8"))
@@ -187,7 +189,9 @@ jobs:
                   "evidenceIssues": evidence["issues"] if evidence else ["No submitted provider-evidence pack for this lead"],
                   "importEligible": False,
                   "verificationStatus": "UNVERIFIED",
-                  "publicationStatus": "NOT_PUBLISHED"
+                  "publicationStatus": "NOT_PUBLISHED",
+                  "automatedResearch": research_by_id.get(lead["reviewId"]),
+                  "humanReviewRequired": True
               })
           expected = int(os.environ["EXPECTED_LEADS"])
           if len(records) != expected or len({r["reviewId"] for r in records}) != expected:
@@ -205,7 +209,8 @@ jobs:
                   "removedTrackingParameters": triage.get("removedTrackingParameters", 0)
               },
               "dispositions": counts,
-              "policy": "Evidence-complete records advance only to maintainer review. This workflow never approves, imports, verifies, or publishes a discovery lead.",
+              "automatedResearch": {k: v for k, v in research_report.items() if k != "records"},
+              "policy": "Automated reconnaissance is unverified research only. Evidence-complete records advance only to maintainer review. This workflow never approves, imports, verifies, or publishes a discovery lead.",
               "records": records
           }
           with open(os.path.join(root, "full-catalogue-disposition.json"), "w", encoding="utf-8") as f:
