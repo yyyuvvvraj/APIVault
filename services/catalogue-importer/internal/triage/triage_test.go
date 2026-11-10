@@ -5,14 +5,16 @@ import (
 	"time"
 )
 
+const revision = "88706670ac0ffaad7bf3c6307747e2515f638bed"
+
 func TestBuildKeepsEveryLeadDiscoveryOnlyAndFlagsSharedIdentity(t *testing.T) {
 	input := DiscoveryReport{
 		GeneratedAt: time.Date(2026, 11, 10, 10, 0, 0, 0, time.UTC),
-		Total: 3,
+		Total:       3,
 		Candidates: []DiscoveryLead{
-			{Name: "Weather API", Description: "Weather data", URL: "https://example.com/api?utm_source=test&key=public", Category: "Weather", DirectoryURL: "https://directory.example", SourceRevision: "abc", Status: "DISCOVERY_ONLY"},
-			{Name: "Weather API", Description: "Forecasts", URL: "https://example.com/forecast?gclid=abc", Category: "Unknown", DirectoryURL: "https://directory.example", SourceRevision: "abc", Status: "DISCOVERY_ONLY"},
-			{Name: "Finance API", Description: "Rates", URL: "https://finance.example/api", Category: "Finance", DirectoryURL: "https://directory.example", SourceRevision: "abc", Status: "DISCOVERY_ONLY"},
+			{Name: "Weather API", Description: "Weather data", URL: "https://example.com/api?utm_source=test&key=public", Category: "Weather", DirectoryURL: "https://directory.example", SourceRevision: revision, Status: "DISCOVERY_ONLY"},
+			{Name: "Weather API", Description: "Forecasts", URL: "https://example.com/forecast?gclid=abc", Category: "Unknown", DirectoryURL: "https://directory.example", SourceRevision: revision, Status: "DISCOVERY_ONLY"},
+			{Name: "Finance API", Description: "Rates", URL: "https://finance.example/api", Category: "Finance", DirectoryURL: "https://directory.example", SourceRevision: revision, Status: "DISCOVERY_ONLY"},
 		},
 	}
 	report, err := Build(input)
@@ -41,8 +43,8 @@ func TestBuildKeepsEveryLeadDiscoveryOnlyAndFlagsSharedIdentity(t *testing.T) {
 
 func TestBuildRejectsUnsafeAndMalformedEntriesWithoutPromotingOthers(t *testing.T) {
 	input := DiscoveryReport{Total: 2, Candidates: []DiscoveryLead{
-		{Name: "Bad", Description: "unsafe", URL: "http://example.com", Status: "DISCOVERY_ONLY"},
-		{Name: "Good", Description: "safe lead", URL: "https://good.example/api", Category: "Development", Status: "DISCOVERY_ONLY"},
+		{Name: "Bad", Description: "unsafe", URL: "http://example.com", DirectoryURL: "https://directory.example", SourceRevision: revision, Status: "DISCOVERY_ONLY"},
+		{Name: "Good", Description: "safe lead", URL: "https://good.example/api", Category: "Development", DirectoryURL: "https://directory.example", SourceRevision: revision, Status: "DISCOVERY_ONLY"},
 	}}
 	report, err := Build(input)
 	if err != nil {
@@ -52,7 +54,7 @@ func TestBuildRejectsUnsafeAndMalformedEntriesWithoutPromotingOthers(t *testing.
 		t.Fatalf("unexpected counts: %#v", report)
 	}
 	if report.Candidates[0].SuggestedCategory != "Developer Tools" {
-		t.Fatalf("unexpected category mapping: %#v", report.Candidates[0])
+		t.Fatalf("unexpected category mapping: %#v", report)
 	}
 	if report.Candidates[0].Status != "DISCOVERY_ONLY" {
 		t.Fatalf("lead must remain discovery-only")
@@ -60,7 +62,7 @@ func TestBuildRejectsUnsafeAndMalformedEntriesWithoutPromotingOthers(t *testing.
 }
 
 func TestBuildRejectsMismatchedTotal(t *testing.T) {
-	_, err := Build(DiscoveryReport{Total: 2, Candidates: []DiscoveryLead{{Name: "One", Description: "desc", URL: "https://one.example", Status: "DISCOVERY_ONLY"}}})
+	_, err := Build(DiscoveryReport{Total: 2, Candidates: []DiscoveryLead{{Name: "One", Description: "desc", URL: "https://one.example", DirectoryURL: "https://directory.example", SourceRevision: revision, Status: "DISCOVERY_ONLY"}}})
 	if err == nil {
 		t.Fatal("expected mismatched total to fail")
 	}
