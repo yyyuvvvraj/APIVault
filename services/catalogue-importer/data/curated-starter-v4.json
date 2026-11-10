@@ -162,6 +162,13 @@
           "title": "Europe PMC portal",
           "isOfficial": true,
           "notes": "Official literature discovery portal and service overview."
+        },
+        {
+          "kind": "TERMS",
+          "url": "https://europepmc.org/PrivacyNotice",
+          "title": "Europe PMC privacy notice",
+          "isOfficial": true,
+          "notes": "Privacy notice referenced by the public REST service documentation; review it alongside source-specific content rights."
         }
       ]
     },
@@ -279,10 +286,10 @@
         },
         {
           "kind": "RATE_LIMITS",
-          "url": "https://developers.google.com/youtube/data/getting-started#quota",
-          "title": "YouTube Data API quota usage",
+          "url": "https://developers.google.com/youtube/data/determine_quota_cost",
+          "title": "YouTube Data API quota calculator",
           "isOfficial": true,
-          "notes": "Documents daily project quota and method-specific quota consumption."
+          "notes": "Documents method-specific quota costs, default daily allocation, and quota reset behavior."
         }
       ]
     },
