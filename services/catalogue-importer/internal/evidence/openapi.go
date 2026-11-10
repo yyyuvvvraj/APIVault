@@ -80,7 +80,9 @@ func AnalyzeOpenAPIJSON(raw []byte, providerDomains []string) OpenAPIAnalysis {
 		}
 		if host != "" && hasHTTPS {
 			server := "https://" + host + stringValue(document["basePath"])
-			if safeProviderServer(server, providerDomains) { result.SecureServerURLs = append(result.SecureServerURLs, server) }
+			if safeProviderServer(server, providerDomains) {
+				result.SecureServerURLs = append(result.SecureServerURLs, server)
+			}
 		}
 	} else {
 		result.Issues = append(result.Issues, "document must declare OpenAPI 3.x or Swagger 2.0")
