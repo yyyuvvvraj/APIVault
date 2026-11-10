@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   discover:
-    name: Extract reproducible discovery leads
+    name: Extract and triage reproducible discovery leads
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -49,7 +49,7 @@ jobs:
             -o "$RUNNER_TEMP/public-apis-README.md"
           test -s "$RUNNER_TEMP/public-apis-README.md"
 
-      - name: Test discovery parser
+      - name: Test discovery and triage
         working-directory: services/catalogue-importer
         run: go test ./...
 
@@ -68,10 +68,22 @@ jobs:
           jq -r '.candidates | group_by(.category)[] | "\(.[0].category): \(length)"' \
             "$RUNNER_TEMP/apivault-discovery-leads.json" | sort
 
-      - name: Upload discovery report
+      - name: Normalize and triage discovery leads
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          go run ./cmd/catalogue-triage \
+            -input "$RUNNER_TEMP/apivault-discovery-leads.json" \
+            -output "$RUNNER_TEMP/apivault-discovery-triage.json"
+          jq '{sourceTotal, processed, rejected, exactUrlDuplicateGroups, sharedHostnameGroups, duplicateNameGroups, unmappedCategory, removedTrackingParameters, categoryBreakdown, notice}' \
+            "$RUNNER_TEMP/apivault-discovery-triage.json"
+
+      - name: Upload discovery and triage reports
         uses: actions/upload-artifact@v7
         with:
           name: apivault-discovery-leads-${{ github.run_id }}
-          path: ${{ runner.temp }}/apivault-discovery-leads.json
+          path: |
+            ${{ runner.temp }}/apivault-discovery-leads.json
+            ${{ runner.temp }}/apivault-discovery-triage.json
           if-no-files-found: error
           retention-days: 30
