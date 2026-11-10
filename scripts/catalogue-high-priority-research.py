@@ -104,6 +104,25 @@ def fetch_page(url):
     out["researchMethod"] = "single-page read-only HTTP reconnaissance; ownership and API claims not verified"
     return out
 
+def research_candidate_pages(research, max_pages=8):
+    """Fetch a bounded set of discovered evidence links; never treat them as verified."""
+    if max_pages <= 0:
+        research["followUpPages"] = []
+        return research
+    priority = {"API_DOCUMENTATION": 0, "AUTHENTICATION": 1, "TERMS": 2, "PRICING": 3, "STATUS": 4, "SUPPORT": 5}
+    ordered = sorted(research.get("candidateLinks", []), key=lambda item: (priority.get(item.get("kind"), 99), item.get("url", "")))
+    pages, seen = [], set()
+    for link in ordered:
+        url = link.get("url", "")
+        if not url or url in seen: continue
+        seen.add(url)
+        result = fetch_with_retries(url)
+        pages.append({"kind": link.get("kind", "UNKNOWN"), "url": url, "linkText": link.get("linkText", ""), "evidenceStatus": "UNVERIFIED_CANDIDATE", "fetchStatus": result.get("fetchStatus"), "httpStatus": result.get("httpStatus"), "resolvedUrl": result.get("resolvedUrl"), "contentType": result.get("contentType"), "title": result.get("title", ""), "description": result.get("description", ""), "error": result.get("error"), "attempts": result.get("attempts", 1), "observedAt": result.get("observedAt")})
+        if len(pages) >= max(0, max_pages): break
+    research["followUpPages"] = pages
+    return research
+
+
 def fetch_with_retries(url, attempts=3, base_delay=1.0):
     """Retry transient provider/network failures without retrying permanent HTTP errors."""
     retryable_http = {"HTTP_408", "HTTP_425", "HTTP_429", "HTTP_500", "HTTP_502", "HTTP_503", "HTTP_504"}
@@ -119,7 +138,7 @@ def fetch_with_retries(url, attempts=3, base_delay=1.0):
     return result
 
 
-def run(inputs, output, workers):
+def run(inputs, output, workers, max_pages_per_host=8):
     leads = []
     for path in inputs:
         with open(path, encoding="utf-8") as f:
@@ -155,12 +174,15 @@ def run(inputs, output, workers):
             "sourceUrl": lead.get("originalUrl", ""), "disposition": "HUMAN_REVIEW_REQUIRED",
             "researchError": "invalid or unsupported source URL", "importEligible": False,
             "verificationStatus": "UNVERIFIED", "publicationStatus": "NOT_PUBLISHED"})
+    for research in results.values(): research_candidate_pages(research, max_pages_per_host)
     fetched = sum(x["fetchStatus"] == "FETCHED" for x in results.values())
     status_counts = Counter(x["research"]["fetchStatus"] if x.get("research") else "INVALID_URL" for x in records)
     link_counts = Counter(link["kind"] for x in results.values() for link in x.get("candidateLinks", []))
     report = {"schemaVersion": "1", "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
         "researchScope": "all priority levels; one representative read-only fetch per unique hostname", "leadCount": len(records),
         "uniqueHostnames": len(groups), "hostFetchesSucceeded": fetched, "hostFetchesFailed": len(groups)-fetched,
+        "followUpPagesAttempted": sum(len(x.get("followUpPages", [])) for x in results.values()),
+        "followUpPagesFetched": sum(p.get("fetchStatus") == "FETCHED" for x in results.values() for p in x.get("followUpPages", [])),
         "leadFetchDispositionCounts": dict(status_counts), "candidateLinkCounts": dict(link_counts),
         "policy": "Automated findings are leads for human review only. Candidate links are not authenticated or endorsed. No approval, import, verification, database write, or publication is performed.",
         "records": sorted(records, key=lambda x: x.get("reviewId", ""))}
@@ -171,5 +193,7 @@ def run(inputs, output, workers):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--input", action="append", required=True); p.add_argument("--output", required=True)
-    p.add_argument("--workers", type=int, default=12); a = p.parse_args()
-    print(json.dumps(run(a.input, a.output, a.workers), indent=2))
+    p.add_argument("--workers", type=int, default=12)
+    p.add_argument("--max-pages-per-host", type=int, default=8)
+    a = p.parse_args()
+    print(json.dumps(run(a.input, a.output, a.workers, max(0, min(a.max_pages_per_host, 24))), indent=2))
