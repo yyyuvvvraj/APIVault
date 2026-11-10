@@ -54,6 +54,7 @@ jobs:
             -o "$RUNNER_TEMP/catalogue-candidates.json"
           count="$(jq '.apis | length' "$RUNNER_TEMP/catalogue-candidates.json")"
           echo "Candidate records exported: $count"
+          jq '.diagnostics' "$RUNNER_TEMP/catalogue-candidates.json"
           if [ "$count" -eq 0 ]; then
             echo "No eligible pending catalogue records."
             echo "has_candidates=false" >> "$GITHUB_OUTPUT"
