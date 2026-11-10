@@ -210,13 +210,16 @@ export async function POST(request: Request) {
         continue;
       }
 
+      const providerHost = new URL(api.homepageUrl).hostname;
       if (api.pricingModel !== "UNKNOWN" && !api.sources.some((source) =>
-        source.sourceKind === "PRICING" && source.isOfficial)) {
+        source.sourceKind === "PRICING" && source.isOfficial &&
+        sameProviderDomain(providerHost, new URL(source.url).hostname))) {
         held.push({ slug: result.slug, reason: "known pricing claims lack official pricing evidence" });
         continue;
       }
       if (api.authMethods.some((method) => method.method !== "UNKNOWN") && !api.sources.some((source) =>
-        source.sourceKind === "AUTHENTICATION" && source.isOfficial)) {
+        source.sourceKind === "AUTHENTICATION" && source.isOfficial &&
+        sameProviderDomain(providerHost, new URL(source.url).hostname))) {
         held.push({ slug: result.slug, reason: "known authentication claims lack official authentication evidence" });
         continue;
       }
