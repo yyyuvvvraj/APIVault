@@ -72,8 +72,10 @@ export async function GET(request: Request) {
         publishedAt: null,
         featured: false,
         homepageUrl: { startsWith: "https://" },
-        OR: [{ documentationUrl: null }, { documentationUrl: { startsWith: "https://" } }],
-        OR: [{ baseUrl: null }, { baseUrl: { startsWith: "https://" } }],
+        AND: [
+          { OR: [{ documentationUrl: null }, { documentationUrl: { startsWith: "https://" } }] },
+          { OR: [{ baseUrl: null }, { baseUrl: { startsWith: "https://" } }] },
+        ],
         categories: { some: {} },
         sources: {
           some: {},
