@@ -69,9 +69,6 @@ jobs:
       - name: Generate Prisma Client
         run: npm run db:generate
 
-      - name: Apply database migrations
-        run: npm run db:deploy
-
       - name: Validate and import all discovery leads
         run: npx tsx scripts/import-discovery-disposition.ts "${{ runner.temp }}/catalogue-artifact/full-catalogue-disposition.json"
 
