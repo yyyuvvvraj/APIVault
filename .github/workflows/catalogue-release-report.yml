@@ -1,6 +1,17 @@
 name: Catalogue release-count report
 
 on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/catalogue-release-report.yml"
+      - "scripts/report-catalogue-release.ts"
+      - "src/lib/catalogue/release-report.ts"
+      - "prisma/schema.prisma"
+      - "package.json"
+      - "package-lock.json"
+  schedule:
+    - cron: "17 5 * * 1"
   workflow_dispatch:
     inputs:
       enforce_1000:
@@ -44,7 +55,7 @@ jobs:
       - name: Generate catalogue report
         env:
           DATABASE_URL: ${{ secrets.APIVAULT_REPORT_DATABASE_URL }}
-          ENFORCE_1000: ${{ inputs.enforce_1000 }}
+          ENFORCE_1000: ${{ github.event_name == 'schedule' || inputs.enforce_1000 }}
         run: |
           set -euo pipefail
           if [[ -z "$DATABASE_URL" ]]; then
