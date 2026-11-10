@@ -48,3 +48,18 @@ The project should later automate stale-entry reminders using `lastCheckedAt`; a
 ## Corrections and removals
 
 Corrections should be submitted through GitHub issues or pull requests and include the source of the correction. Deprecated, unavailable, and archived APIs should retain their historical record while being excluded from active public search results.
+
+
+## Automated verification and publication
+
+The daily automated verifier may publish an API only when the strict machine policy
+passes: exact official homepage and documentation source URLs, conservative homepage
+and documentation host alignment, successful live HTTPS checks for every linked
+source, complete category/authentication metadata, official evidence for known
+pricing/authentication claims, and duplicate/conflict checks. Third-party documentation
+hosts and ambiguous cases remain unpublished for maintainer review.
+
+The automated decision and evidence report are retained as a revision and workflow
+artifact. Automated reachability and hostname alignment are not proof of provider
+ownership or legal rights; the workflow does not certify licensing or terms. Unknown
+claims stay unknown. See [Automated catalogue verification](AUTOMATED_CATALOGUE_VERIFICATION.md).
