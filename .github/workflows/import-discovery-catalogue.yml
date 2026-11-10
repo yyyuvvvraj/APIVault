@@ -1,0 +1,81 @@
+name: Import discovery catalogue
+
+on:
+  workflow_run:
+    workflows: ["Full catalogue evidence processing"]
+    branches: [dev]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful full-catalogue evidence workflow run ID
+        required: true
+        type: string
+      expected_leads:
+        description: Expected unique discovery leads
+        required: true
+        default: "2284"
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: apivault-discovery-catalogue-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      EXPECTED_DISCOVERY_LEADS: ${{ inputs.expected_leads || '2284' }}
+      SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+    steps:
+      - name: Require database connection
+        run: |
+          if [[ -z "$DATABASE_URL" ]]; then
+            echo "::error::Repository secret DATABASE_URL is required to import the discovery queue into the APIVault database."
+            exit 1
+          fi
+          if [[ -z "$SOURCE_RUN_ID" ]]; then
+            echo "::error::A successful full-catalogue evidence workflow run is required."
+            exit 1
+          fi
+
+      - name: Download the complete disposition artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: apivault-full-catalogue-review-${{ github.event.workflow_run.id || inputs.source_run_id }}
+          run-id: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/catalogue-artifact
+
+      - name: Check out application
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Apply database migrations
+        run: npm run db:deploy
+
+      - name: Validate and import all discovery leads
+        run: npx tsx scripts/import-discovery-disposition.ts "${{ runner.temp }}/catalogue-artifact/full-catalogue-disposition.json"
+
+      - name: Report imported catalogue size
+        run: |
+          echo "The full disposition artifact was imported into DiscoveryLead."
+          echo "All records remain UNVERIFIED, NOT_PUBLISHED, and require human review."
