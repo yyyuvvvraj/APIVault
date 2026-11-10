@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 const menuLinks = [
   { href: "/", label: "Home", icon: "⌂" },
   { href: "/apis", label: "Explore APIs", icon: "◫" },
+  { href: "/discover", label: "Discovery Queue", icon: "⌕" },
   { href: "https://github.com/yyyuvvvraj/APIVault", label: "Repository", icon: "⌘" },
   { href: "https://github.com/yyyuvvvraj/APIVault/discussions", label: "Community", icon: "◉" },
 ];
@@ -66,6 +67,10 @@ export default async function HomePage() {
             <h1 className="max-w-3xl text-3xl font-black leading-tight tracking-tight text-white sm:text-[42px]">Your gateway to a world of public APIs.</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">Discover useful APIs, compare how they work, and build better applications with reliable source-backed information.</p>
             <p className="mt-1 text-xs font-semibold text-slate-500">Community curated · Source linked · Open source</p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/apis" className="rounded-lg bg-rose-600 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-rose-500">Explore verified APIs</Link>
+              <Link href="/discover" className="rounded-lg border border-amber-400/25 bg-amber-400/[0.06] px-4 py-2.5 text-xs font-extrabold text-amber-200 hover:bg-amber-400/10">Browse 2,284 discovery leads ↗</Link>
+            </div>
           </section>
           <section className="mt-8">
             <div className="mb-3 flex items-center justify-between">
