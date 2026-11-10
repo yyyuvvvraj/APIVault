@@ -22,6 +22,8 @@ on:
       - "services/catalogue-importer/internal/evidence/**"
       - "services/catalogue-importer/internal/curation/**"
       - "services/catalogue-importer/data/evidence-review/**"
+      - "scripts/catalogue-high-priority-research.py"
+      - "scripts/tests/test_catalogue_high_priority_research.py"
 
 permissions:
   contents: read
@@ -51,6 +53,9 @@ jobs:
       - name: Test importer and review pipeline
         working-directory: services/catalogue-importer
         run: go test ./...
+
+      - name: Test automated research safety and review gates
+        run: python3 -m unittest discover -s scripts/tests -p "test_catalogue_high_priority_research.py" -v
 
       - name: Fetch immutable discovery source
         run: |
@@ -98,6 +103,29 @@ jobs:
           if len(records) != expected or len(set(ids)) != expected:
               raise SystemExit(f"Queue integrity failed: {len(records)} records, {len(set(ids))} unique IDs, expected {expected}")
           print(f"Queue integrity passed: {len(records)} unique leads across {len(pages)} pages")
+          PY
+
+      - name: Research every HIGH-priority lead
+        run: |
+          set -euo pipefail
+          python3 scripts/catalogue-high-priority-research.py \
+            --input "$RUNNER_TEMP/queue-page-1.json" \
+            --input "$RUNNER_TEMP/queue-page-2.json" \
+            --input "$RUNNER_TEMP/queue-page-3.json" \
+            --input "$RUNNER_TEMP/queue-page-4.json" \
+            --input "$RUNNER_TEMP/queue-page-5.json" \
+            --workers 20 \
+            --output "$RUNNER_TEMP/high-priority-research.json"
+          python3 - "$RUNNER_TEMP/high-priority-research.json" <<'PY'
+          import json, sys
+          report = json.load(open(sys.argv[1], encoding="utf-8"))
+          if report["leadCount"] != 1161:
+              raise SystemExit(f"Expected 1,161 HIGH-priority leads, got {report['leadCount']}")
+          if len({x["reviewId"] for x in report["records"]}) != 1161:
+              raise SystemExit("Research output contains duplicate or missing review IDs")
+          if any(x.get("importEligible") is not False or x.get("verificationStatus") != "UNVERIFIED" for x in report["records"]):
+              raise SystemExit("Research output violated the human-review gate")
+          print(json.dumps({k:v for k,v in report.items() if k != "records"}, indent=2))
           PY
 
       - name: Validate every submitted provider-evidence pack
@@ -196,5 +224,6 @@ jobs:
             ${{ runner.temp }}/evidence-reports/
             ${{ runner.temp }}/curation-handoffs/
             ${{ runner.temp }}/full-catalogue-disposition.json
+            ${{ runner.temp }}/high-priority-research.json
           if-no-files-found: error
           retention-days: 90
