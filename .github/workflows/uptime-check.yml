@@ -20,7 +20,6 @@ concurrency:
 
 jobs:
   smoke-check:
-    if: ${{ vars.APIVAULT_BASE_URL != '' }}
     name: Check hosted readiness and public contracts
     runs-on: ubuntu-latest
     steps:
