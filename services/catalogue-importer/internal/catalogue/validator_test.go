@@ -96,6 +96,7 @@ func TestAutoApprovalEligibilityRequiresSameProviderDomainAndEvidence(t *testing
 	result := APIValidation{Verdict: "VALIDATED_CANDIDATE", Checks: []URLCheck{
 		{URL: api.HomepageURL, FinalURL: api.HomepageURL, Reachable: true},
 		{URL: api.DocumentationURL, FinalURL: api.DocumentationURL, Reachable: true},
+		{URL: "https://docs.example.com/auth", FinalURL: "https://docs.example.com/auth", Reachable: true},
 	}}
 	if reasons := autoApprovalEligibility(api, result); len(reasons) != 0 {
 		t.Fatalf("eligible API has reasons: %v", reasons)
