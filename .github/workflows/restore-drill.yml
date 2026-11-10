@@ -1,10 +1,10 @@
-name: Isolated PostgreSQL restore drill
+name: Free-tier isolated PostgreSQL restore drill
 
 on:
   workflow_dispatch:
     inputs:
-      backup_key:
-        description: S3 object key under the configured bucket (for example apivault/postgres/apivault-20261110T021500Z.dump.age)
+      backup_run_id:
+        description: GitHub Actions run ID that created the encrypted backup artifact
         required: true
         type: string
       confirm_isolated_target:
@@ -14,8 +14,8 @@ on:
         type: boolean
 
 permissions:
+  actions: read
   contents: read
-  id-token: write
 
 concurrency:
   group: apivault-isolated-restore-drill
@@ -35,10 +35,7 @@ jobs:
 
       - name: Validate isolated restore configuration
         env:
-          AWS_ROLE_ARN: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN }}
-          AWS_REGION: ${{ vars.APIVAULT_BACKUP_AWS_REGION }}
-          S3_BUCKET: ${{ vars.APIVAULT_BACKUP_S3_BUCKET }}
-          BACKUP_KEY: ${{ inputs.backup_key }}
+          BACKUP_RUN_ID: ${{ inputs.backup_run_id }}
           PGHOST: ${{ secrets.APIVAULT_RESTORE_PGHOST }}
           RESTORE_ALLOWED_HOST: ${{ vars.APIVAULT_RESTORE_ALLOWED_HOST }}
           PGUSER: ${{ secrets.APIVAULT_RESTORE_PGUSER }}
@@ -49,12 +46,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in AWS_ROLE_ARN AWS_REGION S3_BUCKET PGHOST RESTORE_ALLOWED_HOST PGUSER PGDATABASE RESTORE_ALLOWED_DATABASE PGPASSFILE_CONTENT AGE_IDENTITY; do
+          for name in BACKUP_RUN_ID PGHOST RESTORE_ALLOWED_HOST PGUSER PGDATABASE RESTORE_ALLOWED_DATABASE PGPASSFILE_CONTENT AGE_IDENTITY; do
             if [[ -z "${!name}" ]]; then
               echo "::error::Missing required restore configuration: $name"
               exit 1
             fi
           done
+          if [[ ! "$BACKUP_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::backup_run_id must be a numeric GitHub Actions run ID."
+            exit 1
+          fi
           if [[ "$PGHOST" != "$RESTORE_ALLOWED_HOST" ]]; then
             echo "::error::PGHOST does not exactly match APIVAULT_RESTORE_ALLOWED_HOST. Refusing to connect."
             exit 1
@@ -67,32 +68,33 @@ jobs:
             echo "::error::Refusing a database name containing a production marker."
             exit 1
           fi
-          case "$BACKUP_KEY" in
-            apivault/postgres/*.dump.age) ;;
-            *) echo "::error::backup_key must be an encrypted APIVault PostgreSQL backup under apivault/postgres/."; exit 1 ;;
-          esac
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
+      - name: Download encrypted backup from GitHub Actions artifact
+        uses: actions/download-artifact@v7
         with:
-          role-to-assume: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN }}
-          aws-region: ${{ vars.APIVAULT_BACKUP_AWS_REGION }}
-          role-session-name: APIVaultRestoreDrill-${{ github.run_id }}
+          name: apivault-encrypted-postgres-backup-${{ inputs.backup_run_id }}
+          run-id: ${{ inputs.backup_run_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: ${{ runner.temp }}/apivault-restore/artifact
 
-      - name: Download encrypted backup and prepare isolated credentials
+      - name: Prepare isolated restore credentials and verify backup
         env:
-          S3_BUCKET: ${{ vars.APIVAULT_BACKUP_S3_BUCKET }}
-          BACKUP_KEY: ${{ inputs.backup_key }}
           PGPASSFILE_CONTENT: ${{ secrets.APIVAULT_RESTORE_PGPASSFILE }}
           AGE_IDENTITY: ${{ secrets.APIVAULT_RESTORE_AGE_IDENTITY }}
         shell: bash
         run: |
           set -euo pipefail
           install -d -m 700 "$RUNNER_TEMP/apivault-restore"
+          mapfile -t backups < <(find "$RUNNER_TEMP/apivault-restore/artifact" -maxdepth 2 -type f -name 'apivault-*.dump.age')
+          if (( ${#backups[@]} != 1 )); then
+            echo "::error::Expected exactly one encrypted PostgreSQL backup artifact."
+            exit 1
+          fi
+          cp "${backups[0]}" "$RUNNER_TEMP/apivault-restore/backup.dump.age"
           printf '%s' "$PGPASSFILE_CONTENT" > "$RUNNER_TEMP/apivault-restore/pgpass"
           printf '%s' "$AGE_IDENTITY" > "$RUNNER_TEMP/apivault-restore/age-identity"
-          chmod 600 "$RUNNER_TEMP/apivault-restore/pgpass" "$RUNNER_TEMP/apivault-restore/age-identity"
-          aws s3 cp "s3://$S3_BUCKET/$BACKUP_KEY" "$RUNNER_TEMP/apivault-restore/backup.dump.age" --only-show-errors
+          chmod 600 "$RUNNER_TEMP/apivault-restore/backup.dump.age" "$RUNNER_TEMP/apivault-restore/pgpass" "$RUNNER_TEMP/apivault-restore/age-identity"
           sha256sum "$RUNNER_TEMP/apivault-restore/backup.dump.age" | tee "$RUNNER_TEMP/apivault-restore/backup.sha256"
 
       - name: Restore and validate migration history
@@ -130,13 +132,12 @@ jobs:
       - name: Publish non-sensitive restore evidence
         if: always()
         env:
-          BACKUP_KEY: ${{ inputs.backup_key }}
+          BACKUP_RUN_ID: ${{ inputs.backup_run_id }}
         shell: bash
         run: |
           {
             echo "## Isolated restore drill"
-            echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-            echo "- Backup key: $BACKUP_KEY"
+            echo "- Backup workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BACKUP_RUN_ID"
             if [[ -f "$RUNNER_TEMP/apivault-restore/backup.sha256" ]]; then
               echo "- Downloaded backup checksum:"
               cat "$RUNNER_TEMP/apivault-restore/backup.sha256"
