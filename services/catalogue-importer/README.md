@@ -128,3 +128,19 @@ go run ./cmd/catalogue-triage \
 It removes known marketing tracking parameters (`utm_*`, `gclid`, `fbclid`, `mc_cid`, and `mc_eid`) from a separate canonical URL while retaining the original URL and recording every removed parameter. It reports exact canonical URL collisions, shared hostnames, normalized-name collisions, conservative category suggestions, and unmapped categories. Shared hostnames are review signals, not automatic duplicate decisions.
 
 Every output item remains `DISCOVERY_ONLY` with `REVIEW_REQUIRED`. The command rejects malformed/non-HTTPS/credential-bearing URLs and does not create an importer manifest, connect to a database, or alter verification/publication state. A suggested category is only a hint; provider identity, official documentation, licensing, terms, pricing, authentication, and availability still require independent evidence.
+
+
+## Paginated provider research queue
+
+The `catalogue-review-pack` command turns a triage report into a deterministic, paginated research queue. It prioritizes category-mapped leads without known identity-collision signals, then mapped leads with collisions, then unmapped leads. This is only a work-order heuristic; it does not establish API quality or provider legitimacy.
+
+```bash
+cd services/catalogue-importer
+go test ./...
+go run ./cmd/catalogue-review-pack \
+  -input discovery-triage-report.json \
+  -offset 0 -limit 100 \
+  -output review-pack-page-1.json
+```
+
+Increase `-offset` by the prior page's `returned` count for subsequent pages. Review IDs are deterministic for a source revision, canonical URL, and normalized API name. Provider identity and official evidence URLs are deliberately blank; licensing is `UNASSESSED`, authentication/pricing are `UNKNOWN`, and catalogue status remains `DISCOVERY_ONLY`. Reviewers must populate evidence from provider-controlled sources. The command cannot produce an importer manifest, connect to a database, verify, or publish records.
