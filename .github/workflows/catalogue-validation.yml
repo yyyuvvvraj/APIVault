@@ -66,7 +66,7 @@ jobs:
             esac
             manifests=("$MANIFEST_INPUT")
           else
-            manifests=("data/curated-starter-v1.json" "data/curated-starter-v2.json")
+            manifests=("data/curated-starter-v1.json" "data/curated-starter-v2.json" "data/curated-starter-v3.json")
           fi
 
           for manifest in "${manifests[@]}"; do
