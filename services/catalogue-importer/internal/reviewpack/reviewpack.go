@@ -18,40 +18,40 @@ const (
 )
 
 type Candidate struct {
-	ReviewID             string   `json:"reviewId"`
-	Name                 string   `json:"name"`
-	Description          string   `json:"description"`
-	OriginalURL          string   `json:"originalUrl"`
-	CanonicalURL         string   `json:"canonicalUrl"`
-	SourceCategory       string   `json:"sourceCategory"`
-	SuggestedCategory    string   `json:"suggestedCategory,omitempty"`
-	Priority             string   `json:"priority"`
-	ReviewReasons        []string `json:"reviewReasons"`
-	SourceDirectory      string   `json:"sourceDirectory"`
-	SourceRevision       string   `json:"sourceRevision"`
+	ReviewID          string   `json:"reviewId"`
+	Name              string   `json:"name"`
+	Description       string   `json:"description"`
+	OriginalURL       string   `json:"originalUrl"`
+	CanonicalURL      string   `json:"canonicalUrl"`
+	SourceCategory    string   `json:"sourceCategory"`
+	SuggestedCategory string   `json:"suggestedCategory,omitempty"`
+	Priority          string   `json:"priority"`
+	ReviewReasons     []string `json:"reviewReasons"`
+	SourceDirectory   string   `json:"sourceDirectory"`
+	SourceRevision    string   `json:"sourceRevision"`
 	// These remain empty/unknown until independently established from provider-controlled evidence.
-	ProviderName         string   `json:"providerName"`
-	OfficialHomepageURL  string   `json:"officialHomepageUrl"`
-	DocumentationURL     string   `json:"documentationUrl"`
-	TermsURL             string   `json:"termsUrl"`
-	LicenseAssessment    string   `json:"licenseAssessment"`
-	Authentication       string   `json:"authentication"`
-	Pricing              string   `json:"pricing"`
-	EvidenceReviewStatus string   `json:"evidenceReviewStatus"`
-	CatalogueStatus      string   `json:"catalogueStatus"`
+	ProviderName         string `json:"providerName"`
+	OfficialHomepageURL  string `json:"officialHomepageUrl"`
+	DocumentationURL     string `json:"documentationUrl"`
+	TermsURL             string `json:"termsUrl"`
+	LicenseAssessment    string `json:"licenseAssessment"`
+	Authentication       string `json:"authentication"`
+	Pricing              string `json:"pricing"`
+	EvidenceReviewStatus string `json:"evidenceReviewStatus"`
+	CatalogueStatus      string `json:"catalogueStatus"`
 }
 
 type Report struct {
-	GeneratedAt    time.Time        `json:"generatedAt"`
-	SourceTotal    int              `json:"sourceTotal"`
-	Offset         int              `json:"offset"`
-	Limit          int              `json:"limit"`
-	Returned       int              `json:"returned"`
-	HasMore        bool             `json:"hasMore"`
-	PriorityCounts map[string]int   `json:"priorityCounts"`
-	CategoryCounts map[string]int   `json:"categoryCounts"`
-	Notice         string           `json:"notice"`
-	Candidates     []Candidate      `json:"candidates"`
+	GeneratedAt    time.Time      `json:"generatedAt"`
+	SourceTotal    int            `json:"sourceTotal"`
+	Offset         int            `json:"offset"`
+	Limit          int            `json:"limit"`
+	Returned       int            `json:"returned"`
+	HasMore        bool           `json:"hasMore"`
+	PriorityCounts map[string]int `json:"priorityCounts"`
+	CategoryCounts map[string]int `json:"categoryCounts"`
+	Notice         string         `json:"notice"`
+	Candidates     []Candidate    `json:"candidates"`
 }
 
 // Build creates a deterministic, paginated research queue, never an importer manifest.
