@@ -1,9 +1,6 @@
 name: Application CI
 
 on:
-  pull_request:
-  push:
-    branches: [dev, stable, "feature/**", "release/**"]
   workflow_dispatch:
 
 permissions:

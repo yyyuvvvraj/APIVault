@@ -1,15 +1,6 @@
 name: Catalogue provider evidence review
 
 on:
-  pull_request:
-    paths:
-      - "services/catalogue-importer/cmd/catalogue-evidence-review/**"
-      - "services/catalogue-importer/cmd/catalogue-curation-handoff/**"
-      - "services/catalogue-importer/internal/evidence/**"
-      - "services/catalogue-importer/internal/curation/**"
-      - "services/catalogue-importer/data/evidence-review/**"
-      - "services/catalogue-importer/data/evidence-review-template.json"
-      - ".github/workflows/catalogue-evidence-review.yml"
   push:
     branches: [dev]
     paths:

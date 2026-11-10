@@ -4,15 +4,6 @@ on:
   schedule:
     - cron: "31 4 * * 1"
   workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/catalogue-discovery.yml"
-      - "services/catalogue-importer/cmd/catalogue-discover/**"
-      - "services/catalogue-importer/cmd/catalogue-triage/**"
-      - "services/catalogue-importer/cmd/catalogue-review-pack/**"
-      - "services/catalogue-importer/internal/discovery/**"
-      - "services/catalogue-importer/internal/triage/**"
-      - "services/catalogue-importer/internal/reviewpack/**"
   push:
     branches: [dev]
     paths:

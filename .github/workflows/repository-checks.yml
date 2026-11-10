@@ -1,9 +1,6 @@
 name: Repository checks
 
 on:
-  push:
-    branches: [dev, stable, "feature/**", "bugfix/**", "docs/**", "test/**", "refactor/**", "release/**", "hotfix/**"]
-  pull_request:
   workflow_dispatch:
 
 permissions:
