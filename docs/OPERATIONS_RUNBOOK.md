@@ -107,12 +107,14 @@ The manual workflow `.github/workflows/restore-drill.yml` downloads an age-encry
 Configure these repository secrets:
 
 - `APIVAULT_RESTORE_PGHOST`
+- `APIVAULT_RESTORE_ALLOWED_HOST` (repository variable; must exactly match the restore host secret)
+- `APIVAULT_RESTORE_ALLOWED_DATABASE` (repository variable; must exactly match the disposable restore database secret)
 - `APIVAULT_RESTORE_PGPORT` (optional; defaults to 5432)
 - `APIVAULT_RESTORE_PGUSER`
 - `APIVAULT_RESTORE_PGDATABASE` (must identify a disposable non-production database)
 - `APIVAULT_RESTORE_PGPASSFILE` (one PostgreSQL passfile line)
 - `APIVAULT_RESTORE_AGE_IDENTITY` (private age identity; never commit or upload it)
 
-The workflow also requires the S3/OIDC repository variables documented above and an IAM role with narrowly scoped `s3:GetObject` access to the backup prefix. The same role needs `s3:PutObject` for scheduled backups; a separate read-only restore role is preferable if the owner configures it.
+The workflow also requires the S3/OIDC repository variables documented above and an IAM role with narrowly scoped `s3:GetObject` access to the backup prefix. The same role needs `s3:PutObject` for scheduled backups; a separate read-only restore role is preferable if the owner configures it. Before any AWS access, the workflow fails closed unless the secret host and database exactly match the two explicit allowlist variables. The database name is additionally rejected if it contains a production marker. Set the allowlist variables only after independently verifying the disposable target in the database provider; do not copy production connection details.
 
 Run manually with `confirm_isolated_target=true` and an exact encrypted object key. The workflow refuses production-like database names and any key outside `apivault/postgres/*.dump.age`. Review the run summary and evidence artifact, then validate representative row counts, application readiness, and account/key ownership manually. The workflow deliberately does not drop the target database; the operator must inspect and clean it up. A successful migration-history check alone is not a complete recovery acceptance record.
