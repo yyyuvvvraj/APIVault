@@ -138,7 +138,7 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
               {leads.map((lead) => {
                 const research = getResearch(lead.automatedResearch);
                 const snapshot = research?.research;
-                const candidateLinks = Array.isArray(snapshot?.candidateLinks) ? snapshot.candidateLinks.filter((item) => item.url && /^https?:\\/\\//i.test(item.url)).slice(0, 8) : [];
+                const candidateLinks = Array.isArray(snapshot?.candidateLinks) ? snapshot.candidateLinks.filter((item): item is ResearchLink & { url: string } => typeof item.url === "string" && /^https?:\/\//i.test(item.url)).slice(0, 8) : [];
                 return (
                 <article key={lead.reviewId} className="rounded-xl border border-white/[0.08] bg-[#14171d] p-4 sm:p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
