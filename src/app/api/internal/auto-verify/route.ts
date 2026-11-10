@@ -35,7 +35,7 @@ type ValidationReport = {
 
 function authorized(request: Request): boolean {
   const expected = process.env.APIVAULT_AUTO_VERIFY_SECRET;
-  const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  const supplied = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "") ?? "";
   if (!expected || !supplied) return false;
   const left = Buffer.from(expected);
   const right = Buffer.from(supplied);
@@ -43,8 +43,8 @@ function authorized(request: Request): boolean {
 }
 
 function sameProviderDomain(left: string, right: string): boolean {
-  const a = left.toLowerCase().replace(/\.$/, "");
-  const b = right.toLowerCase().replace(/\.$/, "");
+  const a = left.toLowerCase().replace(/\\.$/, "");
+  const b = right.toLowerCase().replace(/\\.$/, "");
   return a === b || a.endsWith(`.${b}`) || b.endsWith(`.${a}`);
 }
 
@@ -65,22 +65,59 @@ export async function GET(request: Request) {
   if (!authorized(request)) return response(401, { error: "Unauthorized." });
 
   try {
-    const records = await getPrisma().api.findMany({
+    const prisma = getPrisma();
+    const pendingWhere = {
+      status: ApiStatus.ACTIVE,
+      verificationStatus: { in: [VerificationStatus.UNVERIFIED, VerificationStatus.PENDING_REVIEW, VerificationStatus.STALE] },
+      publishedAt: null,
+      featured: false,
+    };
+
+    const [totalApis, pendingUnpublished, withHttpsHomepage, withHttpsDocsAndBaseUrl,
+      withCategory, withSources, withHttpsSources, withAuthClassification] = await Promise.all([
+      prisma.api.count(),
+      prisma.api.count({ where: pendingWhere }),
+      prisma.api.count({ where: { ...pendingWhere, homepageUrl: { startsWith: "https://" } } }),
+      prisma.api.count({ where: {
+        ...pendingWhere,
+        homepageUrl: { startsWith: "https://" },
+        AND: [
+          { OR: [{ documentationUrl: null }, { documentationUrl: { startsWith: "https://" } }] },
+          { OR: [{ baseUrl: null }, { baseUrl: { startsWith: "https://" } }] },
+        ],
+      } }),
+      prisma.api.count({ where: {
+        ...pendingWhere,
+        homepageUrl: { startsWith: "https://" },
+        categories: { some: {} },
+      } }),
+      prisma.api.count({ where: {
+        ...pendingWhere,
+        homepageUrl: { startsWith: "https://" },
+        sources: { some: {} },
+      } }),
+      prisma.api.count({ where: {
+        ...pendingWhere,
+        homepageUrl: { startsWith: "https://" },
+        sources: { some: {}, every: { url: { startsWith: "https://" } } },
+      } }),
+      prisma.api.count({ where: {
+        ...pendingWhere,
+        homepageUrl: { startsWith: "https://" },
+        authMethods: { some: {} },
+      } }),
+    ]);
+
+    const records = await prisma.api.findMany({
       where: {
-        status: ApiStatus.ACTIVE,
-        verificationStatus: { in: [VerificationStatus.UNVERIFIED, VerificationStatus.PENDING_REVIEW, VerificationStatus.STALE] },
-        publishedAt: null,
-        featured: false,
+        ...pendingWhere,
         homepageUrl: { startsWith: "https://" },
         AND: [
           { OR: [{ documentationUrl: null }, { documentationUrl: { startsWith: "https://" } }] },
           { OR: [{ baseUrl: null }, { baseUrl: { startsWith: "https://" } }] },
         ],
         categories: { some: {} },
-        sources: {
-          some: {},
-          every: { url: { startsWith: "https://" } },
-        },
+        sources: { some: {}, every: { url: { startsWith: "https://" } } },
         name: { not: "" },
         summary: { not: "" },
       },
@@ -129,6 +166,17 @@ export async function GET(request: Request) {
 
     return response(200, {
       apis,
+      diagnostics: {
+        totalApis,
+        pendingUnpublished,
+        withHttpsHomepage,
+        withHttpsDocsAndBaseUrl,
+        withCategory,
+        withSources,
+        withHttpsSources,
+        withAuthClassification,
+        eligibleCandidates: apis.length,
+      },
       dataset: {
         name: "APIVault pending catalogue snapshot",
         sourceUrl: "https://github.com/yyyuvvvraj/APIVault",
