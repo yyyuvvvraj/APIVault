@@ -1,6 +1,23 @@
 name: Full catalogue evidence processing
 
 on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/full-catalogue-evidence.yml"
+      - "services/catalogue-importer/cmd/catalogue-discover/**"
+      - "services/catalogue-importer/cmd/catalogue-triage/**"
+      - "services/catalogue-importer/cmd/catalogue-review-pack/**"
+      - "services/catalogue-importer/cmd/catalogue-evidence-review/**"
+      - "services/catalogue-importer/cmd/catalogue-curation-handoff/**"
+      - "services/catalogue-importer/internal/discovery/**"
+      - "services/catalogue-importer/internal/triage/**"
+      - "services/catalogue-importer/internal/reviewpack/**"
+      - "services/catalogue-importer/internal/evidence/**"
+      - "services/catalogue-importer/internal/curation/**"
+      - "services/catalogue-importer/data/evidence-review/**"
+      - "scripts/catalogue-high-priority-research.py"
+      - "scripts/tests/test_catalogue_high_priority_research.py"
   workflow_dispatch:
     inputs:
       expected_leads:

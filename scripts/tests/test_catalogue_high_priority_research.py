@@ -28,4 +28,22 @@ class PipelineTests(unittest.TestCase):
         for url in ("file:///etc/passwd", "http://127.0.0.1/", "http://localhost/"):
             with self.subTest(url=url), self.assertRaises(ValueError): research.validate_public_url(url)
 
+    def test_retries_transient_provider_failures_and_records_attempt_count(self):
+        failed = {"fetchStatus": "FETCH_FAILED", "error": "HTTP_503", "candidateLinks": []}
+        succeeded = {"fetchStatus": "FETCHED", "error": None, "candidateLinks": []}
+        with patch.object(research, "fetch_page", side_effect=[failed.copy(), succeeded.copy()]) as fetch, patch.object(research.time, "sleep") as sleep:
+            result = research.fetch_with_retries("https://example.com")
+        self.assertEqual(fetch.call_count, 2)
+        sleep.assert_called_once_with(1.0)
+        self.assertEqual(result["fetchStatus"], "FETCHED")
+        self.assertEqual(result["attempts"], 2)
+
+    def test_does_not_retry_permanent_http_failures(self):
+        failed = {"fetchStatus": "FETCH_FAILED", "error": "HTTP_403", "candidateLinks": []}
+        with patch.object(research, "fetch_page", return_value=failed.copy()) as fetch, patch.object(research.time, "sleep") as sleep:
+            result = research.fetch_with_retries("https://example.com")
+        self.assertEqual(fetch.call_count, 1)
+        sleep.assert_not_called()
+        self.assertEqual(result["attempts"], 1)
+
 if __name__ == "__main__": unittest.main()

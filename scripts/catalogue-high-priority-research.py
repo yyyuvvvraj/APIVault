@@ -104,6 +104,21 @@ def fetch_page(url):
     out["researchMethod"] = "single-page read-only HTTP reconnaissance; ownership and API claims not verified"
     return out
 
+def fetch_with_retries(url, attempts=3, base_delay=1.0):
+    """Retry transient provider/network failures without retrying permanent HTTP errors."""
+    retryable_http = {"HTTP_408", "HTTP_425", "HTTP_429", "HTTP_500", "HTTP_502", "HTTP_503", "HTTP_504"}
+    result = None
+    for attempt in range(1, max(1, attempts) + 1):
+        result = fetch_page(url)
+        result["attempts"] = attempt
+        error = result.get("error") or ""
+        transient_network = any(token in error for token in ("TimeoutError", "URLError", "ConnectionError", "Temporary failure"))
+        if result.get("fetchStatus") == "FETCHED" or (error not in retryable_http and not transient_network) or attempt == attempts:
+            return result
+        time.sleep(base_delay * (2 ** (attempt - 1)))
+    return result
+
+
 def run(inputs, output, workers):
     leads = []
     for path in inputs:
@@ -122,7 +137,7 @@ def run(inputs, output, workers):
         return sorted(urls, key=lambda u: (not u.startswith("https://"), len(urlparse(u).path), len(u)))[0]
     results = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, min(workers, 20))) as pool:
-        futures = {pool.submit(fetch_page, representative(group)): host for host, group in groups.items()}
+        futures = {pool.submit(fetch_with_retries, representative(group)): host for host, group in groups.items()}
         for future in concurrent.futures.as_completed(futures): results[futures[future]] = future.result()
     records = []
     for lead in leads:
