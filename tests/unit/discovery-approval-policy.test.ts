@@ -89,5 +89,6 @@ test("malformed URLs and credential-bearing URLs fail closed", () => {
     canonicalUrl: "not-a-url",
   }));
   assert.equal(result.decision, "REVIEW_REQUIRED");
-  assert.equal(result.score, 0);
+  assert.ok(result.score < 100);
+  assert.ok(result.blockers.some((item) => item.includes("valid HTTP(S)")));
 });
