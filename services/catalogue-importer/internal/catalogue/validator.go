@@ -22,14 +22,17 @@ type URLCheck struct {
 }
 
 type APIValidation struct {
-	Slug          string     `json:"slug"`
-	HomepageURL   string     `json:"homepageUrl"`
-	Name          string     `json:"name"`
-	Provider      string     `json:"provider"`
-	Verdict       string     `json:"verdict"`
-	Checks        []URLCheck `json:"checks"`
-	DuplicateOf   string     `json:"duplicateOf,omitempty"`
-	ReviewReasons []string   `json:"reviewReasons,omitempty"`
+	Slug                 string     `json:"slug"`
+	HomepageURL          string     `json:"homepageUrl"`
+	DocumentationURL     string     `json:"documentationUrl,omitempty"`
+	Name                 string     `json:"name"`
+	Provider             string     `json:"provider"`
+	Verdict              string     `json:"verdict"`
+	AutoApprove          bool       `json:"autoApprove"`
+	AutoApprovalReasons  []string   `json:"autoApprovalReasons,omitempty"`
+	Checks               []URLCheck `json:"checks"`
+	DuplicateOf          string     `json:"duplicateOf,omitempty"`
+	ReviewReasons        []string   `json:"reviewReasons,omitempty"`
 }
 
 type CatalogueConflict struct {
@@ -44,6 +47,7 @@ type ValidationReport struct {
 	GeneratedAt         time.Time           `json:"generatedAt"`
 	Total               int                 `json:"total"`
 	ValidatedCandidates int                 `json:"validatedCandidates"`
+	AutoApprovable      int                 `json:"autoApprovable"`
 	ReviewRequired      int                 `json:"reviewRequired"`
 	Rejected            int                 `json:"rejected"`
 	Results             []APIValidation     `json:"results"`
@@ -100,8 +104,9 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 				api := item.api
 				result := APIValidation{
 					Slug:        api.Slug,
-					HomepageURL: api.HomepageURL,
-					Name:        api.Name,
+					HomepageURL:      api.HomepageURL,
+					DocumentationURL: api.DocumentationURL,
+					Name:             api.Name,
 					Provider:    api.Provider.Name,
 					Verdict:     "VALIDATED_CANDIDATE",
 				}
@@ -147,7 +152,83 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 	wg.Wait()
 
 	applyCatalogueConflictChecks(&report)
+	for i, api := range file.APIs {
+		result := &report.Results[i]
+		result.AutoApprovalReasons = autoApprovalEligibility(api, *result)
+		result.AutoApprove = result.Verdict == "VALIDATED_CANDIDATE" && len(result.AutoApprovalReasons) == 0
+		if result.AutoApprove {
+			report.AutoApprovable++
+		}
+	}
 	return report
+}
+
+func autoApprovalEligibility(api API, result APIValidation) []string {
+	var reasons []string
+	if result.Verdict != "VALIDATED_CANDIDATE" {
+		reasons = append(reasons, "live evidence checks or duplicate checks did not pass")
+	}
+	hasHomepage := false
+	hasDocumentation := false
+	hasPricing := false
+	hasAuthentication := false
+	for _, source := range api.Sources {
+		if !source.IsOfficial {
+			continue
+		}
+		switch source.Kind {
+		case "OFFICIAL_HOMEPAGE":
+			if source.URL == api.HomepageURL {
+				hasHomepage = true
+			}
+		case "DOCUMENTATION":
+			if api.DocumentationURL != "" && source.URL == api.DocumentationURL {
+				hasDocumentation = true
+			}
+		case "PRICING":
+			hasPricing = true
+		case "AUTHENTICATION":
+			hasAuthentication = true
+		}
+	}
+	if !hasHomepage {
+		reasons = append(reasons, "official homepage evidence must exactly match homepageUrl")
+	}
+	if api.DocumentationURL == "" || !hasDocumentation {
+		reasons = append(reasons, "official documentation evidence must exactly match documentationUrl")
+	}
+	if len(api.Categories) == 0 {
+		reasons = append(reasons, "at least one category is required")
+	}
+	if len(api.AuthMethods) == 0 {
+		reasons = append(reasons, "an explicit authentication classification is required")
+	}
+	if api.PricingModel != "" && api.PricingModel != "UNKNOWN" && !hasPricing {
+		reasons = append(reasons, "known pricing claims require official pricing evidence")
+	}
+	for _, method := range api.AuthMethods {
+		if method.Method != "" && method.Method != "UNKNOWN" && !hasAuthentication {
+			reasons = append(reasons, "known authentication claims require official authentication evidence")
+			break
+		}
+	}
+	home, homeErr := url.Parse(api.HomepageURL)
+	doc, docErr := url.Parse(api.DocumentationURL)
+	if homeErr != nil || docErr != nil || home.Hostname() == "" || doc.Hostname() == "" ||
+		!(sameProviderDomain(home.Hostname(), doc.Hostname())) {
+		reasons = append(reasons, "homepage and documentation hosts are not on the same conservative provider domain")
+	}
+	sort.Strings(reasons)
+	return reasons
+}
+
+// sameProviderDomain intentionally accepts only an identical host or a direct
+// subdomain relationship. It is conservative by design; third-party doc hosts
+// are routed to review rather than being guessed as provider-owned.
+func sameProviderDomain(a, b string) bool {
+	a = strings.ToLower(strings.TrimSuffix(a, "."))
+	b = strings.ToLower(strings.TrimSuffix(b, "."))
+	return a == b || strings.HasSuffix(a, "."+b) || strings.HasSuffix(b, "."+a)
 }
 
 func applyCatalogueConflictChecks(report *ValidationReport) {
@@ -188,12 +269,16 @@ func applyCatalogueConflictChecks(report *ValidationReport) {
 		sort.Strings(result.ReviewReasons)
 	}
 	report.ValidatedCandidates = 0
+	report.AutoApprovable = 0
 	report.ReviewRequired = 0
 	report.Rejected = 0
 	for _, result := range report.Results {
 		switch result.Verdict {
 		case "VALIDATED_CANDIDATE":
 			report.ValidatedCandidates++
+			if result.AutoApprove {
+				report.AutoApprovable++
+			}
 		case "REJECTED":
 			report.Rejected++
 		default:
