@@ -1,0 +1,237 @@
+name: Pull request CI
+
+on:
+  pull_request:
+    branches: [dev, stable]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pull-request-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Selective validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Detect changed areas
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            importer:
+              - 'services/catalogue-importer/**'
+            verifier:
+              - 'services/verifier/**'
+            application:
+              - 'src/**'
+              - 'prisma/**'
+              - 'scripts/**'
+              - 'public/**'
+              - 'tests/unit/**'
+              - 'tests/integration/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'next.config.*'
+              - 'tsconfig.json'
+              - 'postcss.config.*'
+              - 'tailwind.config.*'
+              - 'eslint.config.*'
+              - 'middleware.*'
+              - 'next-env.d.ts'
+              - '.nvmrc'
+            browser:
+              - 'tests/e2e/**'
+              - 'playwright.config.*'
+            workflow:
+              - '.github/workflows/**'
+            docs:
+              - '*.md'
+              - 'docs/**'
+
+      - name: Validate required repository files
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in README.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md CHANGELOG.md docs/DEVELOPMENT.md docs/PROJECT_METRICS.md .github/PULL_REQUEST_TEMPLATE.md; do
+            test -s "$file" || { echo "::error file=$file::Missing or empty required file"; exit 1; }
+          done
+
+      - name: Validate workflow YAML
+        if: steps.changes.outputs.workflow == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; Dir.glob(".github/workflows/*.{yml,yaml}").sort.each { |file| YAML.parse_file(file); puts "OK: #{file}" }'
+
+      - name: Set up Go for catalogue importer
+        if: steps.changes.outputs.importer == 'true'
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Check catalogue importer formatting
+        if: steps.changes.outputs.importer == 'true'
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then printf '%s\n' "$unformatted"; exit 1; fi
+
+      - name: Test catalogue importer
+        if: steps.changes.outputs.importer == 'true'
+        working-directory: services/catalogue-importer
+        run: go test -race ./...
+
+      - name: Vet and build catalogue importer
+        if: steps.changes.outputs.importer == 'true'
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          go vet ./...
+          CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" ./...
+
+      - name: Set up Go for verifier
+        if: steps.changes.outputs.verifier == 'true'
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/verifier/go.mod
+          cache-dependency-path: services/verifier/go.mod
+
+      - name: Check verifier formatting, tests, vet and build
+        if: steps.changes.outputs.verifier == 'true'
+        working-directory: services/verifier
+        run: |
+          set -euo pipefail
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then printf '%s\n' "$unformatted"; exit 1; fi
+          go test -race -cover ./...
+          go vet ./...
+          CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /tmp/apivault-verifier ./cmd/verifier
+
+      - name: Build and smoke-test verifier health endpoint
+        if: steps.changes.outputs.verifier == 'true'
+        run: |
+          set -euo pipefail
+          docker build -t apivault-verifier -f services/verifier/Dockerfile services/verifier
+          docker run --detach --name apivault-verifier-smoke --publish 8081:8081 \
+            --env API_BASE_URL=http://127.0.0.1:3000 \
+            --env VERIFIER_SHARED_SECRET=ci-only-verifier-secret-with-at-least-32-characters \
+            apivault-verifier
+          cleanup() { docker logs apivault-verifier-smoke || true; docker rm --force apivault-verifier-smoke >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8081/healthz | grep -q ok; then
+              echo "Verifier health endpoint is healthy."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Verifier health endpoint did not become healthy."
+          exit 1
+
+      - name: Start PostgreSQL for application checks
+        if: steps.changes.outputs.application == 'true' || steps.changes.outputs.browser == 'true'
+        run: |
+          docker run --detach --name apivault-ci-postgres \
+            --publish 5432:5432 \
+            --env POSTGRES_USER=apivault \
+            --env POSTGRES_PASSWORD=apivault \
+            --env POSTGRES_DB=apivault \
+            postgres:18.6-alpine
+          for attempt in $(seq 1 30); do
+            if docker exec apivault-ci-postgres pg_isready -U apivault -d apivault; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::PostgreSQL did not become healthy."
+          exit 1
+
+      - name: Set up Node.js
+        if: steps.changes.outputs.application == 'true' || steps.changes.outputs.browser == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Install Node dependencies
+        if: steps.changes.outputs.application == 'true' || steps.changes.outputs.browser == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate Prisma and auth schema
+        if: steps.changes.outputs.application == 'true' || steps.changes.outputs.browser == 'true'
+        env:
+          DATABASE_URL: postgresql://apivault:apivault@localhost:5432/apivault?schema=public
+          BETTER_AUTH_SECRET: ci-only-secret-not-used-for-real-sessions-1234567890
+          BETTER_AUTH_URL: http://localhost:3000
+        run: |
+          npm run db:generate
+          npx auth@latest generate --adapter prisma --dialect postgresql --yes
+          npm run db:generate
+          npm run db:deploy
+
+      - name: Run application tests, lint, typecheck and build
+        if: steps.changes.outputs.application == 'true'
+        env:
+          DATABASE_URL: postgresql://apivault:apivault@localhost:5432/apivault?schema=public
+          BETTER_AUTH_SECRET: ci-only-secret-not-used-for-real-sessions-1234567890
+          BETTER_AUTH_URL: http://localhost:3000
+        run: |
+          set -euo pipefail
+          npm test
+          npm run test:integration
+          npm run lint
+          npm run typecheck
+          npm run build
+
+      - name: Seed and build application for browser tests
+        if: steps.changes.outputs.browser == 'true'
+        env:
+          DATABASE_URL: postgresql://apivault:apivault@localhost:5432/apivault?schema=public
+          BETTER_AUTH_SECRET: e2e-only-secret-never-use-outside-ci-1234567890
+          BETTER_AUTH_URL: http://localhost:3000
+          E2E_TEST_MODE: "true"
+          E2E_ADMIN_EMAIL: apivault-e2e@example.test
+          E2E_ADMIN_PASSWORD: E2E-only-password-12345
+          E2E_USER_EMAIL: apivault-user-e2e@example.test
+          E2E_USER_PASSWORD: E2E-user-only-password-12345
+          E2E_USER_RETRY_EMAIL: apivault-user-e2e-retry@example.test
+          E2E_USER_RETRY_PASSWORD: E2E-user-retry-only-password-12345
+        run: |
+          set -euo pipefail
+          npm run db:seed
+          npx auth@latest create-admin --email "$E2E_ADMIN_EMAIL" --password "$E2E_ADMIN_PASSWORD" --name "APIVault E2E Admin" --role admin --yes --config ./src/lib/auth.ts
+          npx tsx scripts/seed-e2e.ts
+          npm run build
+          npm run start > /tmp/apivault-next.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost:3000/admin/login >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/apivault-next.log
+          exit 1
+
+      - name: Install Playwright and run browser tests
+        if: steps.changes.outputs.browser == 'true'
+        run: |
+          npm install --no-save @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+          npx playwright test
+
+      - name: Report selected validation scope
+        if: always()
+        run: |
+          echo "Importer changed: ${{ steps.changes.outputs.importer }}"
+          echo "Verifier changed: ${{ steps.changes.outputs.verifier }}"
+          echo "Application changed: ${{ steps.changes.outputs.application }}"
+          echo "Browser tests changed: ${{ steps.changes.outputs.browser }}"
+          echo "Workflow files changed: ${{ steps.changes.outputs.workflow }}"
+          echo "Documentation changed: ${{ steps.changes.outputs.docs }}"
+          echo "One PR check gates all applicable validation."

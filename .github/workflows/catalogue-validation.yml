@@ -1,11 +1,6 @@
 name: Go API catalogue validation
 
 on:
-  pull_request:
-    paths:
-      - "services/catalogue-importer/**"
-      - "docs/CATALOGUE_CURATION.md"
-      - ".github/workflows/catalogue-validation.yml"
   workflow_dispatch:
     inputs:
       live_checks:
