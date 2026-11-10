@@ -288,7 +288,7 @@ export async function POST(request: Request) {
         updateApiLifecycle(tx, api.id, VerificationStatus.VERIFIED, ApiStatus.ACTIVE, note));
       approved.push(result.slug);
     } catch (error) {
-      console.error(`Auto-verification failed for ${result.slug}:`, error);
+      console.error("Auto-verification failed for %s:", result.slug, error);
       held.push({ slug: result.slug, reason: error instanceof Error ? error.message : "verification failed" });
     }
   }
