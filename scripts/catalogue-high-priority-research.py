@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only first-pass reconnaissance for HIGH-priority APIVault leads.
+"""Read-only first-pass reconnaissance for every APIVault discovery lead.
 
 Fetches one representative URL per hostname, extracts page metadata and likely
 documentation/policy links, and emits candidate research. No claim is verified.
@@ -108,9 +108,9 @@ def run(inputs, output, workers):
     leads = []
     for path in inputs:
         with open(path, encoding="utf-8") as f:
-            leads.extend(x for x in json.load(f).get("candidates", []) if x.get("priority") == "HIGH")
+            leads.extend(json.load(f).get("candidates", []))
     leads = list({x.get("reviewId"): x for x in leads}.values())
-    if not leads: raise SystemExit("No HIGH-priority leads found")
+    if not leads: raise SystemExit("No discovery leads found")
     groups, invalid = defaultdict(list), []
     for lead in leads:
         url = lead.get("canonicalUrl") or lead.get("originalUrl") or ""
@@ -129,14 +129,14 @@ def run(inputs, output, workers):
         url = lead.get("canonicalUrl") or lead.get("originalUrl") or ""; host = hostname(url)
         research = results.get(host)
         records.append({"reviewId": lead.get("reviewId"), "name": lead.get("name", ""),
-            "priority": "HIGH", "sourceUrl": lead.get("originalUrl", ""), "canonicalUrl": lead.get("canonicalUrl", ""),
+            "priority": lead.get("priority", "NORMAL"), "sourceUrl": lead.get("originalUrl", ""), "canonicalUrl": lead.get("canonicalUrl", ""),
             "sourceCategory": lead.get("sourceCategory", ""), "suggestedCategory": lead.get("suggestedCategory", ""),
             "hostname": host, "research": research, "disposition": "HUMAN_REVIEW_REQUIRED",
             "providerIdentity": "UNCONFIRMED", "officialHomepage": "UNCONFIRMED",
             "apiDocumentation": "UNCONFIRMED", "authentication": "UNKNOWN", "pricing": "UNKNOWN",
             "termsAndLicense": "UNASSESSED", "importEligible": False, "verificationStatus": "UNVERIFIED",
             "publicationStatus": "NOT_PUBLISHED"} if host else {
-            "reviewId": lead.get("reviewId"), "name": lead.get("name", ""), "priority": "HIGH",
+            "reviewId": lead.get("reviewId"), "name": lead.get("name", ""), "priority": lead.get("priority", "NORMAL"),
             "sourceUrl": lead.get("originalUrl", ""), "disposition": "HUMAN_REVIEW_REQUIRED",
             "researchError": "invalid or unsupported source URL", "importEligible": False,
             "verificationStatus": "UNVERIFIED", "publicationStatus": "NOT_PUBLISHED"})
@@ -144,7 +144,7 @@ def run(inputs, output, workers):
     status_counts = Counter(x["research"]["fetchStatus"] if x.get("research") else "INVALID_URL" for x in records)
     link_counts = Counter(link["kind"] for x in results.values() for link in x.get("candidateLinks", []))
     report = {"schemaVersion": "1", "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
-        "researchScope": "HIGH-priority discovery leads only", "leadCount": len(records),
+        "researchScope": "all priority levels; one representative read-only fetch per unique hostname", "leadCount": len(records),
         "uniqueHostnames": len(groups), "hostFetchesSucceeded": fetched, "hostFetchesFailed": len(groups)-fetched,
         "leadFetchDispositionCounts": dict(status_counts), "candidateLinkCounts": dict(link_counts),
         "policy": "Automated findings are leads for human review only. Candidate links are not authenticated or endorsed. No approval, import, verification, database write, or publication is performed.",
