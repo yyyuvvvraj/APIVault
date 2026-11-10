@@ -59,11 +59,16 @@ func ParseMarkdown(markdown, directoryURL, revision string) ([]Candidate, error)
 		name := strings.TrimSpace(match[1])
 		description := strings.TrimSpace(second)
 		if name == "" || description == "" {
-			return nil, fmt.Errorf("candidate name and description must not be blank")
+			// Community directories are not fully normalized. Ignore malformed
+			// rows rather than aborting discovery for every valid row around them.
+			continue
 		}
 		parsed, err := url.Parse(strings.TrimSpace(match[2]))
 		if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil {
-			return nil, fmt.Errorf("candidate %q must use an HTTPS URL without credentials", name)
+			// Discovery is best-effort: an unsafe or malformed lead is excluded,
+			// never normalized into a trusted URL and never allowed to fail the
+			// entire upstream snapshot.
+			continue
 		}
 		key := strings.ToLower(parsed.Hostname()) + "|" + strings.TrimRight(parsed.EscapedPath(), "/")
 		if _, exists := seen[key]; exists {
