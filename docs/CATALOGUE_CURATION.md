@@ -62,3 +62,11 @@ The long-term directional target is 200,000 distinct API products/services, not 
 - Demonstrate resumable ingestion, duplicate reporting, and review throughput at 10,000.
 - Load-test PostgreSQL queries, indexes, and public pagination at 50,000.
 - Consider the 200,000 target only after licensing, source refresh, moderation capacity, and operating cost are understood.
+
+### Automated discovery intake
+
+The **Catalogue discovery leads** workflow runs weekly and can also be started manually. It resolves the latest upstream README commit, pins that immutable 40-character revision, extracts category-grouped Markdown entries with the Go discovery parser, and uploads a reproducible JSON artifact.
+
+This workflow is discovery-only: it does not connect to the APIVault database, create providers, import API records, or change verification/publication state. Every lead remains `DISCOVERY_ONLY`. The community directory is a lead source, not provider-owned evidence. Use the artifact to prioritize independent provider-source research and prepare a separately reviewed manifest. Never turn the discovery artifact directly into a publishable catalogue import.
+
+The automated verification export also reports lifecycle and evidence-coverage counts (total APIs, pending/unpublished records, HTTPS homepage/documentation coverage, category coverage, source coverage, and authentication classification). These diagnostics make an empty verification batch explainable instead of silently reporting only zero candidates.

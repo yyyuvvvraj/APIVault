@@ -1,0 +1,77 @@
+name: Catalogue discovery leads
+
+on:
+  schedule:
+    - cron: "31 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalogue-discovery-leads
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    name: Extract reproducible discovery leads
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout APIVault
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Resolve immutable upstream revision
+        id: upstream
+        run: |
+          set -euo pipefail
+          revision="$(curl --fail --silent --show-error --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/public-apis/public-apis/commits?path=README.md&per_page=1" \
+            | jq -er '.[0].sha')"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Pinned public-apis source revision: $revision"
+
+      - name: Download pinned directory snapshot
+        env:
+          SOURCE_REVISION: ${{ steps.upstream.outputs.revision }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://raw.githubusercontent.com/public-apis/public-apis/$SOURCE_REVISION/README.md" \
+            -o "$RUNNER_TEMP/public-apis-README.md"
+          test -s "$RUNNER_TEMP/public-apis-README.md"
+
+      - name: Test discovery parser
+        working-directory: services/catalogue-importer
+        run: go test ./...
+
+      - name: Extract discovery-only leads
+        working-directory: services/catalogue-importer
+        env:
+          SOURCE_REVISION: ${{ steps.upstream.outputs.revision }}
+        run: |
+          set -euo pipefail
+          go run ./cmd/catalogue-discover \
+            -input "$RUNNER_TEMP/public-apis-README.md" \
+            -directory-url "https://github.com/public-apis/public-apis" \
+            -revision "$SOURCE_REVISION" \
+            -output "$RUNNER_TEMP/apivault-discovery-leads.json"
+          jq '{generatedAt, total, notice}' "$RUNNER_TEMP/apivault-discovery-leads.json"
+          jq -r '.candidates | group_by(.category)[] | "\(.[0].category): \(length)"' \
+            "$RUNNER_TEMP/apivault-discovery-leads.json" | sort
+
+      - name: Upload discovery report
+        uses: actions/upload-artifact@v7
+        with:
+          name: apivault-discovery-leads-${{ github.run_id }}
+          path: ${{ runner.temp }}/apivault-discovery-leads.json
+          if-no-files-found: error
+          retention-days: 30
