@@ -40,21 +40,31 @@ jobs:
           S3_BUCKET: ${{ vars.APIVAULT_BACKUP_S3_BUCKET }}
           BACKUP_KEY: ${{ inputs.backup_key }}
           PGHOST: ${{ secrets.APIVAULT_RESTORE_PGHOST }}
+          RESTORE_ALLOWED_HOST: ${{ vars.APIVAULT_RESTORE_ALLOWED_HOST }}
           PGUSER: ${{ secrets.APIVAULT_RESTORE_PGUSER }}
           PGDATABASE: ${{ secrets.APIVAULT_RESTORE_PGDATABASE }}
+          RESTORE_ALLOWED_DATABASE: ${{ vars.APIVAULT_RESTORE_ALLOWED_DATABASE }}
           PGPASSFILE_CONTENT: ${{ secrets.APIVAULT_RESTORE_PGPASSFILE }}
           AGE_IDENTITY: ${{ secrets.APIVAULT_RESTORE_AGE_IDENTITY }}
         shell: bash
         run: |
           set -euo pipefail
-          for name in AWS_ROLE_ARN AWS_REGION S3_BUCKET PGHOST PGUSER PGDATABASE PGPASSFILE_CONTENT AGE_IDENTITY; do
+          for name in AWS_ROLE_ARN AWS_REGION S3_BUCKET PGHOST RESTORE_ALLOWED_HOST PGUSER PGDATABASE RESTORE_ALLOWED_DATABASE PGPASSFILE_CONTENT AGE_IDENTITY; do
             if [[ -z "${!name}" ]]; then
               echo "::error::Missing required restore configuration: $name"
               exit 1
             fi
           done
-          if [[ "$PGDATABASE" == *prod* || "$PGDATABASE" == *production* ]]; then
-            echo "::error::Refusing a database name that appears production-like."
+          if [[ "$PGHOST" != "$RESTORE_ALLOWED_HOST" ]]; then
+            echo "::error::PGHOST does not exactly match APIVAULT_RESTORE_ALLOWED_HOST. Refusing to connect."
+            exit 1
+          fi
+          if [[ "$PGDATABASE" != "$RESTORE_ALLOWED_DATABASE" ]]; then
+            echo "::error::PGDATABASE does not exactly match APIVAULT_RESTORE_ALLOWED_DATABASE. Refusing to connect."
+            exit 1
+          fi
+          if [[ "$PGDATABASE" =~ [Pp][Rr][Oo][Dd] ]]; then
+            echo "::error::Refusing a database name containing a production marker."
             exit 1
           fi
           case "$BACKUP_KEY" in
