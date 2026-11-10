@@ -51,7 +51,7 @@ jobs:
             echo "::error::Configure APIVAULT_REPORT_DATABASE_URL before running this workflow."
             exit 1
           fi
-          npm run catalogue:report > catalogue-release-report.json
+          npm run --silent catalogue:report > catalogue-release-report.json
           node -e '
             const fs = require("node:fs");
             const report = JSON.parse(fs.readFileSync("catalogue-release-report.json", "utf8"));
