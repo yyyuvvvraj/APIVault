@@ -4,19 +4,38 @@ on:
   schedule:
     - cron: "31 4 * * 1"
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/catalogue-discovery.yml"
+      - "services/catalogue-importer/cmd/catalogue-discover/**"
+      - "services/catalogue-importer/cmd/catalogue-triage/**"
+      - "services/catalogue-importer/cmd/catalogue-review-pack/**"
+      - "services/catalogue-importer/internal/discovery/**"
+      - "services/catalogue-importer/internal/triage/**"
+      - "services/catalogue-importer/internal/reviewpack/**"
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/catalogue-discovery.yml"
+      - "services/catalogue-importer/cmd/catalogue-discover/**"
+      - "services/catalogue-importer/cmd/catalogue-triage/**"
+      - "services/catalogue-importer/cmd/catalogue-review-pack/**"
+      - "services/catalogue-importer/internal/discovery/**"
+      - "services/catalogue-importer/internal/triage/**"
+      - "services/catalogue-importer/internal/reviewpack/**"
 
 permissions:
   contents: read
 
 concurrency:
-  group: catalogue-discovery-leads
+  group: catalogue-discovery-leads-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   discover:
-    name: Extract and triage reproducible discovery leads
+    name: Extract, triage and page discovery leads
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout APIVault
         uses: actions/checkout@v7
@@ -78,24 +97,30 @@ jobs:
           jq '{sourceTotal, processed, rejected, exactUrlDuplicateGroups, sharedHostnameGroups, duplicateNameGroups, unmappedCategory, removedTrackingParameters, categoryBreakdown, notice}' \
             "$RUNNER_TEMP/apivault-discovery-triage.json"
 
-      - name: Build paginated reviewer research queue
+      - name: Build all paginated reviewer research queue pages
         working-directory: services/catalogue-importer
         run: |
           set -euo pipefail
-          go run ./cmd/catalogue-review-pack \
-            -input "$RUNNER_TEMP/apivault-discovery-triage.json" \
-            -offset 0 -limit 500 \
-            -output "$RUNNER_TEMP/apivault-review-pack-page-1.json"
-          jq '{sourceTotal, offset, limit, returned, hasMore, priorityCounts, categoryCounts, notice}' \
-            "$RUNNER_TEMP/apivault-review-pack-page-1.json"
+          for offset in 0 500 1000 1500 2000; do
+            page="$((offset / 500 + 1))"
+            output="$RUNNER_TEMP/apivault-review-pack-page-$page.json"
+            go run ./cmd/catalogue-review-pack \
+              -input "$RUNNER_TEMP/apivault-discovery-triage.json" \
+              -offset "$offset" -limit 500 \
+              -output "$output"
+            jq '{sourceTotal, offset, limit, returned, hasMore, priorityCounts, categoryCounts, notice}' "$output"
+          done
+          jq -s '[.[] | .candidates[]] | length' \
+            "$RUNNER_TEMP"/apivault-review-pack-page-*.json | \
+            grep -qx "$(jq '.processed' "$RUNNER_TEMP/apivault-discovery-triage.json")"
 
-      - name: Upload discovery and triage reports
+      - name: Upload discovery, triage and every reviewer queue page
         uses: actions/upload-artifact@v7
         with:
           name: apivault-discovery-leads-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/apivault-discovery-leads.json
             ${{ runner.temp }}/apivault-discovery-triage.json
-            ${{ runner.temp }}/apivault-review-pack-page-1.json
+            ${{ runner.temp }}/apivault-review-pack-page-*.json
           if-no-files-found: error
           retention-days: 30
