@@ -49,3 +49,8 @@ The command writes a report even when submissions are blocked, so researchers ca
 - `pricing`: `FREE`, `PAID`, `FREEMIUM`, `USAGE_BASED`, or `UNKNOWN`.
 - Evidence `sourceType`: `PROVIDER_CONTROLLED` or `THIRD_PARTY`.
 - Evidence `claim`: `PROVIDER_IDENTITY`, `OFFICIAL_HOMEPAGE`, `DOCUMENTATION`, `TERMS_LICENSE`, `AUTHENTICATION`, `PRICING`, `RATE_LIMITS`, or `API_AVAILABILITY`.
+
+
+## Next step: curation handoff
+
+After an evidence pack passes validation, generate a non-importable curation worksheet with the [evidence-to-curation handoff](CATALOGUE_CURATION_HANDOFF.md). It preserves provider-level provenance and explicitly lists API-specific metadata that still requires research. A READY evidence submission does not become an importer manifest automatically.
