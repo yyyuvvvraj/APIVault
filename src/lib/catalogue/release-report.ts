@@ -24,7 +24,13 @@ export type CatalogueReleaseReport = {
 
 function isOfficialHttpsSource(url: string) {
   try {
-    return new URL(url).protocol === "https:";
+    const parsed = new URL(url);
+    return (
+      parsed.protocol === "https:" &&
+      parsed.hostname.length > 0 &&
+      parsed.username.length === 0 &&
+      parsed.password.length === 0
+    );
   } catch {
     return false;
   }
@@ -47,17 +53,24 @@ export function buildCatalogueReleaseReport(
   for (const api of records) {
     const reasons: string[] = [];
     const provider = api.provider?.name.trim() ?? "";
+    const name = api.name.trim();
+    const slug = api.slug.trim();
+    const categories = api.categories
+      .map((entry) => entry.category?.name.trim() ?? "")
+      .filter((category) => category.length > 0);
 
+    if (!name) reasons.push("missing_name");
+    if (!slug) reasons.push("missing_slug");
     if (api.status !== "ACTIVE") reasons.push("not_active");
     if (api.verificationStatus !== "VERIFIED") reasons.push("not_verified");
     if (!api.publishedAt) reasons.push("not_published");
     if (!provider) reasons.push("missing_provider");
-    if (api.categories.length === 0) reasons.push("missing_category");
+    if (categories.length === 0) reasons.push("missing_category");
     if (!api.sources.some((source) => source.isOfficial && isOfficialHttpsSource(source.url))) {
       reasons.push("missing_official_https_source");
     }
 
-    const identity = `${identityPart(provider)}::${identityPart(api.name)}`;
+    const identity = `${identityPart(provider)}::${identityPart(name)}`;
     if (reasons.length === 0 && seenIdentities.has(identity)) {
       reasons.push("duplicate_provider_name");
     }
@@ -70,12 +83,11 @@ export function buildCatalogueReleaseReport(
     }
 
     seenIdentities.add(identity);
-    eligibleApis.push({ slug: api.slug, name: api.name, provider });
+    eligibleApis.push({ slug, name, provider });
     providerCounts.set(provider, (providerCounts.get(provider) ?? 0) + 1);
 
-    for (const category of api.categories) {
-      const name = category.category?.name.trim();
-      if (name) categoryCounts.set(name, (categoryCounts.get(name) ?? 0) + 1);
+    for (const category of new Set(categories)) {
+      categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
     }
   }
 
@@ -88,9 +100,10 @@ export function buildCatalogueReleaseReport(
       "ACTIVE status",
       "VERIFIED verification status",
       "publishedAt is set",
+      "API name and slug are non-empty",
       "provider is present",
-      "at least one category is assigned",
-      "at least one official HTTPS source is recorded",
+      "at least one non-empty category name is assigned",
+      "at least one official HTTPS source with a hostname and no embedded credentials is recorded",
       "duplicate provider + API-name identities are counted once",
     ],
     categoryBreakdown: [...categoryCounts.entries()]
