@@ -83,3 +83,18 @@ The manual `.github/workflows/catalogue-release-report.yml` workflow produces a 
 The hosted uptime workflow can notify an operator-controlled webhook after a failed smoke check. Configure the repository Actions secret `APIVAULT_ALERT_WEBHOOK_URL`; optionally configure `APIVAULT_ALERT_WEBHOOK_TOKEN` for bearer authentication. The receiver must accept a JSON POST containing `text`, `status`, `repository`, `workflow`, `run_url`, and `base_url`.
 
 Run the workflow manually with `send_test_alert=true` to test delivery without intentionally breaking the hosted service. A successful HTTP response proves only that the receiver accepted the request; record that the named operator actually received and acknowledged the notification. If the webhook secret is absent, the notification job warns and skips sending.
+
+
+## Durable off-site backup with AWS S3
+
+The scheduled backup workflow supports an optional, keyless AWS upload using GitHub Actions OIDC. Configure these repository **variables** (not long-lived access-key secrets):
+
+- `APIVAULT_BACKUP_AWS_ROLE_ARN`: IAM role trusted for this repository's GitHub Actions OIDC identity.
+- `APIVAULT_BACKUP_AWS_REGION`: AWS region containing the backup bucket.
+- `APIVAULT_BACKUP_S3_BUCKET`: private S3 bucket dedicated to APIVault backups.
+
+Restrict the IAM role trust policy to the repository and the `dev` branch subject (`repo:yyyuvvvraj/APIVault:ref:refs/heads/dev`) unless a separately reviewed deployment environment is used. Grant only `s3:PutObject` and `s3:GetObject` for the required `apivault/postgres/*` prefix, plus the minimum multipart-upload permissions needed by the AWS CLI. Do not grant bucket administration or public-access changes to the workflow role.
+
+Before enabling uploads, configure the bucket with Block Public Access, bucket-owner-enforced object ownership, versioning where appropriate, default encryption, and a lifecycle/retention policy approved by the data owner. The workflow encrypts dumps with age before upload and requests S3 server-side encryption as an additional layer. Keep the age private identity outside GitHub Actions and outside the bucket.
+
+After configuration, run the workflow manually and verify the S3 object, checksum metadata, access controls, retention, and restore procedure. A successful upload is still not a completed restore drill. If the variables are absent, the workflow explicitly reports that the run produced only a short-lived Actions artifact and does not satisfy durable off-site backup readiness.
