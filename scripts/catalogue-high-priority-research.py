@@ -106,6 +106,9 @@ def fetch_page(url):
 
 def research_candidate_pages(research, max_pages=8):
     """Fetch a bounded set of discovered evidence links; never treat them as verified."""
+    if max_pages <= 0:
+        research["followUpPages"] = []
+        return research
     priority = {"API_DOCUMENTATION": 0, "AUTHENTICATION": 1, "TERMS": 2, "PRICING": 3, "STATUS": 4, "SUPPORT": 5}
     ordered = sorted(research.get("candidateLinks", []), key=lambda item: (priority.get(item.get("kind"), 99), item.get("url", "")))
     pages, seen = [], set()
