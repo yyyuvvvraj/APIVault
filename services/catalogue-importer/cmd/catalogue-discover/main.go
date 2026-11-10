@@ -28,15 +28,15 @@ func main() {
 		fatalf("parse directory: %v", err)
 	}
 	report := struct {
-		GeneratedAt time.Time `json:"generatedAt"`
-		Total       int `json:"total"`
-		Notice      string `json:"notice"`
+		GeneratedAt time.Time             `json:"generatedAt"`
+		Total       int                   `json:"total"`
+		Notice      string                `json:"notice"`
 		Candidates  []discovery.Candidate `json:"candidates"`
 	}{
 		GeneratedAt: time.Now().UTC(),
-		Total: len(candidates),
-		Notice: "Discovery leads only. Independently verify official provider sources, rights, terms, pricing, authentication, availability, and duplicates. Never import or publish this file directly.",
-		Candidates: candidates,
+		Total:       len(candidates),
+		Notice:      "Discovery leads only. Independently verify official provider sources, rights, terms, pricing, authentication, availability, and duplicates. Never import or publish this file directly.",
+		Candidates:  candidates,
 	}
 	encoded, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {
@@ -49,10 +49,10 @@ func main() {
 	if err := os.WriteFile(*output, encoded, 0644); err != nil {
 		fatalf("write output: %v", err)
 	}
-	fmt.Printf("Wrote %d discovery leads to %s; no APIVault records were changed.\n", len(candidates), *output)
+	fmt.Printf("Wrote %d discovery leads to %s; no APIVault records were changed.\\n", len(candidates), *output)
 }
 
 func fatalf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	fmt.Fprintf(os.Stderr, format+"\\n", args...)
 	os.Exit(1)
 }
