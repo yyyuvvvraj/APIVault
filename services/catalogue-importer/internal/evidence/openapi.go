@@ -29,7 +29,7 @@ func AnalyzeOpenAPIJSON(raw []byte, providerDomains []string) OpenAPIAnalysis {
 	result := OpenAPIAnalysis{
 		Issues:           []string{},
 		SecureServerURLs: []string{},
-		Notice:            "Offline contract structure only. A valid result does not authenticate the provider, prove endpoint health, assess terms, or approve, verify, import, or publish an API.",
+		Notice:          "Offline contract structure only. A valid result does not authenticate the provider, prove endpoint health, assess terms, or approve, verify, import, or publish an API.",
 	}
 	if len(raw) == 0 || len(raw) > 5*1024*1024 {
 		result.Issues = append(result.Issues, "document must be between 1 byte and 5 MiB")
