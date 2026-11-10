@@ -105,7 +105,7 @@ jobs:
           print(f"Queue integrity passed: {len(records)} unique leads across {len(pages)} pages")
           PY
 
-      - name: Research every HIGH-priority lead
+      - name: Research every discovery lead
         run: |
           set -euo pipefail
           python3 scripts/catalogue-high-priority-research.py \
@@ -116,14 +116,15 @@ jobs:
             --input "$RUNNER_TEMP/queue-page-5.json" \
             --workers 20 \
             --output "$RUNNER_TEMP/high-priority-research.json"
-          python3 - "$RUNNER_TEMP/high-priority-research.json" <<'PY'
+          python3 - "$RUNNER_TEMP/high-priority-research.json" "$EXPECTED_LEADS" <<'PY'
           import json, sys
           report = json.load(open(sys.argv[1], encoding="utf-8"))
-          if report["leadCount"] != 1161:
-              raise SystemExit(f"Expected 1,161 HIGH-priority leads, got {report['leadCount']}")
-          if len({x["reviewId"] for x in report["records"]}) != 1161:
+          expected = int(sys.argv[2])
+          if report["leadCount"] != expected:
+              raise SystemExit(f"Expected {expected} researched leads, got {report['leadCount']}")
+          if len({x["reviewId"] for x in report["records"]}) != expected:
               raise SystemExit("Research output contains duplicate or missing review IDs")
-          if any(x.get("importEligible") is not False or x.get("verificationStatus") != "UNVERIFIED" for x in report["records"]):
+          if any(x.get("importEligible") is not False or x.get("verificationStatus") != "UNVERIFIED" or x.get("publicationStatus") != "NOT_PUBLISHED" for x in report["records"]):
               raise SystemExit("Research output violated the human-review gate")
           print(json.dumps({k:v for k,v in report.items() if k != "records"}, indent=2))
           PY

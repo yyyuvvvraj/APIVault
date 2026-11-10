@@ -6,6 +6,7 @@ import { authClient } from "@/lib/auth-client";
 
 const items = [
   { href: "/admin", label: "Overview", icon: "▦" },
+  { href: "/discover", label: "Discover leads", icon: "⌕" },
   { href: "/admin/apis", label: "API catalogue", icon: "◫" },
   { href: "/admin/review-queue", label: "Verification queue", icon: "✓" },
   { href: "/admin/freshness", label: "Catalogue freshness", icon: "◷" },
