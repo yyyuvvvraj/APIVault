@@ -79,3 +79,51 @@ func TestApplyCatalogueConflictChecksDoesNotFlagSharedHomepageWithinProvider(t *
 		t.Fatalf("validated count = %d, want 2", report.ValidatedCandidates)
 	}
 }
+
+func TestAutoApprovalEligibilityRequiresSameProviderDomainAndEvidence(t *testing.T) {
+	api := API{
+		HomepageURL:      "https://example.com/",
+		DocumentationURL: "https://docs.example.com/reference",
+		Categories:       []string{"developer-tools"},
+		AuthMethods:      []AuthMethod{{Method: "API_KEY"}},
+		PricingModel:     "UNKNOWN",
+		Sources: []Source{
+			{Kind: "OFFICIAL_HOMEPAGE", URL: "https://example.com/", IsOfficial: true},
+			{Kind: "DOCUMENTATION", URL: "https://docs.example.com/reference", IsOfficial: true},
+			{Kind: "AUTHENTICATION", URL: "https://docs.example.com/auth", IsOfficial: true},
+		},
+	}
+	result := APIValidation{Verdict: "VALIDATED_CANDIDATE", Checks: []URLCheck{
+		{URL: api.HomepageURL, FinalURL: api.HomepageURL, Reachable: true},
+		{URL: api.DocumentationURL, FinalURL: api.DocumentationURL, Reachable: true},
+		{URL: "https://docs.example.com/auth", FinalURL: "https://docs.example.com/auth", Reachable: true},
+	}}
+	if reasons := autoApprovalEligibility(api, result); len(reasons) != 0 {
+		t.Fatalf("eligible API has reasons: %v", reasons)
+	}
+	api.DocumentationURL = "https://vendor-docs.example.net/reference"
+	if reasons := autoApprovalEligibility(api, result); len(reasons) == 0 {
+		t.Fatal("expected third-party documentation host to require review")
+	}
+}
+
+func TestAutoApprovalEligibilityRequiresClaimEvidence(t *testing.T) {
+	api := API{
+		HomepageURL:      "https://example.com/",
+		DocumentationURL: "https://example.com/docs",
+		Categories:       []string{"developer-tools"},
+		AuthMethods:      []AuthMethod{{Method: "API_KEY"}},
+		PricingModel:     "PAID",
+		Sources: []Source{
+			{Kind: "OFFICIAL_HOMEPAGE", URL: "https://example.com/", IsOfficial: true},
+			{Kind: "DOCUMENTATION", URL: "https://example.com/docs", IsOfficial: true},
+		},
+	}
+	reasons := autoApprovalEligibility(api, APIValidation{Verdict: "VALIDATED_CANDIDATE", Checks: []URLCheck{
+		{URL: api.HomepageURL, FinalURL: api.HomepageURL, Reachable: true},
+		{URL: api.DocumentationURL, FinalURL: api.DocumentationURL, Reachable: true},
+	}})
+	if len(reasons) != 2 {
+		t.Fatalf("got %d reasons, want missing pricing and authentication evidence: %v", len(reasons), reasons)
+	}
+}
