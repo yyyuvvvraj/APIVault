@@ -109,13 +109,6 @@
           "title": "Crossref REST API access and authentication",
           "isOfficial": true,
           "notes": "Documents public, polite, and Metadata Plus access methods."
-        },
-        {
-          "kind": "RATE_LIMITS",
-          "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/access-and-authentication/",
-          "title": "Crossref REST API request limits",
-          "isOfficial": true,
-          "notes": "Documents pool-specific rate and concurrency limits and 429 behavior."
         }
       ]
     },
@@ -170,13 +163,6 @@
           "title": "OpenAlex authentication",
           "isOfficial": true,
           "notes": "Documents keyless use, API key setup, and supported key transmission methods."
-        },
-        {
-          "kind": "RATE_LIMITS",
-          "url": "https://help.openalex.org/api/authentication/",
-          "title": "OpenAlex rate limits",
-          "isOfficial": true,
-          "notes": "Documents request-per-second limits, daily budgets, and rate-limit responses."
         }
       ]
     },
@@ -221,18 +207,11 @@
           "notes": "Documents content, tags, sections, editions, and single-item endpoints."
         },
         {
-          "kind": "AUTHENTICATION",
-          "url": "https://open-platform.theguardian.com/access/",
-          "title": "Guardian Open Platform access",
-          "isOfficial": true,
-          "notes": "Explains API key registration and access levels."
-        },
-        {
           "kind": "PRICING",
           "url": "https://open-platform.theguardian.com/access/",
           "title": "Guardian Open Platform access and pricing",
           "isOfficial": true,
-          "notes": "Describes free non-commercial developer access and usage-priced commercial access."
+          "notes": "Describes the API key requirement, free non-commercial developer access, and usage-priced commercial access."
         }
       ]
     },
