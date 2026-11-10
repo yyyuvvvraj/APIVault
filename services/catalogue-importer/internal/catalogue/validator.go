@@ -23,17 +23,17 @@ type URLCheck struct {
 }
 
 type APIValidation struct {
-	Slug                 string     `json:"slug"`
-	HomepageURL          string     `json:"homepageUrl"`
-	DocumentationURL     string     `json:"documentationUrl,omitempty"`
-	Name                 string     `json:"name"`
-	Provider             string     `json:"provider"`
-	Verdict              string     `json:"verdict"`
-	AutoApprove          bool       `json:"autoApprove"`
-	AutoApprovalReasons  []string   `json:"autoApprovalReasons,omitempty"`
-	Checks               []URLCheck `json:"checks"`
-	DuplicateOf          string     `json:"duplicateOf,omitempty"`
-	ReviewReasons        []string   `json:"reviewReasons,omitempty"`
+	Slug                string     `json:"slug"`
+	HomepageURL         string     `json:"homepageUrl"`
+	DocumentationURL    string     `json:"documentationUrl,omitempty"`
+	Name                string     `json:"name"`
+	Provider            string     `json:"provider"`
+	Verdict             string     `json:"verdict"`
+	AutoApprove         bool       `json:"autoApprove"`
+	AutoApprovalReasons []string   `json:"autoApprovalReasons,omitempty"`
+	Checks              []URLCheck `json:"checks"`
+	DuplicateOf         string     `json:"duplicateOf,omitempty"`
+	ReviewReasons       []string   `json:"reviewReasons,omitempty"`
 }
 
 type CatalogueConflict struct {
