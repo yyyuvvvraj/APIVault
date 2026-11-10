@@ -1,0 +1,109 @@
+name: Automated catalogue verification
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: automated-catalogue-verification
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify and publish eligible APIs
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Check automation configuration
+        env:
+          APIVAULT_INTERNAL_URL: ${{ vars.APIVAULT_INTERNAL_URL }}
+          APIVAULT_AUTO_VERIFY_SECRET: ${{ secrets.APIVAULT_AUTO_VERIFY_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$APIVAULT_INTERNAL_URL" || { echo "::error::Set repository variable APIVAULT_INTERNAL_URL"; exit 1; }
+          test -n "$APIVAULT_AUTO_VERIFY_SECRET" || { echo "::error::Set repository secret APIVAULT_AUTO_VERIFY_SECRET"; exit 1; }
+          case "$APIVAULT_INTERNAL_URL" in
+            https://*) ;;
+            *) echo "::error::APIVAULT_INTERNAL_URL must use HTTPS"; exit 1 ;;
+          esac
+
+      - name: Export pending catalogue records
+        env:
+          APIVAULT_INTERNAL_URL: ${{ vars.APIVAULT_INTERNAL_URL }}
+          APIVAULT_AUTO_VERIFY_SECRET: ${{ secrets.APIVAULT_AUTO_VERIFY_SECRET }}
+        run: |
+          set -euo pipefail
+          base="${APIVAULT_INTERNAL_URL%/}"
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 5 \
+            -H "Authorization: Bearer $APIVAULT_AUTO_VERIFY_SECRET" \
+            "$base/api/internal/auto-verify" \
+            -o "$RUNNER_TEMP/catalogue-candidates.json"
+          count="$(jq '.apis | length' "$RUNNER_TEMP/catalogue-candidates.json")"
+          echo "Candidate records exported: $count"
+          if [ "$count" -eq 0 ]; then
+            echo "No eligible pending catalogue records."
+            echo "has_candidates=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_candidates=true" >> "$GITHUB_OUTPUT"
+          fi
+        id: export
+
+      - name: Run live evidence and policy checks
+        if: steps.export.outputs.has_candidates == 'true'
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          go test ./...
+          go run ./cmd/catalogue-validate \
+            -input "$RUNNER_TEMP/catalogue-candidates.json" \
+            -live=true \
+            -workers=20 \
+            -timeout=8s \
+            -output "$RUNNER_TEMP/catalogue-validation-report.json"
+          jq '{total, validatedCandidates, autoApprovable, reviewRequired, rejected}' \
+            "$RUNNER_TEMP/catalogue-validation-report.json"
+
+      - name: Apply only policy-approved verification decisions
+        if: steps.export.outputs.has_candidates == 'true'
+        env:
+          APIVAULT_INTERNAL_URL: ${{ vars.APIVAULT_INTERNAL_URL }}
+          APIVAULT_AUTO_VERIFY_SECRET: ${{ secrets.APIVAULT_AUTO_VERIFY_SECRET }}
+        run: |
+          set -euo pipefail
+          base="${APIVAULT_INTERNAL_URL%/}"
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-delay 5 \
+            -X POST \
+            -H "Authorization: Bearer $APIVAULT_AUTO_VERIFY_SECRET" \
+            -H "Content-Type: application/json" \
+            --data-binary @"$RUNNER_TEMP/catalogue-validation-report.json" \
+            "$base/api/internal/auto-verify" \
+            -o "$RUNNER_TEMP/catalogue-auto-verify-decisions.json"
+          jq '{approvedCount, heldCount, approved, held}' \
+            "$RUNNER_TEMP/catalogue-auto-verify-decisions.json"
+
+      - name: Upload verification evidence
+        if: always() && steps.export.outputs.has_candidates == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: apivault-automated-verification-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/catalogue-candidates.json
+            ${{ runner.temp }}/catalogue-validation-report.json
+            ${{ runner.temp }}/catalogue-auto-verify-decisions.json
+          if-no-files-found: warn
+          retention-days: 90
