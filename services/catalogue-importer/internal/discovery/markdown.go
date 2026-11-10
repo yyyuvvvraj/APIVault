@@ -8,19 +8,19 @@ import (
 )
 
 var (
-	markdownLink = regexp.MustCompile(`\[([^\]]+)\]\((https?://[^\s)]+)\)`)
+	markdownLink      = regexp.MustCompile(`\[([^\]]+)\]\((https?://[^\s)]+)\)`)
 	immutableRevision = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 )
 
 // Candidate is an unverified lead extracted from a community directory.
 type Candidate struct {
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	URL           string `json:"url"`
-	Category      string `json:"category"`
-	DirectoryURL  string `json:"directoryUrl"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	URL            string `json:"url"`
+	Category       string `json:"category"`
+	DirectoryURL   string `json:"directoryUrl"`
 	SourceRevision string `json:"sourceRevision"`
-	Status        string `json:"status"`
+	Status         string `json:"status"`
 }
 
 // ParseMarkdown extracts candidate rows from category-grouped Markdown tables.
@@ -71,9 +71,13 @@ func ParseMarkdown(markdown, directoryURL, revision string) ([]Candidate, error)
 		}
 		seen[key] = struct{}{}
 		candidates = append(candidates, Candidate{
-			Name: name, Description: description, URL: parsed.String(),
-			Category: category, DirectoryURL: directory.String(),
-			SourceRevision: strings.ToLower(revision), Status: "DISCOVERY_ONLY",
+			Name:           name,
+			Description:    description,
+			URL:            parsed.String(),
+			Category:       category,
+			DirectoryURL:   directory.String(),
+			SourceRevision: strings.ToLower(revision),
+			Status:         "DISCOVERY_ONLY",
 		})
 	}
 	return candidates, nil
