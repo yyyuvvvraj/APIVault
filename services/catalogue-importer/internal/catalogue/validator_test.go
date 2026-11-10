@@ -82,11 +82,11 @@ func TestApplyCatalogueConflictChecksDoesNotFlagSharedHomepageWithinProvider(t *
 
 func TestAutoApprovalEligibilityRequiresSameProviderDomainAndEvidence(t *testing.T) {
 	api := API{
-		HomepageURL: "https://example.com/",
+		HomepageURL:      "https://example.com/",
 		DocumentationURL: "https://docs.example.com/reference",
-		Categories: []string{"developer-tools"},
-		AuthMethods: []AuthMethod{{Method: "API_KEY"}},
-		PricingModel: "UNKNOWN",
+		Categories:       []string{"developer-tools"},
+		AuthMethods:      []AuthMethod{{Method: "API_KEY"}},
+		PricingModel:     "UNKNOWN",
 		Sources: []Source{
 			{Kind: "OFFICIAL_HOMEPAGE", URL: "https://example.com/", IsOfficial: true},
 			{Kind: "DOCUMENTATION", URL: "https://docs.example.com/reference", IsOfficial: true},
@@ -108,11 +108,11 @@ func TestAutoApprovalEligibilityRequiresSameProviderDomainAndEvidence(t *testing
 
 func TestAutoApprovalEligibilityRequiresClaimEvidence(t *testing.T) {
 	api := API{
-		HomepageURL: "https://example.com/",
+		HomepageURL:      "https://example.com/",
 		DocumentationURL: "https://example.com/docs",
-		Categories: []string{"developer-tools"},
-		AuthMethods: []AuthMethod{{Method: "API_KEY"}},
-		PricingModel: "PAID",
+		Categories:       []string{"developer-tools"},
+		AuthMethods:      []AuthMethod{{Method: "API_KEY"}},
+		PricingModel:     "PAID",
 		Sources: []Source{
 			{Kind: "OFFICIAL_HOMEPAGE", URL: "https://example.com/", IsOfficial: true},
 			{Kind: "DOCUMENTATION", URL: "https://example.com/docs", IsOfficial: true},
