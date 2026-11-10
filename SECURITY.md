@@ -22,3 +22,10 @@ Do not test against third-party APIs or infrastructure without authorization. Ne
 Dependabot is configured through `.github/dependabot.yml` to check the root npm dependencies, the Go verifier module, both Docker build directories, and GitHub Actions weekly. It opens dependency update pull requests and groups compatible npm updates to reduce review noise.
 
 Review Dependabot pull requests like other code changes: inspect the changelog and release notes, run the relevant CI workflows, and verify application and container behavior before merging. Security alerts and Dependabot pull requests are signals for maintainer review; they do not replace code review, lockfile integrity checks, or vulnerability triage.
+
+
+## Static application security analysis
+
+The `.github/workflows/codeql.yml` workflow runs GitHub CodeQL analysis for JavaScript/TypeScript and Go on pull requests and pushes to `dev` and `stable`, with a weekly scheduled scan. Findings must be triaged by a maintainer; the existence of the workflow or a clean scan is not a substitute for a security review of deployment configuration, secrets, database access, or third-party infrastructure.
+
+Treat critical findings as release blockers. Resolve high-severity findings or record an explicit owner, impact assessment, and mitigation before the v0.5.0 release candidate is approved.
