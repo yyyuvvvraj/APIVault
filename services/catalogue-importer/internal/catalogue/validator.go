@@ -174,6 +174,7 @@ func autoApprovalEligibility(api API, result APIValidation) []string {
 	hasDocumentation := false
 	hasPricing := false
 	hasAuthentication := false
+	homeForEvidence, _ := url.Parse(api.HomepageURL)
 	for _, source := range api.Sources {
 		if !source.IsOfficial {
 			continue
@@ -187,10 +188,16 @@ func autoApprovalEligibility(api API, result APIValidation) []string {
 			if api.DocumentationURL != "" && source.URL == api.DocumentationURL {
 				hasDocumentation = true
 			}
-		case "PRICING":
-			hasPricing = true
-		case "AUTHENTICATION":
-			hasAuthentication = true
+		case "PRICING", "AUTHENTICATION":
+			sourceURL, err := url.Parse(source.URL)
+			if err == nil && homeForEvidence.Hostname() != "" &&
+				sameProviderDomain(homeForEvidence.Hostname(), sourceURL.Hostname()) {
+				if source.Kind == "PRICING" {
+					hasPricing = true
+				} else {
+					hasAuthentication = true
+				}
+			}
 		}
 	}
 	if !hasHomepage {
