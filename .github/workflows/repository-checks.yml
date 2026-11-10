@@ -41,3 +41,9 @@ jobs:
             test -s "$file" || { echo "::error file=$file::Missing or empty required file"; exit 1; }
             echo "OK: $file"
           done
+
+      - name: Validate GitHub Actions workflow YAML syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; Dir.glob(".github/workflows/*.{yml,yaml}").sort.each { |file| YAML.parse_file(file); puts "OK: #{file}" }'
