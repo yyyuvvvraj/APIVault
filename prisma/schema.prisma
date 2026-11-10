@@ -474,3 +474,29 @@ model SubmissionReviewEvent {
   @@index([submissionId, createdAt])
   @@index([reviewerUserId, createdAt])
 }
+
+
+model DiscoveryLead {
+  reviewId             String   @id @db.VarChar(64)
+  name                 String   @db.VarChar(240)
+  originalUrl          String   @db.Text
+  canonicalUrl         String   @db.Text
+  sourceCategory       String?  @db.VarChar(120)
+  suggestedCategory    String?  @db.VarChar(120)
+  priority             String   @db.VarChar(16)
+  disposition          String   @db.VarChar(40)
+  evidenceIssues       Json     @default("[]")
+  automatedResearch    Json?
+  importEligible       Boolean  @default(false)
+  verificationStatus   String   @default("UNVERIFIED") @db.VarChar(24)
+  publicationStatus    String   @default("NOT_PUBLISHED") @db.VarChar(24)
+  humanReviewRequired  Boolean  @default(true)
+  sourceRevision       String   @db.VarChar(40)
+  importedAt           DateTime @default(now()) @db.Timestamptz(6)
+  createdAt            DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([priority, disposition])
+  @@index([suggestedCategory, priority])
+  @@index([name])
+}
