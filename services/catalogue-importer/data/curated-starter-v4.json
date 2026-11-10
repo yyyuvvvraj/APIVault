@@ -1,0 +1,354 @@
+{
+  "dataset": {
+    "name": "APIVault curated starter dataset",
+    "sourceUrl": "https://github.com/yyyuvvvraj/APIVault/blob/dev/services/catalogue-importer/data/curated-starter-v4.json",
+    "version": "v4",
+    "retrievedAt": "2026-11-10T00:00:00Z",
+    "license": "NOASSERTION",
+    "attribution": "APIVault-curated metadata based on provider-controlled official documentation. API data rights, licenses, availability, and usage terms remain governed by each provider and are documented in per-record sources."
+  },
+  "apis": [
+    {
+      "slug": "world-bank-indicators-api",
+      "name": "World Bank Indicators API",
+      "summary": "Query global development indicators and country-level time series across World Bank datasets.",
+      "description": "The World Bank Indicators API v2 provides programmatic access to thousands of development indicators and multiple datasets. Requests support country, indicator, date-range, pagination, and response-format parameters. The official documentation states that API keys and other authentication are not required.",
+      "provider": {
+        "slug": "world-bank",
+        "name": "World Bank",
+        "homepageUrl": "https://www.worldbank.org/"
+      },
+      "homepageUrl": "https://www.worldbank.org/",
+      "documentationUrl": "https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation",
+      "baseUrl": "https://api.worldbank.org/v2",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "The public Indicators API is documented as accessible without authentication; no explicit pricing or commercial-use statement is asserted in this candidate.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "data-analytics",
+        "science-education"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "The official Indicators API documentation states that API keys and other authentication are not necessary."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.worldbank.org/",
+          "title": "World Bank official homepage",
+          "isOfficial": true,
+          "notes": "Official provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation",
+          "title": "World Bank Indicators API documentation",
+          "isOfficial": true,
+          "notes": "Documents API v2, datasets, access model, and request structure."
+        },
+        {
+          "kind": "OTHER",
+          "url": "https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures",
+          "title": "World Bank API basic call structures",
+          "isOfficial": true,
+          "notes": "Documents URL and argument-based query structures."
+        }
+      ]
+    },
+    {
+      "slug": "openfda-api",
+      "name": "openFDA API",
+      "summary": "Search and retrieve public FDA datasets covering drugs, devices, foods, and other regulated-product information.",
+      "description": "The openFDA API exposes searchable FDA datasets through HTTPS JSON endpoints. A free API key increases the documented request allowance; the official authentication page also describes lower unauthenticated limits. The provider warns that openFDA data should not be used as a substitute for professional medical decisions.",
+      "provider": {
+        "slug": "us-food-and-drug-administration",
+        "name": "U.S. Food and Drug Administration",
+        "homepageUrl": "https://www.fda.gov/"
+      },
+      "homepageUrl": "https://www.fda.gov/",
+      "documentationUrl": "https://open.fda.gov/apis/",
+      "baseUrl": "https://api.fda.gov",
+      "pricingModel": "FREE",
+      "pricingSummary": "The API key is available free of charge; documented access limits apply and users should review current FDA terms and disclaimers.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education",
+        "data-analytics"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "A free API key can be passed using the api_key query parameter; the official page also documents lower per-IP limits without a key."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.fda.gov/",
+          "title": "U.S. Food and Drug Administration",
+          "isOfficial": true,
+          "notes": "Official federal provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://open.fda.gov/apis/",
+          "title": "openFDA API documentation",
+          "isOfficial": true,
+          "notes": "Documents searchable datasets, endpoints, and response formats."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://open.fda.gov/apis/authentication/",
+          "title": "openFDA authentication and rate limits",
+          "isOfficial": true,
+          "notes": "Documents free API keys, key transmission, request limits, and HTTPS requirements."
+        },
+        {
+          "kind": "TERMS",
+          "url": "https://open.fda.gov/terms/",
+          "title": "openFDA terms and disclaimer",
+          "isOfficial": true,
+          "notes": "Review provider terms and important data-use disclaimers before production use."
+        }
+      ]
+    },
+    {
+      "slug": "europe-pmc-rest-api",
+      "name": "Europe PMC REST API",
+      "summary": "Search and retrieve biomedical and life-sciences literature, abstracts, full-text links, and related research records.",
+      "description": "Europe PMC provides a RESTful web service for searching publications and preprints from multiple sources. The service documentation describes search, result formats, sorting, and request methods. API-specific usage policies and licensing for retrieved content should be reviewed before reuse.",
+      "provider": {
+        "slug": "european-bioinformatics-institute",
+        "name": "EMBL-EBI",
+        "homepageUrl": "https://www.ebi.ac.uk/"
+      },
+      "homepageUrl": "https://www.ebi.ac.uk/",
+      "documentationUrl": "https://dev.europepmc.org/RestfulWebService",
+      "baseUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No pricing or blanket commercial-use claim is made in this candidate; review current EMBL-EBI service policies and the rights attached to individual records and full text.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education",
+        "data-analytics"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "The documented public REST search endpoint is callable without an API key; verify any endpoint-specific access requirements."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.ebi.ac.uk/",
+          "title": "EMBL-EBI official homepage",
+          "isOfficial": true,
+          "notes": "Official service operator homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://dev.europepmc.org/RestfulWebService",
+          "title": "Europe PMC RESTful Web Service",
+          "isOfficial": true,
+          "notes": "Documents search, result types, request methods, and service access."
+        },
+        {
+          "kind": "OTHER",
+          "url": "https://europepmc.org/",
+          "title": "Europe PMC portal",
+          "isOfficial": true,
+          "notes": "Official literature discovery portal and service overview."
+        },
+        {
+          "kind": "TERMS",
+          "url": "https://europepmc.org/PrivacyNotice",
+          "title": "Europe PMC privacy notice",
+          "isOfficial": true,
+          "notes": "Privacy notice referenced by the public REST service documentation; review it alongside source-specific content rights."
+        }
+      ]
+    },
+    {
+      "slug": "google-books-api",
+      "name": "Google Books API",
+      "summary": "Search and retrieve bibliographic metadata and public volume information from the Google Books catalogue.",
+      "description": "The Google Books API v1 exposes volume search and retrieval endpoints. Public volume data can be queried using an API key or access token, while private bookshelf resources require user authorization. The API also returns access and sale metadata where available; commercial and content rights remain subject to Google's terms and publisher rights.",
+      "provider": {
+        "slug": "google",
+        "name": "Google",
+        "homepageUrl": "https://www.google.com/"
+      },
+      "homepageUrl": "https://www.google.com/",
+      "documentationUrl": "https://developers.google.com/books/docs/v1/using",
+      "baseUrl": "https://www.googleapis.com/books/v1",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No standalone API price is asserted here; review current Google API terms, quotas, and applicable content or purchase rights.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "media",
+        "science-education"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Public volume requests can use a Google API key or access token; the key identifies the project and provides quota and reporting."
+        },
+        {
+          "method": "OAUTH2",
+          "details": "OAuth 2.0 is required for private user bookshelf data and other user-specific resources."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://books.google.com/",
+          "title": "Google Books",
+          "isOfficial": true,
+          "notes": "Official book discovery service."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://developers.google.com/books/docs/v1/using",
+          "title": "Google Books API usage guide",
+          "isOfficial": true,
+          "notes": "Documents volume search, request URLs, credentials, and response resources."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://developers.google.com/books/docs/v1/using#APIKey",
+          "title": "Google Books API credentials",
+          "isOfficial": true,
+          "notes": "Documents API key and OAuth credential requirements."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://developers.google.com/books/docs/v1/reference/volumes",
+          "title": "Google Books volumes resource",
+          "isOfficial": true,
+          "notes": "Documents public volume list and get methods."
+        }
+      ]
+    },
+    {
+      "slug": "youtube-data-api-v3",
+      "name": "YouTube Data API v3",
+      "summary": "Retrieve and manage YouTube video, channel, playlist, comment, and related resource metadata.",
+      "description": "YouTube Data API v3 provides REST resources for videos, channels, playlists, and other YouTube data. Public-data requests can use an API key; operations that access private user data or modify resources require OAuth 2.0. Requests consume project quota, with costs varying by method.",
+      "provider": {
+        "slug": "youtube",
+        "name": "YouTube",
+        "homepageUrl": "https://www.youtube.com/"
+      },
+      "homepageUrl": "https://www.youtube.com/",
+      "documentationUrl": "https://developers.google.com/youtube/v3/docs",
+      "baseUrl": "https://www.googleapis.com/youtube/v3",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No per-call monetary price is asserted; access is governed by project quota and current YouTube API Services terms.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "media"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "API keys identify projects for requests that retrieve public data such as public video metadata and search results."
+        },
+        {
+          "method": "OAUTH2",
+          "details": "OAuth 2.0 is required for private user data and resource insert, update, or delete operations."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.youtube.com/",
+          "title": "YouTube",
+          "isOfficial": true,
+          "notes": "Official video platform homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://developers.google.com/youtube/v3/docs",
+          "title": "YouTube Data API v3 reference",
+          "isOfficial": true,
+          "notes": "Documents API resources, methods, and REST endpoints."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://developers.google.com/youtube/data/guides/authentication",
+          "title": "YouTube Data API authorization",
+          "isOfficial": true,
+          "notes": "Distinguishes API key access for public data from OAuth 2.0 for private or mutating operations."
+        },
+        {
+          "kind": "RATE_LIMITS",
+          "url": "https://developers.google.com/youtube/data/determine_quota_cost",
+          "title": "YouTube Data API quota calculator",
+          "isOfficial": true,
+          "notes": "Documents method-specific quota costs, default daily allocation, and quota reset behavior."
+        }
+      ]
+    },
+    {
+      "slug": "us-census-data-api",
+      "name": "U.S. Census Data API",
+      "summary": "Query U.S. Census Bureau datasets including decennial census, American Community Survey, population estimates, and economic statistics.",
+      "description": "The Census Data API provides standardized programmatic access to a broad range of Census Bureau datasets. The current developer guidance describes API key registration and use in data requests; dataset availability and supported variables differ by program and release.",
+      "provider": {
+        "slug": "us-census-bureau",
+        "name": "U.S. Census Bureau",
+        "homepageUrl": "https://www.census.gov/"
+      },
+      "homepageUrl": "https://www.census.gov/",
+      "documentationUrl": "https://www.census.gov/data/developers.html",
+      "baseUrl": "https://api.census.gov/data",
+      "pricingModel": "FREE",
+      "pricingSummary": "The Census Bureau offers API keys free of charge; query and dataset-specific constraints apply.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "data-analytics",
+        "science-education"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "The current Census Data API guidance states that an API key must be included with data queries; keys are registered free of charge."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.census.gov/",
+          "title": "U.S. Census Bureau",
+          "isOfficial": true,
+          "notes": "Official federal statistical agency homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://www.census.gov/data/developers.html",
+          "title": "Census Bureau developer portal",
+          "isOfficial": true,
+          "notes": "Lists available datasets and developer resources."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://www.census.gov/data/developers/guidance/api-user-guide.API_Key.html",
+          "title": "Census Data API key guide",
+          "isOfficial": true,
+          "notes": "Documents free API key registration and query parameter usage."
+        },
+        {
+          "kind": "OTHER",
+          "url": "https://www.census.gov/help/topics/faq.what-is-the-census-api-how-do-i-use-it.html",
+          "title": "What is the Census API?",
+          "isOfficial": true,
+          "notes": "Explains public access to standardized Census data through the API."
+        }
+      ]
+    }
+  ]
+}
