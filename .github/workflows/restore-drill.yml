@@ -1,0 +1,149 @@
+name: Isolated PostgreSQL restore drill
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_key:
+        description: S3 object key under the configured bucket (for example apivault/postgres/apivault-20261110T021500Z.dump.age)
+        required: true
+        type: string
+      confirm_isolated_target:
+        description: Confirm the configured target is an isolated, disposable non-production database
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: apivault-isolated-restore-drill
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    name: Restore encrypted backup into isolated PostgreSQL
+    if: ${{ inputs.confirm_isolated_target == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Validate isolated restore configuration
+        env:
+          AWS_ROLE_ARN: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN }}
+          AWS_REGION: ${{ vars.APIVAULT_BACKUP_AWS_REGION }}
+          S3_BUCKET: ${{ vars.APIVAULT_BACKUP_S3_BUCKET }}
+          BACKUP_KEY: ${{ inputs.backup_key }}
+          PGHOST: ${{ secrets.APIVAULT_RESTORE_PGHOST }}
+          PGUSER: ${{ secrets.APIVAULT_RESTORE_PGUSER }}
+          PGDATABASE: ${{ secrets.APIVAULT_RESTORE_PGDATABASE }}
+          PGPASSFILE_CONTENT: ${{ secrets.APIVAULT_RESTORE_PGPASSFILE }}
+          AGE_IDENTITY: ${{ secrets.APIVAULT_RESTORE_AGE_IDENTITY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in AWS_ROLE_ARN AWS_REGION S3_BUCKET PGHOST PGUSER PGDATABASE PGPASSFILE_CONTENT AGE_IDENTITY; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required restore configuration: $name"
+              exit 1
+            fi
+          done
+          if [[ "$PGDATABASE" == *prod* || "$PGDATABASE" == *production* ]]; then
+            echo "::error::Refusing a database name that appears production-like."
+            exit 1
+          fi
+          case "$BACKUP_KEY" in
+            apivault/postgres/*.dump.age) ;;
+            *) echo "::error::backup_key must be an encrypted APIVault PostgreSQL backup under apivault/postgres/."; exit 1 ;;
+          esac
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.APIVAULT_BACKUP_AWS_REGION }}
+          role-session-name: APIVaultRestoreDrill-${{ github.run_id }}
+
+      - name: Download encrypted backup and prepare isolated credentials
+        env:
+          S3_BUCKET: ${{ vars.APIVAULT_BACKUP_S3_BUCKET }}
+          BACKUP_KEY: ${{ inputs.backup_key }}
+          PGPASSFILE_CONTENT: ${{ secrets.APIVAULT_RESTORE_PGPASSFILE }}
+          AGE_IDENTITY: ${{ secrets.APIVAULT_RESTORE_AGE_IDENTITY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$RUNNER_TEMP/apivault-restore"
+          printf '%s' "$PGPASSFILE_CONTENT" > "$RUNNER_TEMP/apivault-restore/pgpass"
+          printf '%s' "$AGE_IDENTITY" > "$RUNNER_TEMP/apivault-restore/age-identity"
+          chmod 600 "$RUNNER_TEMP/apivault-restore/pgpass" "$RUNNER_TEMP/apivault-restore/age-identity"
+          aws s3 cp "s3://$S3_BUCKET/$BACKUP_KEY" "$RUNNER_TEMP/apivault-restore/backup.dump.age" --only-show-errors
+          sha256sum "$RUNNER_TEMP/apivault-restore/backup.dump.age" | tee "$RUNNER_TEMP/apivault-restore/backup.sha256"
+
+      - name: Restore and validate migration history
+        env:
+          PGHOST: ${{ secrets.APIVAULT_RESTORE_PGHOST }}
+          PGPORT: ${{ secrets.APIVAULT_RESTORE_PGPORT }}
+          PGUSER: ${{ secrets.APIVAULT_RESTORE_PGUSER }}
+          PGDATABASE: ${{ secrets.APIVAULT_RESTORE_PGDATABASE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${PGPORT:=5432}"
+          docker run --rm --network host \
+            -e RESTORE_TARGET=isolated \
+            -e BACKUP_FILE=/backup/backup.dump.age \
+            -e BACKUP_AGE_IDENTITY=/run/secrets/age-identity \
+            -e PGHOST -e PGPORT -e PGUSER -e PGDATABASE \
+            -e PGPASSFILE=/run/secrets/pgpass \
+            -e PGSSLMODE=require \
+            -v "$RUNNER_TEMP/apivault-restore:/backup" \
+            -v "$RUNNER_TEMP/apivault-restore/age-identity:/run/secrets/age-identity:ro" \
+            -v "$RUNNER_TEMP/apivault-restore/pgpass:/run/secrets/pgpass:ro" \
+            -v "$GITHUB_WORKSPACE/scripts:/scripts:ro" \
+            postgres:18-bookworm bash -ec '
+              apt-get update -qq
+              apt-get install -y --no-install-recommends age >/dev/null
+              bash /scripts/restore-postgres.sh
+              psql --no-psqlrc --tuples-only --no-align --host="$PGHOST" --port="$PGPORT" --username="$PGUSER" --dbname="$PGDATABASE" \
+                --command="SELECT COUNT(*) FROM \"_prisma_migrations\" WHERE \"finished_at\" IS NOT NULL AND \"rolled_back_at\" IS NULL" \
+                > /backup/migration-count.txt
+              test "$(cat /backup/migration-count.txt)" -gt 0
+              echo "Migration history validated: $(cat /backup/migration-count.txt) successful migrations."
+            '
+
+      - name: Publish non-sensitive restore evidence
+        if: always()
+        env:
+          BACKUP_KEY: ${{ inputs.backup_key }}
+        shell: bash
+        run: |
+          {
+            echo "## Isolated restore drill"
+            echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- Backup key: $BACKUP_KEY"
+            if [[ -f "$RUNNER_TEMP/apivault-restore/backup.sha256" ]]; then
+              echo "- Downloaded backup checksum:"
+              cat "$RUNNER_TEMP/apivault-restore/backup.sha256"
+            fi
+            if [[ -f "$RUNNER_TEMP/apivault-restore/migration-count.txt" ]]; then
+              echo "- Successful migration records: $(cat "$RUNNER_TEMP/apivault-restore/migration-count.txt")"
+            fi
+            echo "- This workflow does not delete the restored database; an operator must inspect and clean up the isolated target."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload restore evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: apivault-restore-drill-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/apivault-restore/backup.sha256
+            ${{ runner.temp }}/apivault-restore/migration-count.txt
+          if-no-files-found: ignore
+          retention-days: 30

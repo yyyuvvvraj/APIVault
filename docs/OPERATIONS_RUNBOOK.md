@@ -98,3 +98,21 @@ Restrict the IAM role trust policy to the repository and the `dev` branch subjec
 Before enabling uploads, configure the bucket with Block Public Access, bucket-owner-enforced object ownership, versioning where appropriate, default encryption, and a lifecycle/retention policy approved by the data owner. The workflow encrypts dumps with age before upload and requests S3 server-side encryption as an additional layer. Keep the age private identity outside GitHub Actions and outside the bucket.
 
 After configuration, run the workflow manually and verify the S3 object, checksum metadata, access controls, retention, and restore procedure. A successful upload is still not a completed restore drill. If the variables are absent, the workflow explicitly reports that the run produced only a short-lived Actions artifact and does not satisfy durable off-site backup readiness.
+
+
+## Automated isolated restore drill
+
+The manual workflow `.github/workflows/restore-drill.yml` downloads an age-encrypted backup from the configured private S3 bucket, restores it only when the operator explicitly confirms an isolated target, and validates that the restored database contains successful Prisma migration history. It does not run on a schedule and never chooses a target automatically.
+
+Configure these repository secrets:
+
+- `APIVAULT_RESTORE_PGHOST`
+- `APIVAULT_RESTORE_PGPORT` (optional; defaults to 5432)
+- `APIVAULT_RESTORE_PGUSER`
+- `APIVAULT_RESTORE_PGDATABASE` (must identify a disposable non-production database)
+- `APIVAULT_RESTORE_PGPASSFILE` (one PostgreSQL passfile line)
+- `APIVAULT_RESTORE_AGE_IDENTITY` (private age identity; never commit or upload it)
+
+The workflow also requires the S3/OIDC repository variables documented above and an IAM role with narrowly scoped `s3:GetObject` access to the backup prefix. The same role needs `s3:PutObject` for scheduled backups; a separate read-only restore role is preferable if the owner configures it.
+
+Run manually with `confirm_isolated_target=true` and an exact encrypted object key. The workflow refuses production-like database names and any key outside `apivault/postgres/*.dump.age`. Review the run summary and evidence artifact, then validate representative row counts, application readiness, and account/key ownership manually. The workflow deliberately does not drop the target database; the operator must inspect and clean it up. A successful migration-history check alone is not a complete recovery acceptance record.
