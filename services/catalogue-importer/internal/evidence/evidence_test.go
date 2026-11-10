@@ -10,18 +10,18 @@ func validPack() Pack {
 	now := time.Date(2026, 11, 10, 12, 0, 0, 0, time.UTC)
 	return Pack{
 		SchemaVersion: SchemaVersion,
-		ReviewedAt: now,
-		Reviewer: "maintainer@example.com",
+		ReviewedAt:    now,
+		Reviewer:      "maintainer@example.com",
 		Submissions: []Submission{{
-			ReviewID: "review-123",
-			ProviderName: "Example",
-			ProviderDomains: []string{"example.com"},
+			ReviewID:            "review-123",
+			ProviderName:        "Example",
+			ProviderDomains:     []string{"example.com"},
 			OfficialHomepageURL: "https://example.com",
-			DocumentationURL: "https://docs.example.com/api",
-			TermsURL: "https://example.com/terms",
-			LicenseAssessment: "ALLOWED",
-			Authentication: "API_KEY",
-			Pricing: "FREEMIUM",
+			DocumentationURL:    "https://docs.example.com/api",
+			TermsURL:            "https://example.com/terms",
+			LicenseAssessment:   "ALLOWED",
+			Authentication:      "API_KEY",
+			Pricing:             "FREEMIUM",
 			Evidence: []Evidence{
 				{Claim: "PROVIDER_IDENTITY", URL: "https://example.com/about", SourceType: "PROVIDER_CONTROLLED", AccessedAt: now},
 				{Claim: "OFFICIAL_HOMEPAGE", URL: "https://example.com", SourceType: "PROVIDER_CONTROLLED", AccessedAt: now},
