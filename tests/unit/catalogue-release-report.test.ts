@@ -65,3 +65,42 @@ test("category and provider breakdowns are deterministic", () => {
   assert.deepEqual(report.categoryBreakdown.map((item) => item.category), ["Maps", "Science", "Weather"]);
   assert.deepEqual(report.providerBreakdown.map((item) => item.provider), ["A Provider", "Z Provider"]);
 });
+
+
+test("release report rejects empty names, slugs, and categories that have no usable name", () => {
+  const report = buildCatalogueReleaseReport([
+    candidate({ slug: " ", name: " " }),
+    candidate({ slug: "empty-category", name: "Empty Category", categories: [{ category: null }, { category: { name: "   " } }] }),
+  ]);
+
+  assert.equal(report.eligibleCount, 0);
+  assert.equal(report.excludedByReason.missing_name, 1);
+  assert.equal(report.excludedByReason.missing_slug, 1);
+  assert.equal(report.excludedByReason.missing_category, 1);
+});
+
+test("release report rejects official HTTPS URLs with embedded credentials", () => {
+  const report = buildCatalogueReleaseReport([
+    candidate({ sources: [{ url: "https://user:secret@provider.example/api", isOfficial: true }] }),
+  ]);
+
+  assert.equal(report.eligibleCount, 0);
+  assert.equal(report.excludedByReason.missing_official_https_source, 1);
+});
+
+test("category breakdown counts each category once per API", () => {
+  const report = buildCatalogueReleaseReport([
+    candidate({
+      categories: [
+        { category: { name: "Weather" } },
+        { category: { name: "Weather" } },
+        { category: { name: "Science" } },
+      ],
+    }),
+  ]);
+
+  assert.deepEqual(report.categoryBreakdown, [
+    { category: "Science", count: 1 },
+    { category: "Weather", count: 1 },
+  ]);
+});
