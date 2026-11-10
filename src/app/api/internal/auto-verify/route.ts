@@ -75,7 +75,7 @@ export async function GET(request: Request) {
         name: { not: "" },
         summary: { not: "" },
       },
-      take: 5000,
+      take: 1000,
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       include: {
         provider: true,
