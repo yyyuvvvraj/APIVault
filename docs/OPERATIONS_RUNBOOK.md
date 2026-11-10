@@ -8,7 +8,7 @@ This runbook describes operational controls expected for a hosted v0.1 deploymen
 2. For an independent encrypted export, install PostgreSQL client tools and [age](https://age-encryption.org/). Supply connection details through environment variables or a secret manager; use a PostgreSQL passfile with mode 0600 for the password. Never place passwords in shell arguments or commit them.
 3. Create an age recipient and keep the matching identity offline or in an approved secret manager.
 4. Run `scripts/backup-postgres.sh` with `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGPASSFILE`, `PGSSLMODE=require`, and `BACKUP_ENCRYPTION_RECIPIENT`. Optional settings: `BACKUP_DIR` and `BACKUP_RETENTION_DAYS`.
-5. Store encrypted backup files in access-controlled off-host storage. The script's local directory is only a staging location; it is not an off-site backup.
+5. Store encrypted backup files outside the database host. The script's local directory is only a staging location; keep an offline encrypted copy for retention beyond the temporary Actions artifact window.
 6. Record backup timestamp, database branch, file checksum, storage location, and operator. Do not record credentials.
 
 ## Restore drill
@@ -69,7 +69,7 @@ The repository includes `.github/workflows/database-backup.yml`, which runs manu
 - `APIVAULT_BACKUP_PGPASSFILE` (one PostgreSQL passfile line: `host:port:database:username:password`)
 - `APIVAULT_BACKUP_AGE_RECIPIENT` (public age recipient; keep the matching private identity outside Actions)
 
-The workflow uses PostgreSQL 18 client tools, requires TLS, encrypts the dump with age, and uploads only the encrypted file as a short-lived GitHub Actions artifact. The artifact is retained for 14 days and is staging/transport only, not durable off-site storage or a substitute for provider-native backups. Export encrypted artifacts to approved durable storage and perform an isolated restore drill before claiming the backup gate complete. Never upload the age identity or an unencrypted dump.
+The workflow uses PostgreSQL 18 client tools, requires TLS, encrypts the dump with age, and uploads only the encrypted file as a GitHub Actions artifact retained for 14 days. This is temporary convenience storage, not durable off-site storage or a substitute for provider-native backups. Download and retain an encrypted offline copy if longer retention is needed. Never upload the age identity or an unencrypted dump.
 
 ## Reproducible catalogue release count
 
@@ -85,36 +85,37 @@ The hosted uptime workflow can notify an operator-controlled webhook after a fai
 Run the workflow manually with `send_test_alert=true` to test delivery without intentionally breaking the hosted service. A successful HTTP response proves only that the receiver accepted the request; record that the named operator actually received and acknowledged the notification. If the webhook secret is absent, the notification job warns and skips sending.
 
 
-## Durable off-site backup with AWS S3
+## Free-tier encrypted backup artifacts
 
-The scheduled backup workflow supports an optional, keyless AWS upload using GitHub Actions OIDC. Configure these repository **variables** (not long-lived access-key secrets):
+The scheduled workflow `.github/workflows/database-backup.yml` runs manually or daily at 02:15 UTC. It creates a PostgreSQL custom-format dump, encrypts it with age, and uploads only the encrypted file as a GitHub Actions artifact retained for 14 days. No AWS account, S3 bucket, cloud access key, or paid object-storage service is required.
 
-- `APIVAULT_BACKUP_AWS_ROLE_ARN`: IAM role trusted for this repository's GitHub Actions OIDC identity.
-- `APIVAULT_BACKUP_AWS_REGION`: AWS region containing the backup bucket.
-- `APIVAULT_BACKUP_S3_BUCKET`: private S3 bucket dedicated to APIVault backups.
+Configure these repository Actions secrets:
 
-Restrict the IAM role trust policy to the repository and the `dev` branch subject (`repo:yyyuvvvraj/APIVault:ref:refs/heads/dev`) unless a separately reviewed deployment environment is used. Grant only `s3:PutObject` and `s3:GetObject` for the required `apivault/postgres/*` prefix, plus the minimum multipart-upload permissions needed by the AWS CLI. Do not grant bucket administration or public-access changes to the workflow role.
+- `APIVAULT_BACKUP_PGHOST`
+- `APIVAULT_BACKUP_PGPORT` (optional; defaults to 5432)
+- `APIVAULT_BACKUP_PGUSER`
+- `APIVAULT_BACKUP_PGDATABASE`
+- `APIVAULT_BACKUP_PGPASSFILE` (one PostgreSQL passfile line)
+- `APIVAULT_BACKUP_AGE_RECIPIENT` (public age recipient; keep the matching private identity offline)
 
-Before enabling uploads, configure the bucket with Block Public Access, bucket-owner-enforced object ownership, versioning where appropriate, default encryption, and a lifecycle/retention policy approved by the data owner. The workflow encrypts dumps with age before upload and requests S3 server-side encryption as an additional layer. Keep the age private identity outside GitHub Actions and outside the bucket.
-
-After configuration, run the workflow manually and verify the S3 object, checksum metadata, access controls, retention, and restore procedure. A successful upload is still not a completed restore drill. If the variables are absent, the workflow explicitly reports that the run produced only a short-lived Actions artifact and does not satisfy durable off-site backup readiness.
+Download the encrypted artifact from the workflow run and retain a separate offline copy if longer retention is needed. GitHub Actions artifacts are temporary storage with plan-dependent usage limits; they are not durable off-site backups or a substitute for provider-native recovery. Do not claim long-term backup retention based on these artifacts alone. Never upload the age private identity or an unencrypted dump.
 
 
 ## Automated isolated restore drill
 
-The manual workflow `.github/workflows/restore-drill.yml` downloads an age-encrypted backup from the configured private S3 bucket, restores it only when the operator explicitly confirms an isolated target, and validates that the restored database contains successful Prisma migration history. It does not run on a schedule and never chooses a target automatically.
+The manual workflow `.github/workflows/restore-drill.yml` downloads the encrypted backup artifact from a prior GitHub Actions backup run, restores it into an explicitly configured isolated database, and validates successful Prisma migration history. It uses GitHub's artifact service only; no S3 integration or paid storage is required. Artifacts expire after 14 days, so use a recent backup run.
+
+Run the scheduled/manual backup workflow first. Then run the restore workflow with its `backup_run_id` input set to the numeric ID of that successful backup run and `confirm_isolated_target=true`.
 
 Configure these repository secrets:
 
 - `APIVAULT_RESTORE_PGHOST`
-- `APIVAULT_RESTORE_ALLOWED_HOST` (repository variable; must exactly match the restore host secret)
-- `APIVAULT_RESTORE_ALLOWED_DATABASE` (repository variable; must exactly match the disposable restore database secret)
-- `APIVAULT_RESTORE_PGPORT` (optional; defaults to 5432)
 - `APIVAULT_RESTORE_PGUSER`
-- `APIVAULT_RESTORE_PGDATABASE` (must identify a disposable non-production database)
+- `APIVAULT_RESTORE_PGDATABASE` (disposable non-production database)
+- `APIVAULT_RESTORE_PGPORT` (optional; defaults to 5432)
 - `APIVAULT_RESTORE_PGPASSFILE` (one PostgreSQL passfile line)
-- `APIVAULT_RESTORE_AGE_IDENTITY` (private age identity; never commit or upload it)
+- `APIVAULT_RESTORE_AGE_IDENTITY` (private age identity; never commit or upload)
 
-The workflow also requires the S3/OIDC repository variables documented above and an IAM role with narrowly scoped `s3:GetObject` access to the backup prefix. The same role needs `s3:PutObject` for scheduled backups; a separate read-only restore role is preferable if the owner configures it. Before any AWS access, the workflow fails closed unless the secret host and database exactly match the two explicit allowlist variables. The database name is additionally rejected if it contains a production marker. Set the allowlist variables only after independently verifying the disposable target in the database provider; do not copy production connection details.
+Configure repository variables `APIVAULT_RESTORE_ALLOWED_HOST` and `APIVAULT_RESTORE_ALLOWED_DATABASE` to exactly match the independently verified disposable target. The workflow fails closed on any mismatch and rejects database names containing production markers. Validate representative row counts, application readiness, and account/key ownership manually; inspect and clean up the isolated target after the drill.
 
-Run manually with `confirm_isolated_target=true` and an exact encrypted object key. The workflow refuses production-like database names and any key outside `apivault/postgres/*.dump.age`. Review the run summary and evidence artifact, then validate representative row counts, application readiness, and account/key ownership manually. The workflow deliberately does not drop the target database; the operator must inspect and clean it up. A successful migration-history check alone is not a complete recovery acceptance record.
+This workflow proves a restore only when a real run succeeds and its data/application checks are reviewed. A migration-history query alone is insufficient. GitHub artifact retention is temporary; maintain an offline encrypted copy for longer-term recovery.
