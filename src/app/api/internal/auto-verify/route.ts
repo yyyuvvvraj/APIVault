@@ -84,7 +84,7 @@ export async function GET(request: Request) {
         summary: { not: "" },
       },
       take: 1000,
-      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      orderBy: [{ lastCheckedAt: { sort: "asc", nulls: "first" } }, { createdAt: "asc" }, { id: "asc" }],
       include: {
         provider: true,
         categories: { include: { category: true } },
@@ -170,6 +170,16 @@ export async function POST(request: Request) {
       continue;
     }
     seen.add(result.slug);
+
+    await prisma.api.updateMany({
+      where: {
+        slug: result.slug,
+        status: ApiStatus.ACTIVE,
+        verificationStatus: { in: [VerificationStatus.UNVERIFIED, VerificationStatus.PENDING_REVIEW, VerificationStatus.STALE] },
+        publishedAt: null,
+      },
+      data: { lastCheckedAt: new Date() },
+    });
 
     if (!result.autoApprove || result.verdict !== "VALIDATED_CANDIDATE" || result.duplicateOf) {
       held.push({ slug: result.slug, reason: (result.autoApprovalReasons ?? ["automated policy did not approve this record"]).join("; ") });
