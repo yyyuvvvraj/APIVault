@@ -111,3 +111,20 @@ The dataset-level license declaration does not override provider-specific rights
 
 
 Verified catalogue records are protected from candidate-import downgrades: repeated imports preserve their verification state, featured flag, and operational status. Failed database status updates are surfaced rather than silently ignored.
+
+
+## Discovery triage (review-only)
+
+The `catalogue-triage` command converts a discovery-only report into a normalized research queue:
+
+```bash
+cd services/catalogue-importer
+go test ./...
+go run ./cmd/catalogue-triage \
+  -input /path/to/apivault-discovery-leads.json \
+  -output discovery-triage-report.json
+```
+
+It removes known marketing tracking parameters (`utm_*`, `gclid`, `fbclid`, `mc_cid`, and `mc_eid`) from a separate canonical URL while retaining the original URL and recording every removed parameter. It reports exact canonical URL collisions, shared hostnames, normalized-name collisions, conservative category suggestions, and unmapped categories. Shared hostnames are review signals, not automatic duplicate decisions.
+
+Every output item remains `DISCOVERY_ONLY` with `REVIEW_REQUIRED`. The command rejects malformed/non-HTTPS/credential-bearing URLs and does not create an importer manifest, connect to a database, or alter verification/publication state. A suggested category is only a hint; provider identity, official documentation, licensing, terms, pricing, authentication, and availability still require independent evidence.
