@@ -70,3 +70,8 @@ The **Catalogue discovery leads** workflow runs weekly and can also be started m
 This workflow is discovery-only: it does not connect to the APIVault database, create providers, import API records, or change verification/publication state. Every lead remains `DISCOVERY_ONLY`. The community directory is a lead source, not provider-owned evidence. Use the artifact to prioritize independent provider-source research and prepare a separately reviewed manifest. Never turn the discovery artifact directly into a publishable catalogue import.
 
 The automated verification export also reports lifecycle and evidence-coverage counts (total APIs, pending/unpublished records, HTTPS homepage/documentation coverage, category coverage, source coverage, and authentication classification). These diagnostics make an empty verification batch explainable instead of silently reporting only zero candidates.
+
+
+### Provider evidence review
+
+Use the [provider evidence review workflow](CATALOGUE_EVIDENCE_REVIEW.md) to convert discovery-only review IDs into structured, source-linked research submissions. A structurally READY submission is still awaiting independent maintainer review and cannot be imported, verified, published, or counted toward release eligibility.

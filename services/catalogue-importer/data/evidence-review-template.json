@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1",
+  "reviewedAt": "2026-11-10T00:00:00Z",
+  "reviewer": "REPLACE_WITH_REVIEWER_ID",
+  "submissions": [
+    {
+      "reviewId": "COPY_FROM_RESEARCH_QUEUE",
+      "providerName": "RESEARCH_AND_CONFIRM_PROVIDER_NAME",
+      "providerDomains": [
+        "provider.example"
+      ],
+      "officialHomepageUrl": "https://provider.example",
+      "documentationUrl": "https://docs.provider.example",
+      "termsUrl": "",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "UNKNOWN",
+      "pricing": "UNKNOWN",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://provider.example/about",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T00:00:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://provider.example",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T00:00:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://docs.provider.example",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}
