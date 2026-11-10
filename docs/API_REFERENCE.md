@@ -43,6 +43,26 @@ curl 'https://YOUR_APIVAULT_HOST/api/v1/apis/nasa-open-apis' \
 
 The detail response is wrapped in `data`. Only active, verified, publication-ready catalogue entries are exposed.
 
+
+## Discovery leads (research-only)
+
+The separate `GET /api/v1/discovery` endpoint exposes the public discovery queue. These records are **not** verified or published API listings, and this endpoint does not proxy third-party APIs.
+
+```bash
+curl --get 'https://YOUR_APIVAULT_HOST/api/v1/discovery' \
+  --data-urlencode 'q=weather' \
+  --data-urlencode 'priority=HIGH' \
+  --data-urlencode 'page=1' \
+  --data-urlencode 'limit=30' \
+  --header 'Accept: application/json'
+```
+
+Parameters: `q` searches names, URLs and categories (maximum 100 characters); `priority` accepts `HIGH`, `NORMAL`, or `LOW`; `disposition` accepts `READY_FOR_MAINTAINER_REVIEW` or `REVIEW_REQUIRED`; `page` is 1-based; `limit` is 1–100 (default 30).
+
+Responses include `data`, `counts`, `pagination`, and a safety `notice`. Records retain `UNVERIFIED`, `NOT_PUBLISHED`, and `humanReviewRequired: true`. Automated research and candidate URLs are not authenticated provider evidence. Do not use these records as an integration catalogue or claim their APIs are available.
+
+The human-facing queue is at [/discover](/discover). The verified catalogue remains at [/apis](/apis) and `GET /api/v1/apis`.
+
 ## JavaScript example
 
 ```js
