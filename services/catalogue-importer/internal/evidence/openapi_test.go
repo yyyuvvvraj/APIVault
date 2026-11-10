@@ -31,6 +31,35 @@ func TestAnalyzeOpenAPIJSONRejectsUntrustedOrInsecureServers(t *testing.T) {
 	}
 }
 
+func TestAnalyzeOpenAPIJSONRejectsUnsafeServerAuthorities(t *testing.T) {
+	for _, server := range []string{
+		"https://api.example.com:8443",
+		"https://api.example.com?token=secret",
+		"https://api.example.com#fragment",
+		"https://127.0.0.1",
+		"https://localhost",
+		"https://api.example.com.evil",
+	} {
+		t.Run(server, func(t *testing.T) {
+			raw := []byte(`{"openapi":"3.0.0","info":{"title":"API","version":"1"},"servers":[{"url":"` + server + `"}],"paths":{"/x":{"get":{}}}}`)
+			result := AnalyzeOpenAPIJSON(raw, []string{"example.com"})
+			if result.Valid || result.ProviderDomainMatch {
+				t.Fatalf("expected unsafe server authority to fail closed, got %+v", result)
+			}
+		})
+	}
+}
+
+func TestAnalyzeOpenAPIJSONRejectsInvalidProviderDomainAssertions(t *testing.T) {
+	raw := []byte(`{"openapi":"3.0.0","info":{"title":"API","version":"1"},"servers":[{"url":"https://api.example.com"}],"paths":{"/x":{"get":{}}}}`)
+	for _, domain := range []string{"https://example.com", "example.com/path", "127.0.0.1", "localhost", "*.example.com"} {
+		result := AnalyzeOpenAPIJSON(raw, []string{domain})
+		if result.Valid || result.ProviderDomainMatch {
+			t.Fatalf("expected invalid provider domain %q to fail closed, got %+v", domain, result)
+		}
+	}
+}
+
 func TestAnalyzeOpenAPIJSONSupportsSwaggerV2HTTPS(t *testing.T) {
 	raw := []byte(`{"swagger":"2.0","info":{"title":"Legacy API","version":"1"},"host":"api.example.com","basePath":"/v1","schemes":["https"],"paths":{"/items":{"get":{}}}}`)
 	result := AnalyzeOpenAPIJSON(raw, []string{"example.com"})
