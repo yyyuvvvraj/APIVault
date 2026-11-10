@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Add scheduled CodeQL static analysis for JavaScript/TypeScript and Go on development and release branches.
 - Add optional AWS OIDC-authenticated S3 off-site upload for encrypted PostgreSQL backups, with remote checksum verification and explicit unconfigured-state reporting.
 - Add scheduled encrypted PostgreSQL backup and reproducible catalogue release-count workflows for v0.5.0 readiness.
 
