@@ -52,7 +52,8 @@ function allEvidenceReachable(result: ValidationResult, urls: string[]): boolean
   const checks = new Map(result.checks.map((check) => [check.url, check]));
   return urls.every((url) => {
     const check = checks.get(url);
-    return Boolean(check?.reachable && check.statusCode && check.statusCode >= 200 && check.statusCode < 400);
+    return Boolean(check?.reachable && check.statusCode && check.statusCode >= 200 && check.statusCode < 400 &&
+      check.finalUrl?.startsWith("https://"));
   });
 }
 
@@ -189,7 +190,9 @@ export async function POST(request: Request) {
           sources: { select: { sourceKind: true, url: true, isOfficial: true } },
         },
       });
-      if (!api || api.status !== ApiStatus.ACTIVE ||
+      if (!api || result.homepageUrl !== api.homepageUrl || result.documentationUrl !== api.documentationUrl ||
+          result.name !== api.name || result.provider !== api.provider.name ||
+          api.status !== ApiStatus.ACTIVE ||
           ![VerificationStatus.UNVERIFIED, VerificationStatus.PENDING_REVIEW, VerificationStatus.STALE].includes(api.verificationStatus) ||
           api.publishedAt || api.featured) {
         held.push({ slug: result.slug, reason: "record is missing, already published, featured, or not eligible" });
@@ -225,6 +228,14 @@ export async function POST(request: Request) {
       ])];
       if (!allEvidenceReachable(result, requiredUrls)) {
         held.push({ slug: result.slug, reason: "one or more evidence URLs did not pass the live HTTPS checks" });
+        continue;
+      }
+      const checkedUrls = new Map(result.checks.map((check) => [check.url, check]));
+      const homepageFinal = new URL(checkedUrls.get(api.homepageUrl)!.finalUrl!);
+      const documentationFinal = new URL(checkedUrls.get(api.documentationUrl)!.finalUrl!);
+      if (!sameProviderDomain(new URL(api.homepageUrl).hostname, homepageFinal.hostname) ||
+          !sameProviderDomain(new URL(api.homepageUrl).hostname, documentationFinal.hostname)) {
+        held.push({ slug: result.slug, reason: "homepage or documentation redirected outside the provider domain" });
         continue;
       }
 
