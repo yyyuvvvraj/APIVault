@@ -231,6 +231,18 @@ func autoApprovalEligibility(api API, result APIValidation) []string {
 	for _, check := range result.Checks {
 		checkByURL[check.URL] = check
 	}
+	for _, source := range api.Sources {
+		if !source.IsOfficial || (source.Kind != "PRICING" && source.Kind != "AUTHENTICATION") {
+			continue
+		}
+		check, ok := checkByURL[source.URL]
+		final, err := url.Parse(check.FinalURL)
+		if !ok || !check.Reachable || err != nil || final.Scheme != "https" ||
+			!sameProviderDomain(home.Hostname(), final.Hostname()) {
+			reasons = append(reasons, "official pricing/authentication evidence redirected outside the provider domain")
+			break
+		}
+	}
 	for _, requiredURL := range []string{api.HomepageURL, api.DocumentationURL} {
 		check, ok := checkByURL[requiredURL]
 		if requiredURL == "" || !ok || !check.Reachable || check.FinalURL == "" {
