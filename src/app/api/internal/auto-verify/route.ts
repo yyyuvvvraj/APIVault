@@ -255,6 +255,17 @@ export async function POST(request: Request) {
         held.push({ slug: result.slug, reason: "homepage or documentation redirected outside the provider domain" });
         continue;
       }
+      const providerEvidence = api.sources.filter((source) =>
+        source.isOfficial && (source.sourceKind === "PRICING" || source.sourceKind === "AUTHENTICATION"));
+      const redirectedClaimEvidence = providerEvidence.some((source) => {
+        const check = checkedUrls.get(source.url);
+        return !check?.finalUrl ||
+          !sameProviderDomain(new URL(api.homepageUrl).hostname, new URL(check.finalUrl).hostname);
+      });
+      if (redirectedClaimEvidence) {
+        held.push({ slug: result.slug, reason: "official pricing/authentication evidence redirected outside the provider domain" });
+        continue;
+      }
 
       const duplicate = await prisma.api.findFirst({
         where: {
