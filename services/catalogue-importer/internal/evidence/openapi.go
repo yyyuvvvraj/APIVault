@@ -25,7 +25,8 @@ type OpenAPIAnalysis struct {
 // proof of provider ownership, endpoint availability, or permission to publish.
 func AnalyzeOpenAPIJSON(raw []byte, providerDomains []string) OpenAPIAnalysis {
 	result := OpenAPIAnalysis{
-		Issues: []string{}, SecureServerURLs: []string{},
+		Issues:          []string{},
+		SecureServerURLs: []string{},
 		Notice: "Offline contract structure only. A valid result does not authenticate the provider, prove endpoint health, assess terms, or approve, verify, import, or publish an API.",
 	}
 	if len(raw) == 0 || len(raw) > 5*1024*1024 {
@@ -46,11 +47,17 @@ func AnalyzeOpenAPIJSON(raw []byte, providerDomains []string) OpenAPIAnalysis {
 	}
 	info, _ := document["info"].(map[string]any)
 	result.Title, result.Version = stringValue(info["title"]), stringValue(info["version"])
-	if result.Title == "" { result.Issues = append(result.Issues, "info.title is required") }
-	if result.Version == "" { result.Issues = append(result.Issues, "info.version is required") }
+	if result.Title == "" {
+		result.Issues = append(result.Issues, "info.title is required")
+	}
+	if result.Version == "" {
+		result.Issues = append(result.Issues, "info.version is required")
+	}
 	paths, _ := document["paths"].(map[string]any)
 	result.PathCount = len(paths)
-	if result.PathCount == 0 { result.Issues = append(result.Issues, "at least one API path is required") }
+	if result.PathCount == 0 {
+		result.Issues = append(result.Issues, "at least one API path is required")
+	}
 
 	if version := stringValue(document["openapi"]); strings.HasPrefix(version, "3.") {
 		result.Format = "OPENAPI_3"
@@ -66,7 +73,11 @@ func AnalyzeOpenAPIJSON(raw []byte, providerDomains []string) OpenAPIAnalysis {
 		host := stringValue(document["host"])
 		schemes, _ := document["schemes"].([]any)
 		hasHTTPS := false
-		for _, scheme := range schemes { if strings.EqualFold(stringValue(scheme), "https") { hasHTTPS = true } }
+		for _, scheme := range schemes {
+			if strings.EqualFold(stringValue(scheme), "https") {
+				hasHTTPS = true
+			}
+		}
 		if host != "" && hasHTTPS {
 			server := "https://" + host + stringValue(document["basePath"])
 			if safeProviderServer(server, providerDomains) { result.SecureServerURLs = append(result.SecureServerURLs, server) }
@@ -75,7 +86,9 @@ func AnalyzeOpenAPIJSON(raw []byte, providerDomains []string) OpenAPIAnalysis {
 		result.Issues = append(result.Issues, "document must declare OpenAPI 3.x or Swagger 2.0")
 	}
 	result.ProviderDomainMatch = len(result.SecureServerURLs) > 0
-	if !result.ProviderDomainMatch { result.Issues = append(result.Issues, "no HTTPS API server matches a declared provider domain") }
+	if !result.ProviderDomainMatch {
+		result.Issues = append(result.Issues, "no HTTPS API server matches a declared provider domain")
+	}
 	result.Valid = len(result.Issues) == 0
 	return result
 }
@@ -87,11 +100,15 @@ func stringValue(value any) string {
 
 func safeProviderServer(raw string, domains []string) bool {
 	parsed, err := url.Parse(raw)
-	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" || parsed.User != nil || parsed.Opaque != "" { return false }
+	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" || parsed.User != nil || parsed.Opaque != "" {
+		return false
+	}
 	host := strings.ToLower(strings.TrimSuffix(parsed.Hostname(), "."))
 	for _, candidate := range domains {
 		domain := strings.ToLower(strings.TrimSuffix(strings.TrimSpace(candidate), "."))
-		if domain != "" && (host == domain || strings.HasSuffix(host, "."+domain)) { return true }
+		if domain != "" && (host == domain || strings.HasSuffix(host, "."+domain)) {
+			return true
+		}
 	}
 	return false
 }
