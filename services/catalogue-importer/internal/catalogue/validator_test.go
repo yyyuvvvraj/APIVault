@@ -93,7 +93,10 @@ func TestAutoApprovalEligibilityRequiresSameProviderDomainAndEvidence(t *testing
 			{Kind: "AUTHENTICATION", URL: "https://docs.example.com/auth", IsOfficial: true},
 		},
 	}
-	result := APIValidation{Verdict: "VALIDATED_CANDIDATE"}
+	result := APIValidation{Verdict: "VALIDATED_CANDIDATE", Checks: []URLCheck{
+		{URL: api.HomepageURL, FinalURL: api.HomepageURL, Reachable: true},
+		{URL: api.DocumentationURL, FinalURL: api.DocumentationURL, Reachable: true},
+	}}
 	if reasons := autoApprovalEligibility(api, result); len(reasons) != 0 {
 		t.Fatalf("eligible API has reasons: %v", reasons)
 	}
@@ -115,7 +118,10 @@ func TestAutoApprovalEligibilityRequiresClaimEvidence(t *testing.T) {
 			{Kind: "DOCUMENTATION", URL: "https://example.com/docs", IsOfficial: true},
 		},
 	}
-	reasons := autoApprovalEligibility(api, APIValidation{Verdict: "VALIDATED_CANDIDATE"})
+	reasons := autoApprovalEligibility(api, APIValidation{Verdict: "VALIDATED_CANDIDATE", Checks: []URLCheck{
+		{URL: api.HomepageURL, FinalURL: api.HomepageURL, Reachable: true},
+		{URL: api.DocumentationURL, FinalURL: api.DocumentationURL, Reachable: true},
+	}})
 	if len(reasons) != 2 {
 		t.Fatalf("got %d reasons, want missing pricing and authentication evidence: %v", len(reasons), reasons)
 	}
