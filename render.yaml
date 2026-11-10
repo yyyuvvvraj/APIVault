@@ -16,8 +16,12 @@ services:
     region: singapore
     plan: free
     branch: dev
-    buildCommand: npm ci --include=dev --no-audit --no-fund && npm run build
-    startCommand: npm run db:deploy:retry && npm run start
+    # Render executes the build once per deploy; run migrations here exactly once,
+    # rather than from every overlapping web instance during rolling deploys.
+    # Keep DATABASE_URL available to the build environment.
+    buildCommand: npm ci --include=dev --no-audit --no-fund && npm run build && npm run db:deploy:retry
+    # Web instances only start the already-built application; they never migrate.
+    startCommand: npm run start
     healthCheckPath: /api/health/ready
     envVars:
       - key: NODE_ENV
