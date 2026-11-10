@@ -105,12 +105,12 @@ func ValidateLive(ctx context.Context, file File, workers int, timeout time.Dura
 			for item := range tasks {
 				api := item.api
 				result := APIValidation{
-					Slug:        api.Slug,
+					Slug:             api.Slug,
 					HomepageURL:      api.HomepageURL,
 					DocumentationURL: api.DocumentationURL,
 					Name:             api.Name,
-					Provider:    api.Provider.Name,
-					Verdict:     "VALIDATED_CANDIDATE",
+					Provider:         api.Provider.Name,
+					Verdict:          "VALIDATED_CANDIDATE",
 				}
 				urls := []string{api.HomepageURL}
 				if api.DocumentationURL != "" {
