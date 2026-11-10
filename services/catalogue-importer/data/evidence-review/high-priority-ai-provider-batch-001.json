@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "1",
+  "reviewedAt": "2026-11-10T12:00:00Z",
+  "reviewer": "APIVault research batch 001 (assistant-prepared; maintainer review required)",
+  "submissions": [
+    {
+      "reviewId": "e9054c9a92ca648c80ff06d0",
+      "providerName": "Clarifai",
+      "providerDomains": [
+        "clarifai.com"
+      ],
+      "officialHomepageUrl": "https://www.clarifai.com/",
+      "documentationUrl": "https://docs.clarifai.com/resources/api-overview/",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "UNKNOWN",
+      "pricing": "UNKNOWN",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://docs.clarifai.com/resources/api-overview/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.clarifai.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://docs.clarifai.com/resources/api-overview/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "50abd52c306941cacc98fcf5",
+      "providerName": "Cohere",
+      "providerDomains": [
+        "cohere.com"
+      ],
+      "officialHomepageUrl": "https://cohere.com/",
+      "documentationUrl": "https://docs.cohere.com/",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "UNKNOWN",
+      "pricing": "UNKNOWN",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://docs.cohere.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://cohere.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://docs.cohere.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "35bb060f891f24d0863c8603",
+      "providerName": "DeepAI",
+      "providerDomains": [
+        "deepai.org"
+      ],
+      "officialHomepageUrl": "https://deepai.org/",
+      "documentationUrl": "https://api.deepai.org/docs",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "UNKNOWN",
+      "pricing": "UNKNOWN",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://api.deepai.org/docs",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://deepai.org/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://api.deepai.org/docs",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "494b3beed9c98ae37834610b",
+      "providerName": "Jina AI",
+      "providerDomains": [
+        "jina.ai"
+      ],
+      "officialHomepageUrl": "https://jina.ai/",
+      "documentationUrl": "https://docs.jina.ai/",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "UNKNOWN",
+      "pricing": "UNKNOWN",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://docs.jina.ai/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://jina.ai/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://docs.jina.ai/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "b868d227945f8911fc15df82",
+      "providerName": "Replicate",
+      "providerDomains": [
+        "replicate.com"
+      ],
+      "officialHomepageUrl": "https://replicate.com/",
+      "documentationUrl": "https://replicate.com/docs/reference/http",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "UNKNOWN",
+      "pricing": "UNKNOWN",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://replicate.com/docs/reference/http",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://replicate.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://replicate.com/docs/reference/http",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-10T12:00:00Z"
+        }
+      ]
+    }
+  ]
+}
