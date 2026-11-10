@@ -21,7 +21,8 @@
     "db:studio": "prisma studio",
     "setup:local": "bash scripts/setup-local.sh",
     "verify:go": "bash scripts/verify-go.sh",
-    "catalogue:report": "tsx scripts/report-catalogue-release.ts"
+    "catalogue:report": "tsx scripts/report-catalogue-release.ts",
+    "db:deploy:retry": "bash scripts/deploy-migrations.sh"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "1.7.18",
