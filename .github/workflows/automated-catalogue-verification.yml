@@ -71,7 +71,7 @@ jobs:
           go run ./cmd/catalogue-validate \
             -input "$RUNNER_TEMP/catalogue-candidates.json" \
             -live=true \
-            -workers=20 \
+            -workers=8 \
             -timeout=8s \
             -output "$RUNNER_TEMP/catalogue-validation-report.json"
           jq '{total, validatedCandidates, autoApprovable, reviewRequired, rejected}' \
