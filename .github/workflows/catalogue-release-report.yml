@@ -31,7 +31,15 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma client
-        run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.APIVAULT_REPORT_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$DATABASE_URL" ]]; then
+            echo "::error::Configure APIVAULT_REPORT_DATABASE_URL before generating the Prisma client."
+            exit 1
+          fi
+          npm run db:generate
 
       - name: Generate catalogue report
         env:
