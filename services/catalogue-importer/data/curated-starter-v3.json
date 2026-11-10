@@ -1,0 +1,331 @@
+{
+  "dataset": {
+    "name": "APIVault curated starter dataset",
+    "sourceUrl": "https://github.com/yyyuvvvraj/APIVault/blob/dev/services/catalogue-importer/data/curated-starter-v3.json",
+    "version": "v3",
+    "retrievedAt": "2026-11-10T00:00:00Z",
+    "license": "NOASSERTION",
+    "attribution": "APIVault-curated metadata based on provider-controlled official documentation. API data rights, licences, availability, and usage terms remain governed by each provider and are documented in per-record sources."
+  },
+  "apis": [
+    {
+      "slug": "usgs-earthquake-catalog",
+      "name": "USGS Earthquake Catalog API",
+      "summary": "Search earthquake event data from the USGS ComCat catalog using time, location, magnitude, and other query parameters.",
+      "description": "The USGS FDSN Event Web Service exposes ComCat earthquake catalog searches and supports output formats including GeoJSON, CSV, KML, text, and QuakeML. The service documentation recommends real-time GeoJSON feeds for applications displaying recent events where appropriate.",
+      "provider": {
+        "slug": "usgs",
+        "name": "U.S. Geological Survey",
+        "homepageUrl": "https://www.usgs.gov/"
+      },
+      "homepageUrl": "https://www.usgs.gov/",
+      "documentationUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
+      "baseUrl": "https://earthquake.usgs.gov/fdsnws/event/1",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "No API pricing or commercial-use terms are asserted in this candidate record; review the current USGS data and service policies before production use.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education",
+        "maps-geospatial"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "The documented FDSN Event Web Service query interface is publicly callable without an API key; confirm current service policies and limits."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.usgs.gov/",
+          "title": "USGS official homepage",
+          "isOfficial": true,
+          "notes": "Official provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://earthquake.usgs.gov/fdsnws/event/1/",
+          "title": "USGS FDSN Event Web Service documentation",
+          "isOfficial": true,
+          "notes": "Documents the event query endpoint, methods, parameters, and supported response formats."
+        },
+        {
+          "kind": "OTHER",
+          "url": "https://earthquake.usgs.gov/data/software/",
+          "title": "USGS earthquake developer resources",
+          "isOfficial": true,
+          "notes": "Explains ComCat, GeoJSON feeds, FDSN Event API, and related developer resources."
+        }
+      ]
+    },
+    {
+      "slug": "crossref-rest-api",
+      "name": "Crossref REST API",
+      "summary": "Retrieve scholarly metadata for works, journals, books, funders, members, and related research records from Crossref.",
+      "description": "Crossref's REST API provides public access to scholarly metadata. Requests can use the public pool without authentication, identify the caller through the polite pool, or use a Metadata Plus key for premium access with higher request limits and priority support.",
+      "provider": {
+        "slug": "crossref",
+        "name": "Crossref",
+        "homepageUrl": "https://www.crossref.org/"
+      },
+      "homepageUrl": "https://www.crossref.org/",
+      "documentationUrl": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+      "baseUrl": "https://api.crossref.org",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Public and polite access are available without a paid key; Metadata Plus is a premium service. Confirm current commercial and service terms with Crossref.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education",
+        "data-analytics"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Public access requires no authentication; the polite pool can identify a caller using a mailto parameter or agent header."
+        },
+        {
+          "method": "API_KEY",
+          "details": "Metadata Plus uses an API key sent in the crossref-api-key request header."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.crossref.org/",
+          "title": "Crossref official homepage",
+          "isOfficial": true,
+          "notes": "Official provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+          "title": "Crossref REST API documentation",
+          "isOfficial": true,
+          "notes": "Documents REST API access and scholarly metadata retrieval."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/access-and-authentication/",
+          "title": "Crossref REST API access and authentication",
+          "isOfficial": true,
+          "notes": "Documents public, polite, and Metadata Plus access methods."
+        }
+      ]
+    },
+    {
+      "slug": "openalex-api",
+      "name": "OpenAlex API",
+      "summary": "Query an open scholarly knowledge graph covering research works, authors, institutions, sources, topics, and related entities.",
+      "description": "OpenAlex provides a REST API over its scholarly dataset. Basic requests can be made without a key; a free API key increases the daily budget, and paid usage options are available for higher-scale workloads. Query limits and credit costs vary by request type.",
+      "provider": {
+        "slug": "openalex",
+        "name": "OpenAlex",
+        "homepageUrl": "https://openalex.org/"
+      },
+      "homepageUrl": "https://openalex.org/",
+      "documentationUrl": "https://help.openalex.org/api/",
+      "baseUrl": "https://api.openalex.org",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Basic access is free; free API keys provide a larger daily budget and paid usage options are available. Verify current budgets and pricing before production use.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "science-education",
+        "data-analytics"
+      ],
+      "authMethods": [
+        {
+          "method": "NONE",
+          "details": "Basic API queries can be made without a key."
+        },
+        {
+          "method": "API_KEY",
+          "details": "A free or paid API key can be supplied as the api_key query parameter or as a bearer token."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://openalex.org/",
+          "title": "OpenAlex official homepage",
+          "isOfficial": true,
+          "notes": "Official OpenAlex service homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://help.openalex.org/api/",
+          "title": "OpenAlex API reference",
+          "isOfficial": true,
+          "notes": "Documents API endpoints, query patterns, base URL, and response format."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://help.openalex.org/api/authentication/",
+          "title": "OpenAlex authentication",
+          "isOfficial": true,
+          "notes": "Documents keyless use, API key setup, and supported key transmission methods."
+        }
+      ]
+    },
+    {
+      "slug": "guardian-open-platform",
+      "name": "The Guardian Open Platform API",
+      "summary": "Search and retrieve Guardian journalism, including articles, tags, sections, editions, and individual content records.",
+      "description": "The Guardian Open Platform exposes Guardian content through HTTPS endpoints. API requests require a registered key. Developer access is described for non-commercial use with published request limits; commercial access uses a separately arranged plan and quota.",
+      "provider": {
+        "slug": "the-guardian",
+        "name": "The Guardian",
+        "homepageUrl": "https://www.theguardian.com/"
+      },
+      "homepageUrl": "https://www.theguardian.com/",
+      "documentationUrl": "https://open-platform.theguardian.com/documentation/",
+      "baseUrl": "https://content.guardianapis.com",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Developer access is free for non-commercial use subject to quotas; commercial access is priced according to usage. Review current eligibility and terms.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "media"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Register for an Open Platform key and send it with API requests."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.theguardian.com/",
+          "title": "The Guardian official homepage",
+          "isOfficial": true,
+          "notes": "Official publisher homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://open-platform.theguardian.com/documentation/",
+          "title": "Guardian Open Platform documentation",
+          "isOfficial": true,
+          "notes": "Documents content, tags, sections, editions, and single-item endpoints."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://open-platform.theguardian.com/access/",
+          "title": "Guardian Open Platform access and pricing",
+          "isOfficial": true,
+          "notes": "Describes the API key requirement, free non-commercial developer access, and usage-priced commercial access."
+        }
+      ]
+    },
+    {
+      "slug": "spotify-web-api",
+      "name": "Spotify Web API",
+      "summary": "Access Spotify catalogue metadata and supported user resources, including artists, albums, tracks, playlists, and playback-related features.",
+      "description": "The Spotify Web API provides REST endpoints for Spotify catalogue and user resources. Requests require authorization using OAuth 2.0 access tokens; the available authorization flow and scopes depend on whether an application accesses public or user-specific data. Rate limits are app-based and can vary by application quota mode.",
+      "provider": {
+        "slug": "spotify",
+        "name": "Spotify",
+        "homepageUrl": "https://developer.spotify.com/"
+      },
+      "homepageUrl": "https://developer.spotify.com/",
+      "documentationUrl": "https://developer.spotify.com/documentation/web-api",
+      "baseUrl": "https://api.spotify.com",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "This candidate does not assert a standalone API price; developer eligibility, product access, and applicable platform terms must be reviewed before publication.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "media"
+      ],
+      "authMethods": [
+        {
+          "method": "OAUTH2",
+          "details": "All Web API requests require OAuth 2.0 authorization; supported flows include Authorization Code, Authorization Code with PKCE, and Client Credentials for eligible public-data use cases."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://developer.spotify.com/",
+          "title": "Spotify for Developers",
+          "isOfficial": true,
+          "notes": "Official developer portal."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://developer.spotify.com/documentation/web-api",
+          "title": "Spotify Web API documentation",
+          "isOfficial": true,
+          "notes": "Documents API capabilities, endpoint reference, and developer setup."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://developer.spotify.com/documentation/web-api/concepts/authorization",
+          "title": "Spotify Web API authorization",
+          "isOfficial": true,
+          "notes": "Documents OAuth 2.0 authorization flows, credentials, tokens, and scopes."
+        },
+        {
+          "kind": "RATE_LIMITS",
+          "url": "https://developer.spotify.com/documentation/web-api/concepts/rate-limits",
+          "title": "Spotify Web API rate limits",
+          "isOfficial": true,
+          "notes": "Documents rolling-window rate limits, 429 responses, and quota modes."
+        }
+      ]
+    },
+    {
+      "slug": "openweathermap-weather-api",
+      "name": "OpenWeather API",
+      "summary": "Retrieve weather conditions, forecasts, historical weather, air quality, and related meteorological data through OpenWeather APIs.",
+      "description": "OpenWeather offers multiple weather API products with product-specific endpoints and subscription plans. API requests require an account API key. Free and paid plans are available, and pricing depends on the selected API product and usage.",
+      "provider": {
+        "slug": "openweather",
+        "name": "OpenWeather",
+        "homepageUrl": "https://openweathermap.org/"
+      },
+      "homepageUrl": "https://openweathermap.org/",
+      "documentationUrl": "https://openweathermap.org/api",
+      "baseUrl": "https://api.openweathermap.org/data/2.5",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Free plans are available for evaluation and development; paid plans and pay-per-call products are also offered. Exact cost depends on the API product and current plan.",
+      "verificationStatus": "PENDING_REVIEW",
+      "categories": [
+        "weather-environment"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Create an OpenWeather account and use the API key issued through the account dashboard for API requests."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://openweathermap.org/",
+          "title": "OpenWeather official homepage",
+          "isOfficial": true,
+          "notes": "Official weather data provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://openweathermap.org/api",
+          "title": "OpenWeather API catalogue",
+          "isOfficial": true,
+          "notes": "Lists weather API product families and documentation entry points."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://openweathermap.org/guide",
+          "title": "OpenWeather API getting started",
+          "isOfficial": true,
+          "notes": "Documents account setup and API key requirements."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://openweathermap.org/price",
+          "title": "OpenWeather API pricing",
+          "isOfficial": true,
+          "notes": "Lists current self-service pricing and free allowances for API products."
+        }
+      ]
+    }
+  ]
+}
