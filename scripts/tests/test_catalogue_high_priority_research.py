@@ -1,7 +1,7 @@
 import importlib.util, json, tempfile, unittest
 from pathlib import Path
 from unittest.mock import patch
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "catalogue-high-priority-research.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "catalogue-high-priority-research.py"
 spec = importlib.util.spec_from_file_location("research", SCRIPT)
 research = importlib.util.module_from_spec(spec); spec.loader.exec_module(research)
 
