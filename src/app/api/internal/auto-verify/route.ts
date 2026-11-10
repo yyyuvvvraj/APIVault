@@ -35,7 +35,7 @@ type ValidationReport = {
 
 function authorized(request: Request): boolean {
   const expected = process.env.APIVAULT_AUTO_VERIFY_SECRET;
-  const supplied = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "") ?? "";
+  const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
   if (!expected || !supplied) return false;
   const left = Buffer.from(expected);
   const right = Buffer.from(supplied);
@@ -43,8 +43,8 @@ function authorized(request: Request): boolean {
 }
 
 function sameProviderDomain(left: string, right: string): boolean {
-  const a = left.toLowerCase().replace(/\\.$/, "");
-  const b = right.toLowerCase().replace(/\\.$/, "");
+  const a = left.toLowerCase().replace(/\.$/, "");
+  const b = right.toLowerCase().replace(/\.$/, "");
   return a === b || a.endsWith(`.${b}`) || b.endsWith(`.${a}`);
 }
 
