@@ -49,10 +49,10 @@ func main() {
 	if err := os.WriteFile(*output, encoded, 0644); err != nil {
 		fatalf("write output: %v", err)
 	}
-	fmt.Printf("Wrote %d discovery leads to %s; no APIVault records were changed.\\n", len(candidates), *output)
+	fmt.Printf("Wrote %d discovery leads to %s; no APIVault records were changed.\n", len(candidates), *output)
 }
 
 func fatalf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\\n", args...)
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
 }
