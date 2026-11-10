@@ -17,29 +17,29 @@ const (
 )
 
 type Pack struct {
-	SchemaVersion string  `json:"schemaVersion"`
+	SchemaVersion string    `json:"schemaVersion"`
 	GeneratedAt   time.Time `json:"generatedAt"`
-	Notice        string  `json:"notice"`
-	Total         int     `json:"total"`
-	Ready         int     `json:"ready"`
-	Blocked       int     `json:"blocked"`
-	Drafts        []Draft `json:"drafts"`
+	Notice        string    `json:"notice"`
+	Total         int       `json:"total"`
+	Ready         int       `json:"ready"`
+	Blocked       int       `json:"blocked"`
+	Drafts        []Draft   `json:"drafts"`
 }
 
 type Draft struct {
-	ReviewID            string            `json:"reviewId"`
-	Status              string            `json:"status"`
-	ImportEligible      bool              `json:"importEligible"`
-	Provider            Provider          `json:"provider"`
-	OfficialHomepageURL string            `json:"officialHomepageUrl"`
-	DocumentationURL    string            `json:"documentationUrl"`
-	TermsURL            string            `json:"termsUrl,omitempty"`
-	LicenseAssessment   string            `json:"licenseAssessment"`
-	Authentication      string            `json:"authentication"`
-	Pricing             string            `json:"pricing"`
-	Evidence            []EvidenceSource  `json:"evidence"`
-	MissingAPIMetadata  []string          `json:"missingApiMetadata"`
-	EvidenceIssues      []string          `json:"evidenceIssues"`
+	ReviewID            string           `json:"reviewId"`
+	Status              string           `json:"status"`
+	ImportEligible      bool             `json:"importEligible"`
+	Provider            Provider         `json:"provider"`
+	OfficialHomepageURL string           `json:"officialHomepageUrl"`
+	DocumentationURL    string           `json:"documentationUrl"`
+	TermsURL            string           `json:"termsUrl,omitempty"`
+	LicenseAssessment   string           `json:"licenseAssessment"`
+	Authentication      string           `json:"authentication"`
+	Pricing             string           `json:"pricing"`
+	Evidence            []EvidenceSource `json:"evidence"`
+	MissingAPIMetadata  []string         `json:"missingApiMetadata"`
+	EvidenceIssues      []string         `json:"evidenceIssues"`
 }
 
 type Provider struct {
@@ -71,7 +71,7 @@ func Build(pack evidence.Pack) Pack {
 	result := Pack{
 		SchemaVersion: SchemaVersion,
 		GeneratedAt:   time.Now().UTC(),
-		Notice: "Curation handoff only. This output is intentionally NOT an importer manifest. Provider-level evidence cannot supply API-specific identity, endpoint, summary, category, or API-specific auth/pricing facts. No database connection, import, verification, or publication occurs.",
+		Notice:        "Curation handoff only. This output is intentionally NOT an importer manifest. Provider-level evidence cannot supply API-specific identity, endpoint, summary, category, or API-specific auth/pricing facts. No database connection, import, verification, or publication occurs.",
 		Total:         len(pack.Submissions),
 		Ready:         validation.Ready,
 		Blocked:       validation.Blocked,
@@ -81,9 +81,9 @@ func Build(pack evidence.Pack) Pack {
 	for index, submission := range pack.Submissions {
 		finding := validation.Findings[index]
 		draft := Draft{
-			ReviewID:            submission.ReviewID,
-			Status:              StatusNeedsAPIMetadata,
-			ImportEligible:      false,
+			ReviewID:       submission.ReviewID,
+			Status:         StatusNeedsAPIMetadata,
+			ImportEligible: false,
 			Provider: Provider{
 				Slug:        slugify(submission.ProviderName),
 				Name:        strings.TrimSpace(submission.ProviderName),
