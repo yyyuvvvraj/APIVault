@@ -41,7 +41,7 @@ func TestParseMarkdownSkipsInvalidURLsAndKeepsValidLeads(t *testing.T) {
 		t.Fatalf("expected revision error, got %v", err)
 	}
 
-	input := "# Mixed\\n| [Insecure](http://example.com) | skip this |\\n| [Valid](https://valid.example/api) | keep this |\\n"
+	input := "# Mixed\n| [Insecure](http://example.com) | skip this |\n| [Valid](https://valid.example/api) | keep this |\n"
 	got, err := ParseMarkdown(input, "https://github.com/public-apis/public-apis", testRevision)
 	if err != nil {
 		t.Fatalf("one invalid community URL must not abort discovery: %v", err)
@@ -51,10 +51,13 @@ func TestParseMarkdownSkipsInvalidURLsAndKeepsValidLeads(t *testing.T) {
 	}
 }
 
-func TestParseMarkdownRejectsCredentialURLs(t *testing.T) {
-	input := "# Bad\n| [Bad](https://user:pass@example.com/api) | description |\n"
-	_, err := ParseMarkdown(input, "https://github.com/public-apis/public-apis", testRevision)
-	if err == nil {
-		t.Fatal("expected credential URL error")
+func TestParseMarkdownSkipsCredentialURLs(t *testing.T) {
+	input := "# Mixed\n| [Credential URL](https://user:pass@example.com/api) | skip this |\n| [Valid](https://valid.example/api) | keep this |\n"
+	got, err := ParseMarkdown(input, "https://github.com/public-apis/public-apis", testRevision)
+	if err != nil {
+		t.Fatalf("credential URL must not abort discovery: %v", err)
+	}
+	if len(got) != 1 || got[0].Name != "Valid" {
+		t.Fatalf("expected only the valid lead to remain, got %#v", got)
 	}
 }
