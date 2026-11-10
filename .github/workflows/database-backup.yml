@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: apivault-database-backup
@@ -76,3 +77,51 @@ jobs:
           path: ${{ runner.temp }}/apivault-backups/*.dump.age
           if-no-files-found: error
           retention-days: 14
+
+      - name: Configure AWS credentials for off-site storage
+        if: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN != '' && vars.APIVAULT_BACKUP_AWS_REGION != '' && vars.APIVAULT_BACKUP_S3_BUCKET != '' }}
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.APIVAULT_BACKUP_AWS_REGION }}
+          role-session-name: APIVaultBackup-${{ github.run_id }}
+
+      - name: Copy encrypted backup to off-site S3 storage
+        if: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN != '' && vars.APIVAULT_BACKUP_AWS_REGION != '' && vars.APIVAULT_BACKUP_S3_BUCKET != '' }}
+        env:
+          S3_BUCKET: ${{ vars.APIVAULT_BACKUP_S3_BUCKET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=("$RUNNER_TEMP"/apivault-backups/*.dump.age)
+          if (( ${#files[@]} == 0 )); then
+            echo "::error::No encrypted backup file exists for off-site upload."
+            exit 1
+          fi
+
+          for file in "${files[@]}"; do
+            checksum="$(sha256sum "$file" | awk '{print $1}')"
+            key="apivault/postgres/$(basename "$file")"
+            destination="s3://${S3_BUCKET}/${key}"
+            aws s3 cp "$file" "$destination" --sse AES256 --metadata "sha256=${checksum}" --only-show-errors
+            remote_checksum="$(aws s3api head-object --bucket "$S3_BUCKET" --key "$key" --query 'Metadata.sha256' --output text)"
+            if [[ "$remote_checksum" != "$checksum" ]]; then
+              echo "::error::Off-site backup checksum metadata did not match for $key."
+              exit 1
+            fi
+            echo "Verified encrypted backup at $destination (sha256: $checksum)"
+            echo "- Off-site backup: `$destination`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- SHA-256: `$checksum`" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Explain off-site upload configuration
+        if: ${{ vars.APIVAULT_BACKUP_AWS_ROLE_ARN == '' || vars.APIVAULT_BACKUP_AWS_REGION == '' || vars.APIVAULT_BACKUP_S3_BUCKET == '' }}
+        shell: bash
+        run: |
+          echo "::warning::Encrypted backup is available only as a short-lived Actions artifact; durable off-site upload is not configured."
+          {
+            echo "### Off-site backup not configured"
+            echo "Set repository variables `APIVAULT_BACKUP_AWS_ROLE_ARN`, `APIVAULT_BACKUP_AWS_REGION`, and `APIVAULT_BACKUP_S3_BUCKET` to enable OIDC-authenticated S3 upload."
+            echo "This run does not satisfy the durable off-site backup acceptance gate."
+          } >> "$GITHUB_STEP_SUMMARY"
