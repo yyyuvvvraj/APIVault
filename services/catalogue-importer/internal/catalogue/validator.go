@@ -15,6 +15,7 @@ import (
 
 type URLCheck struct {
 	URL        string `json:"url"`
+	FinalURL   string `json:"finalUrl,omitempty"`
 	StatusCode int    `json:"statusCode,omitempty"`
 	Reachable  bool   `json:"reachable"`
 	LatencyMS  int64  `json:"latencyMs"`
@@ -54,8 +55,9 @@ type ValidationReport struct {
 	Conflicts           []CatalogueConflict `json:"conflicts"`
 }
 
-// ValidateLive checks public HTTPS evidence URLs. A clean result is a candidate
-// for review, never an automatic VERIFIED or published record.
+// ValidateLive checks public HTTPS evidence URLs and evaluates a conservative
+// auto-approval policy. Only exact official evidence, same-provider docs hosts,
+// complete metadata, reachable sources, and conflict-free records can qualify.
 func ValidateLive(ctx context.Context, file File, workers int, timeout time.Duration) ValidationReport {
 	if workers < 1 {
 		workers = 8
@@ -218,6 +220,26 @@ func autoApprovalEligibility(api API, result APIValidation) []string {
 		!(sameProviderDomain(home.Hostname(), doc.Hostname())) {
 		reasons = append(reasons, "homepage and documentation hosts are not on the same conservative provider domain")
 	}
+	checkByURL := make(map[string]URLCheck, len(result.Checks))
+	for _, check := range result.Checks {
+		checkByURL[check.URL] = check
+	}
+	for _, requiredURL := range []string{api.HomepageURL, api.DocumentationURL} {
+		check, ok := checkByURL[requiredURL]
+		if requiredURL == "" || !ok || !check.Reachable || check.FinalURL == "" {
+			reasons = append(reasons, "homepage and documentation must both pass live HTTPS checks")
+			break
+		}
+		final, err := url.Parse(check.FinalURL)
+		if err != nil || final.Scheme != "https" || final.Hostname() == "" {
+			reasons = append(reasons, "homepage or documentation redirected to an invalid destination")
+			break
+		}
+		if home, err := url.Parse(api.HomepageURL); err != nil || !sameProviderDomain(home.Hostname(), final.Hostname()) {
+			reasons = append(reasons, "homepage or documentation redirected outside the provider domain")
+			break
+		}
+	}
 	sort.Strings(reasons)
 	return reasons
 }
@@ -327,6 +349,9 @@ func checkPublicURL(ctx context.Context, client *http.Client, raw string) URLChe
 	}
 	defer resp.Body.Close()
 	check.StatusCode = resp.StatusCode
+	if resp.Request != nil && resp.Request.URL != nil {
+		check.FinalURL = resp.Request.URL.String()
+	}
 	_, _ = io.CopyN(io.Discard, resp.Body, 4096)
 	check.Reachable = resp.StatusCode >= 200 && resp.StatusCode < 400
 	if !check.Reachable {
