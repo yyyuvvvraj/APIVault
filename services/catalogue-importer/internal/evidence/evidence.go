@@ -24,16 +24,16 @@ type Pack struct {
 }
 
 type Submission struct {
-	ReviewID             string     `json:"reviewId"`
-	ProviderName         string     `json:"providerName"`
-	ProviderDomains      []string   `json:"providerDomains"`
-	OfficialHomepageURL  string     `json:"officialHomepageUrl"`
-	DocumentationURL     string     `json:"documentationUrl"`
-	TermsURL             string     `json:"termsUrl,omitempty"`
-	LicenseAssessment    string     `json:"licenseAssessment"`
-	Authentication       string     `json:"authentication"`
-	Pricing              string     `json:"pricing"`
-	Evidence             []Evidence `json:"evidence"`
+	ReviewID            string     `json:"reviewId"`
+	ProviderName        string     `json:"providerName"`
+	ProviderDomains     []string   `json:"providerDomains"`
+	OfficialHomepageURL string     `json:"officialHomepageUrl"`
+	DocumentationURL    string     `json:"documentationUrl"`
+	TermsURL            string     `json:"termsUrl,omitempty"`
+	LicenseAssessment   string     `json:"licenseAssessment"`
+	Authentication      string     `json:"authentication"`
+	Pricing             string     `json:"pricing"`
+	Evidence            []Evidence `json:"evidence"`
 }
 
 type Evidence struct {
@@ -50,13 +50,14 @@ type Finding struct {
 }
 
 type Report struct {
-	GeneratedAt  time.Time `json:"generatedAt"`
-	SchemaVersion string   `json:"schemaVersion"`
-	Notice       string    `json:"notice"`
-	Total        int       `json:"total"`
-	Ready        int       `json:"ready"`
-	Blocked      int       `json:"blocked"`
-	Findings     []Finding `json:"findings"`
+	GeneratedAt   time.Time `json:"generatedAt"`
+	SchemaVersion string    `json:"schemaVersion"`
+	PackIssues    []string  `json:"packIssues"`
+	Notice        string    `json:"notice"`
+	Total         int       `json:"total"`
+	Ready         int       `json:"ready"`
+	Blocked       int       `json:"blocked"`
+	Findings      []Finding `json:"findings"`
 }
 
 var licenseValues = map[string]bool{"ALLOWED": true, "RESTRICTED": true, "UNKNOWN": true}
@@ -69,18 +70,34 @@ func Validate(pack Pack) Report {
 	report := Report{
 		GeneratedAt: time.Now().UTC(),
 		SchemaVersion: SchemaVersion,
+		PackIssues: []string{},
 		Notice: "Structural evidence review only. READY means the submission is complete enough for a human maintainer to inspect; it does not authenticate sources, grant a license, verify an API, import records, or publish anything.",
 		Total: len(pack.Submissions),
 		Findings: make([]Finding, 0, len(pack.Submissions)),
 	}
+	if pack.SchemaVersion != SchemaVersion {
+		report.PackIssues = append(report.PackIssues, fmt.Sprintf("schemaVersion must be %q", SchemaVersion))
+	}
+	if pack.ReviewedAt.IsZero() {
+		report.PackIssues = append(report.PackIssues, "reviewedAt is required")
+	}
+	if strings.TrimSpace(pack.Reviewer) == "" {
+		report.PackIssues = append(report.PackIssues, "reviewer is required")
+	}
+	if len(pack.Submissions) == 0 {
+		report.PackIssues = append(report.PackIssues, "at least one submission is required")
+	}
 
-	seen := make(map[string]bool, len(pack.Submissions))
+	counts := make(map[string]int, len(pack.Submissions))
+	for _, item := range pack.Submissions {
+		counts[item.ReviewID]++
+	}
 	for _, submission := range pack.Submissions {
-		issues := validateSubmission(pack, submission)
-		if seen[submission.ReviewID] {
+		issues := validateSubmission(submission)
+		if submission.ReviewID != "" && counts[submission.ReviewID] > 1 {
 			issues = append(issues, "reviewId is duplicated within this evidence pack")
 		}
-		seen[submission.ReviewID] = true
+		issues = append(issues, report.PackIssues...)
 		sort.Strings(issues)
 
 		status := StatusReady
@@ -96,23 +113,11 @@ func Validate(pack Pack) Report {
 			Issues: issues,
 		})
 	}
-	if pack.SchemaVersion != SchemaVersion {
-		report.Notice = "Evidence pack schema version is unsupported. " + report.Notice
-	}
 	return report
 }
 
-func validateSubmission(pack Pack, item Submission) []string {
+func validateSubmission(item Submission) []string {
 	var issues []string
-	if pack.SchemaVersion != SchemaVersion {
-		issues = append(issues, fmt.Sprintf("schemaVersion must be %q", SchemaVersion))
-	}
-	if pack.ReviewedAt.IsZero() {
-		issues = append(issues, "reviewedAt is required")
-	}
-	if strings.TrimSpace(pack.Reviewer) == "" {
-		issues = append(issues, "reviewer is required")
-	}
 	if strings.TrimSpace(item.ReviewID) == "" {
 		issues = append(issues, "reviewId is required")
 	}
@@ -227,18 +232,33 @@ func normalizeDomains(values []string) []string {
 	seen := map[string]bool{}
 	for _, value := range values {
 		host := strings.ToLower(strings.TrimSuffix(strings.TrimSpace(value), "."))
-		if host == "" || strings.Contains(host, "/") || strings.Contains(host, ":") || strings.Contains(host, "*") {
+		if host == "" || strings.ContainsAny(host, "/:@?#* ") || net.ParseIP(host) != nil {
 			continue
 		}
-		if net.ParseIP(host) != nil {
+		if !validDomainName(host) || seen[host] {
 			continue
 		}
-		if !seen[host] {
-			seen[host] = true
-			out = append(out, host)
-		}
+		seen[host] = true
+		out = append(out, host)
 	}
 	return out
+}
+
+func validDomainName(host string) bool {
+	if len(host) > 253 {
+		return false
+	}
+	for _, label := range strings.Split(host, ".") {
+		if len(label) == 0 || len(label) > 63 || label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+		for _, char := range label {
+			if !((char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-') {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func validateHTTPSURL(raw string) (string, bool) {
