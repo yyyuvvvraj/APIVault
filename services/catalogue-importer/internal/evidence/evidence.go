@@ -68,12 +68,12 @@ var requiredClaims = []string{"PROVIDER_IDENTITY", "OFFICIAL_HOMEPAGE", "DOCUMEN
 
 func Validate(pack Pack) Report {
 	report := Report{
-		GeneratedAt: time.Now().UTC(),
+		GeneratedAt:   time.Now().UTC(),
 		SchemaVersion: SchemaVersion,
-		PackIssues: []string{},
-		Notice: "Structural evidence review only. READY means the submission is complete enough for a human maintainer to inspect; it does not authenticate sources, grant a license, verify an API, import records, or publish anything.",
-		Total: len(pack.Submissions),
-		Findings: make([]Finding, 0, len(pack.Submissions)),
+		PackIssues:    []string{},
+		Notice:        "Structural evidence review only. READY means the submission is complete enough for a human maintainer to inspect; it does not authenticate sources, grant a license, verify an API, import records, or publish anything.",
+		Total:         len(pack.Submissions),
+		Findings:      make([]Finding, 0, len(pack.Submissions)),
 	}
 	if pack.SchemaVersion != SchemaVersion {
 		report.PackIssues = append(report.PackIssues, fmt.Sprintf("schemaVersion must be %q", SchemaVersion))
@@ -109,8 +109,8 @@ func Validate(pack Pack) Report {
 		}
 		report.Findings = append(report.Findings, Finding{
 			ReviewID: submission.ReviewID,
-			Status: status,
-			Issues: issues,
+			Status:   status,
+			Issues:   issues,
 		})
 	}
 	return report
