@@ -190,11 +190,14 @@ export async function POST(request: Request) {
           sources: { select: { sourceKind: true, url: true, isOfficial: true } },
         },
       });
+      const pendingVerification = api && (
+        api.verificationStatus === VerificationStatus.UNVERIFIED ||
+        api.verificationStatus === VerificationStatus.PENDING_REVIEW ||
+        api.verificationStatus === VerificationStatus.STALE
+      );
       if (!api || result.homepageUrl !== api.homepageUrl || result.documentationUrl !== api.documentationUrl ||
           result.name !== api.name || result.provider !== api.provider.name ||
-          api.status !== ApiStatus.ACTIVE ||
-          ![VerificationStatus.UNVERIFIED, VerificationStatus.PENDING_REVIEW, VerificationStatus.STALE].includes(api.verificationStatus) ||
-          api.publishedAt || api.featured) {
+          api.status !== ApiStatus.ACTIVE || !pendingVerification || api.publishedAt || api.featured) {
         held.push({ slug: result.slug, reason: "record is missing, already published, featured, or not eligible" });
         continue;
       }
