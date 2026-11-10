@@ -78,6 +78,17 @@ jobs:
           jq '{sourceTotal, processed, rejected, exactUrlDuplicateGroups, sharedHostnameGroups, duplicateNameGroups, unmappedCategory, removedTrackingParameters, categoryBreakdown, notice}' \
             "$RUNNER_TEMP/apivault-discovery-triage.json"
 
+      - name: Build paginated reviewer research queue
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          go run ./cmd/catalogue-review-pack \
+            -input "$RUNNER_TEMP/apivault-discovery-triage.json" \
+            -offset 0 -limit 500 \
+            -output "$RUNNER_TEMP/apivault-review-pack-page-1.json"
+          jq '{sourceTotal, offset, limit, returned, hasMore, priorityCounts, categoryCounts, notice}' \
+            "$RUNNER_TEMP/apivault-review-pack-page-1.json"
+
       - name: Upload discovery and triage reports
         uses: actions/upload-artifact@v7
         with:
@@ -85,5 +96,6 @@ jobs:
           path: |
             ${{ runner.temp }}/apivault-discovery-leads.json
             ${{ runner.temp }}/apivault-discovery-triage.json
+            ${{ runner.temp }}/apivault-review-pack-page-1.json
           if-no-files-found: error
           retention-days: 30
