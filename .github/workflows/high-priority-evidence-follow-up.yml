@@ -1,0 +1,170 @@
+name: High-priority evidence follow-up
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/high-priority-evidence-follow-up.yml"
+      - "scripts/catalogue-high-priority-research.py"
+      - "services/catalogue-importer/**"
+  workflow_dispatch:
+    inputs:
+      expected_leads:
+        description: Expected HIGH-priority leads in the pinned source
+        required: true
+        default: "1161"
+        type: string
+      batch_size:
+        description: Leads per bounded follow-up batch
+        required: true
+        default: "50"
+        type: string
+      max_pages_per_host:
+        description: Candidate pages to fetch per hostname (bounded)
+        required: true
+        default: "3"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apivault-high-priority-evidence-follow-up
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare HIGH-priority review queue
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      batches: ${{ steps.batches.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+      - name: Validate importer tooling
+        working-directory: services/catalogue-importer
+        run: go test ./...
+      - name: Build bounded HIGH-priority queue
+        id: batches
+        env:
+          SOURCE_REVISION: 88706670ac0ffaad7bf3c6307747e2515f638bed
+          EXPECTED_LEADS: ${{ inputs.expected_leads || '1161' }}
+          BATCH_SIZE: ${{ inputs.batch_size || '50' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s "$GITHUB_WORKSPACE/scripts/tests" -p "test_catalogue_high_priority_research.py" -v
+          curl --fail --location --silent --show-error --retry 3 "https://raw.githubusercontent.com/public-apis/public-apis/$SOURCE_REVISION/README.md" -o "$RUNNER_TEMP/source.md"
+          if ! [[ "$EXPECTED_LEADS" =~ ^[1-9][0-9]*$ ]] || (( EXPECTED_LEADS > 50000 )); then exit 1; fi
+          if ! [[ "$BATCH_SIZE" =~ ^[1-9][0-9]*$ ]] || (( BATCH_SIZE > 100 )); then exit 1; fi
+
+          pushd "$GITHUB_WORKSPACE/services/catalogue-importer" >/dev/null
+          go run ./cmd/catalogue-discover -input "$RUNNER_TEMP/source.md" -directory-url "https://github.com/public-apis/public-apis" -revision "$SOURCE_REVISION" -output "$RUNNER_TEMP/discovery.json"
+          go run ./cmd/catalogue-triage -input "$RUNNER_TEMP/discovery.json" -output "$RUNNER_TEMP/triage.json"
+          popd >/dev/null
+
+          python3 - "$RUNNER_TEMP/triage.json" "$RUNNER_TEMP/high-triage.json" "$EXPECTED_LEADS" <<'PY'
+          import json,sys
+          source,target,expected=sys.argv[1],sys.argv[2],int(sys.argv[3])
+          triage=json.load(open(source,encoding="utf-8"))
+          high=[x for x in triage.get("candidates",[]) if str(x.get("priority","")).upper()=="HIGH"]
+          if len(high)!=expected:
+              raise SystemExit(f"HIGH-priority count mismatch: expected {expected}, found {len(high)}")
+          triage["candidates"]=high
+          triage["processed"]=len(high)
+          with open(target,"w",encoding="utf-8") as f: json.dump(triage,f,indent=2)
+          print(f"Selected {len(high)} HIGH-priority leads; NORMAL and LOW leads excluded.")
+          PY
+
+          mkdir -p "$RUNNER_TEMP/queue-parts"
+          for ((offset=0; offset<EXPECTED_LEADS; offset+=500)); do
+            limit=$(( EXPECTED_LEADS - offset ))
+            (( limit > 500 )) && limit=500
+            go run ./cmd/catalogue-review-pack -input "$RUNNER_TEMP/high-triage.json" -offset "$offset" -limit "$limit" -output "$RUNNER_TEMP/queue-parts/page-$offset.json"
+          done
+
+          python3 - "$RUNNER_TEMP/high-triage.json" "$RUNNER_TEMP/queue-parts" "$RUNNER_TEMP/queue.json" "$EXPECTED_LEADS" "$BATCH_SIZE" "$GITHUB_OUTPUT" <<'PY'
+          import glob,json,math,os,sys
+          triage_path,parts_dir,queue_path=sys.argv[1:4]
+          expected,size=int(sys.argv[4]),int(sys.argv[5])
+          triage=json.load(open(triage_path,encoding="utf-8"))
+          candidates=[]
+          paths=sorted(glob.glob(os.path.join(parts_dir,"page-*.json")),key=lambda p:int(os.path.basename(p).split("-")[1].split(".")[0]))
+          for path in paths:
+              page=json.load(open(path,encoding="utf-8"))
+              if page.get("returned") != len(page.get("candidates",[])): raise SystemExit("review-pack pagination mismatch")
+              candidates.extend(page.get("candidates",[]))
+          ids=[x.get("reviewId") for x in candidates]
+          if len(candidates)!=expected or len(set(ids))!=expected or any(not x for x in ids): raise SystemExit("HIGH queue integrity check failed")
+          if any(str(x.get("priority","")).upper()!="HIGH" for x in candidates): raise SystemExit("non-HIGH record leaked into queue")
+          with open(queue_path,"w",encoding="utf-8") as f: json.dump({"sourceRevision":"88706670ac0ffaad7bf3c6307747e2515f638bed","priorityFilter":"HIGH","candidates":candidates},f,indent=2)
+          matrix={"include":[{"batch":i,"offset":i*size,"limit":min(size,expected-i*size)} for i in range(math.ceil(expected/size))]}
+          with open(sys.argv[6],"a",encoding="utf-8") as f: f.write("matrix="+json.dumps(matrix)+"\\n")
+          print(f"Prepared {len(candidates)} unique HIGH-priority leads across {len(matrix['include'])} batches.")
+          PY
+          mkdir -p "$RUNNER_TEMP/queue-artifact"
+          cp "$RUNNER_TEMP/discovery.json" "$RUNNER_TEMP/high-triage.json" "$RUNNER_TEMP/queue.json" "$RUNNER_TEMP/queue-artifact/"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: apivault-high-priority-queue-${{ github.run_id }}
+          path: ${{ runner.temp }}/queue-artifact/
+          if-no-files-found: error
+          retention-days: 90
+
+  research:
+    name: Follow-up research batch ${{ matrix.batch }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJson(needs.prepare.outputs.batches) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v7
+        with:
+          name: apivault-high-priority-queue-${{ github.run_id }}
+          path: ${{ runner.temp }}/queue
+      - name: Fetch bounded candidate evidence pages
+        env:
+          OFFSET: ${{ matrix.offset }}
+          LIMIT: ${{ matrix.limit }}
+          BATCH: ${{ matrix.batch }}
+          MAX_PAGES: ${{ inputs.max_pages_per_host || '3' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/queue/queue.json" "$OFFSET" "$LIMIT" "$RUNNER_TEMP/batch.json" <<'PY'
+          import json,sys
+          items=json.load(open(sys.argv[1],encoding="utf-8"))["candidates"]
+          offset,limit=int(sys.argv[2]),int(sys.argv[3])
+          batch=items[offset:offset+limit]
+          if len(batch)!=limit: raise SystemExit("batch slice mismatch")
+          with open(sys.argv[4],"w",encoding="utf-8") as f: json.dump({"candidates":batch},f)
+          PY
+          if ! [[ "$MAX_PAGES" =~ ^[0-9]+$ ]] || (( MAX_PAGES > 5 )); then echo "max_pages_per_host must be 0..5" >&2; exit 1; fi
+          python3 scripts/catalogue-high-priority-research.py --input "$RUNNER_TEMP/batch.json" --workers 12 --max-pages-per-host "$MAX_PAGES" --timeout 5 --retries 2 --output "$RUNNER_TEMP/research-$BATCH.json"
+          python3 - "$RUNNER_TEMP/research-$BATCH.json" "$LIMIT" <<'PY'
+          import json,sys
+          report=json.load(open(sys.argv[1],encoding="utf-8"))
+          records=report["records"]
+          if report["leadCount"]!=int(sys.argv[2]): raise SystemExit("batch count mismatch")
+          if len({x.get("reviewId") for x in records})!=len(records): raise SystemExit("duplicate review IDs")
+          if any(x.get("priority")!="HIGH" for x in records): raise SystemExit("non-HIGH record in research output")
+          if any(x.get("importEligible") is not False or x.get("verificationStatus")!="UNVERIFIED" or x.get("publicationStatus")!="NOT_PUBLISHED" for x in records): raise SystemExit("human-review safety gate failed")
+          if any(p.get("evidenceStatus")!="UNVERIFIED_CANDIDATE" for x in records for p in (x.get("research") or {}).get("followUpPages",[])): raise SystemExit("candidate evidence status changed")
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: apivault-high-priority-evidence-${{ github.run_id }}-${{ matrix.batch }}
+          path: ${{ runner.temp }}/research-${{ matrix.batch }}.json
+          if-no-files-found: error
+          retention-days: 90
