@@ -5,6 +5,8 @@ on:
     branches: [dev]
     paths:
       - ".github/workflows/full-catalogue-evidence.yml"
+      - "scripts/catalogue-high-priority-research.py"
+      - "scripts/tests/test_catalogue_high_priority_research.py"
   workflow_dispatch:
     inputs:
       expected_leads:
