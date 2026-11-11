@@ -68,14 +68,17 @@ jobs:
           popd >/dev/null
 
           # Priority is assigned by catalogue-review-pack, not catalogue-triage.
-          # Generate the full review pack first, then select HIGH-priority records.
-          
+          # Page across every triaged lead, not merely the expected HIGH count.
+          TRIAGE_TOTAL="$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1], encoding="utf-8"))["candidates"]))' "$RUNNER_TEMP/triage.json")"
+          if (( TRIAGE_TOTAL == 0 )); then echo "triage report contains no candidates" >&2; exit 1; fi
           mkdir -p "$RUNNER_TEMP/queue-parts"
-          for ((offset=0; offset<EXPECTED_LEADS; offset+=500)); do
-            limit=$(( EXPECTED_LEADS - offset ))
+          pushd "$GITHUB_WORKSPACE/services/catalogue-importer" >/dev/null
+          for ((offset=0; offset<TRIAGE_TOTAL; offset+=500)); do
+            limit=$(( TRIAGE_TOTAL - offset ))
             (( limit > 500 )) && limit=500
             go run ./cmd/catalogue-review-pack -input "$RUNNER_TEMP/triage.json" -offset "$offset" -limit "$limit" -output "$RUNNER_TEMP/queue-parts/page-$offset.json"
           done
+          popd >/dev/null
 
           python3 - "$RUNNER_TEMP/queue-parts" "$RUNNER_TEMP/queue.json" "$EXPECTED_LEADS" "$BATCH_SIZE" "$GITHUB_OUTPUT" <<'PY'
           import glob,json,math,os,sys
@@ -87,6 +90,7 @@ jobs:
               page=json.load(open(path,encoding="utf-8"))
               if page.get("returned") != len(page.get("candidates",[])): raise SystemExit("review-pack pagination mismatch")
               all_candidates.extend(page.get("candidates",[]))
+          if len(all_candidates) == 0: raise SystemExit("review-pack returned no candidates")
           high=[x for x in all_candidates if str(x.get("priority","")).upper()=="HIGH"]
           ids=[x.get("reviewId") for x in high]
           if len(high)!=expected or len(set(ids))!=expected or any(not x for x in ids):
@@ -94,7 +98,7 @@ jobs:
               raise SystemExit(f"HIGH queue integrity failed: expected {expected} unique IDs, found {len(high)} records / {len(set(ids))} IDs; priority counts={counts}")
           with open(queue_path,"w",encoding="utf-8") as f: json.dump({"sourceRevision":"88706670ac0ffaad7bf3c6307747e2515f638bed","priorityFilter":"HIGH","candidates":high},f,indent=2)
           matrix={"include":[{"batch":i,"offset":i*size,"limit":min(size,expected-i*size)} for i in range(math.ceil(expected/size))]}
-          with open(sys.argv[5],"a",encoding="utf-8") as f: f.write("matrix="+json.dumps(matrix)+"\\n")
+          with open(sys.argv[5],"a",encoding="utf-8") as f: f.write("matrix="+json.dumps(matrix)+"\n")
           print(f"Selected {len(high)} HIGH-priority leads from {len(all_candidates)} triaged records; {len(matrix['include'])} batches.")
           PY
           mkdir -p "$RUNNER_TEMP/queue-artifact"
