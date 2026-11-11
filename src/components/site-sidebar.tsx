@@ -47,9 +47,8 @@ export function SiteSidebar() {
       <nav aria-label="API categories" className="max-h-[42vh] space-y-0.5 overflow-y-auto pr-1 lg:max-h-[calc(100vh-410px)]">
         {CATEGORY_DIRECTORY.map((category, index) => {
           const href = `/apis?category=${category.slug}`;
-          const active = pathname === "/apis" && typeof window !== "undefined" && window.location.search.includes(`category=${category.slug}`);
           return <Link key={category.slug} href={href} onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition ${active ? "bg-white/[0.07] text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-white"}`}>
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition hover:bg-white/[0.04] hover:text-white">
             <span className="w-5 text-center text-[10px] text-slate-600">{["✦","⌘","▥","◈","◉","⌖","▦","▧","☼","⌁"][index % 10]}</span>
             <span className="truncate">{category.name}</span>
           </Link>;
