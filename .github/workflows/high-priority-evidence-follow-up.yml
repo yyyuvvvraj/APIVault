@@ -98,7 +98,7 @@ jobs:
               raise SystemExit(f"HIGH queue integrity failed: expected {expected} unique IDs, found {len(high)} records / {len(set(ids))} IDs; priority counts={counts}")
           with open(queue_path,"w",encoding="utf-8") as f: json.dump({"sourceRevision":"88706670ac0ffaad7bf3c6307747e2515f638bed","priorityFilter":"HIGH","candidates":high},f,indent=2)
           matrix={"include":[{"batch":i,"offset":i*size,"limit":min(size,expected-i*size)} for i in range(math.ceil(expected/size))]}
-          with open(sys.argv[5],"a",encoding="utf-8") as f: f.write("matrix="+json.dumps(matrix)+"\\n")
+          with open(sys.argv[5],"a",encoding="utf-8") as f: f.write("matrix="+json.dumps(matrix)+"\n")
           print(f"Selected {len(high)} HIGH-priority leads from {len(all_candidates)} triaged records; {len(matrix['include'])} batches.")
           PY
           mkdir -p "$RUNNER_TEMP/queue-artifact"
