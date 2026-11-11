@@ -26,6 +26,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Next.js standalone reads HOSTNAME; Render's container hostname is not
+      # the public listener interface. Bind explicitly to all interfaces.
+      - key: HOSTNAME
+        value: 0.0.0.0
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
