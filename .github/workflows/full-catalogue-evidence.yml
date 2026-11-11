@@ -1,6 +1,10 @@
 name: Full catalogue evidence processing
 
 on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/full-catalogue-evidence.yml"
   workflow_dispatch:
     inputs:
       expected_leads:

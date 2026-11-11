@@ -20,39 +20,6 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#0b0c0f] text-slate-100">
-      <div className="mx-auto flex min-h-[calc(100vh-64px)] max-w-[1680px]">
-        <aside className="hidden w-[258px] shrink-0 border-r border-white/[0.07] px-5 py-7 lg:block">
-          <Link href="/" className="mb-9 flex items-center gap-2.5" aria-label="APIVault home">
-            <span className="text-[27px] font-black leading-none tracking-[-0.08em]"><span className="text-rose-500">API</span><span className="text-white">VAULT</span></span>
-          </Link>
-          <p className="mb-2 px-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-600">Menu</p>
-          <nav className="space-y-1">
-            {menuLinks.map((item, index) => {
-              const className = `flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition ${index === 0 ? "bg-white/10 text-white" : "text-slate-400 hover:bg-white/[0.05] hover:text-white"}`;
-              return item.href.startsWith("http") ? (
-                <a key={item.href} href={item.href} target="_blank" rel="noreferrer" className={className}>
-                  <span className="w-4 text-center text-slate-500">{item.icon}</span>{item.label}<span className="ml-auto text-[10px] text-slate-600">↗</span>
-                </a>
-              ) : (
-                <Link key={item.href} href={item.href} className={className}>
-                  <span className="w-4 text-center text-slate-500">{item.icon}</span>{item.label}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="mb-2 mt-9 flex items-center justify-between px-2">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-600">Categories</p>
-            <span className="text-[10px] font-bold text-slate-700">{CATEGORY_DIRECTORY.length}</span>
-          </div>
-          <nav aria-label="API categories" className="max-h-[calc(100vh-300px)] space-y-0.5 overflow-y-auto pr-1">
-            {CATEGORY_DIRECTORY.map((category, index) => (
-              <Link key={category.slug} href={`/apis?category=${category.slug}`} className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition hover:bg-white/[0.05] hover:text-white">
-                <span className="w-4 text-center text-[10px] text-slate-600">{["✦", "⌘", "▥", "◈", "◉", "⌖", "▦", "▧", "☼", "⌁"][index]}</span>
-                <span className="truncate">{category.name}</span>
-              </Link>
-            ))}
-          </nav>
-        </aside>
         <main className="min-w-0 flex-1 px-5 py-7 sm:px-8 lg:px-10">
           <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
             <div className="lg:hidden"><span className="text-xl font-black tracking-[-0.07em]"><span className="text-rose-500">API</span>VAULT</span></div>
@@ -107,7 +74,6 @@ export default async function HomePage() {
           </section>
           <div className="mt-10 border-t border-white/[0.07] pt-5 text-[11px] text-slate-600">APIVault is open source. Listings are published only after verification against reliable sources.</div>
         </main>
-      </div>
     </div>
   );
 }
