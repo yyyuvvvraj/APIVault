@@ -26,7 +26,7 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(all(x["importEligible"] is False and x["verificationStatus"] == "UNVERIFIED" for x in report["records"]))
     def test_follows_bounded_candidate_links_and_keeps_them_unverified(self):
         result = {"candidateLinks": [{"kind": "SUPPORT", "url": "https://example.com/help", "linkText": "Help"}, {"kind": "API_DOCUMENTATION", "url": "https://docs.example.com/api", "linkText": "API docs"}, {"kind": "PRICING", "url": "https://example.com/pricing", "linkText": "Pricing"}]}
-        def fake_fetch(url):
+        def fake_fetch(url, **kwargs):
             return {"fetchStatus": "FETCHED", "httpStatus": 200, "resolvedUrl": url, "contentType": "text/html", "title": "Candidate page", "description": "", "attempts": 1, "observedAt": "2026-01-01T00:00:00Z"}
         with patch.object(research, "fetch_with_retries", side_effect=fake_fetch) as fetch:
             output = research.research_candidate_pages(result, max_pages=2)
@@ -42,9 +42,9 @@ class PipelineTests(unittest.TestCase):
         failed = {"fetchStatus": "FETCH_FAILED", "error": "HTTP_503", "candidateLinks": []}
         succeeded = {"fetchStatus": "FETCHED", "error": None, "candidateLinks": []}
         with patch.object(research, "fetch_page", side_effect=[failed.copy(), succeeded.copy()]) as fetch, patch.object(research.time, "sleep") as sleep:
-            result = research.fetch_with_retries("https://example.com")
+            result = research.fetch_with_retries("https://example.com", attempts=2)
         self.assertEqual(fetch.call_count, 2)
-        sleep.assert_called_once_with(1.0)
+        sleep.assert_called_once_with(0.5)
         self.assertEqual(result["fetchStatus"], "FETCHED")
         self.assertEqual(result["attempts"], 2)
 
