@@ -13,7 +13,7 @@ from urllib.parse import urljoin, urlparse, urlunparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 USER_AGENT = "APIVaultResearchBot/1.0 (+https://github.com/yyyuvvvraj/APIVault; read-only)"
-MAX_BYTES, MAX_REDIRECTS, TIMEOUT = 1_500_000, 4, 12
+MAX_BYTES, MAX_REDIRECTS, TIMEOUT = 1_500_000, 4, 5
 
 class PageParser(HTMLParser):
     def __init__(self):
@@ -66,7 +66,7 @@ def link_kind(text, url):
         if re.search(pattern, value): return kind
     return None
 
-def fetch_page(url):
+def fetch_page(url, timeout=TIMEOUT):
     started = time.monotonic()
     out = {"requestedUrl": url, "fetchStatus": "FETCH_FAILED", "httpStatus": None,
            "resolvedUrl": None, "contentType": None, "title": "", "description": "",
@@ -76,7 +76,7 @@ def fetch_page(url):
         opener = build_opener(SafeRedirect())
         req = Request(url, headers={"User-Agent": USER_AGENT,
                     "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.1"}, method="GET")
-        with opener.open(req, timeout=TIMEOUT) as response:
+        with opener.open(req, timeout=timeout) as response:
             body = response.read(MAX_BYTES + 1)
             if len(body) > MAX_BYTES: body = body[:MAX_BYTES]; out["truncated"] = True
             content_type = response.headers.get("Content-Type", "")
@@ -104,7 +104,7 @@ def fetch_page(url):
     out["researchMethod"] = "single-page read-only HTTP reconnaissance; ownership and API claims not verified"
     return out
 
-def research_candidate_pages(research, max_pages=8):
+def research_candidate_pages(research, max_pages=0, timeout=TIMEOUT, retries=1):
     """Fetch a bounded set of discovered evidence links; never treat them as verified."""
     if max_pages <= 0:
         research["followUpPages"] = []
@@ -116,19 +116,19 @@ def research_candidate_pages(research, max_pages=8):
         url = link.get("url", "")
         if not url or url in seen: continue
         seen.add(url)
-        result = fetch_with_retries(url)
+        result = fetch_with_retries(url, attempts=retries, timeout=timeout)
         pages.append({"kind": link.get("kind", "UNKNOWN"), "url": url, "linkText": link.get("linkText", ""), "evidenceStatus": "UNVERIFIED_CANDIDATE", "fetchStatus": result.get("fetchStatus"), "httpStatus": result.get("httpStatus"), "resolvedUrl": result.get("resolvedUrl"), "contentType": result.get("contentType"), "title": result.get("title", ""), "description": result.get("description", ""), "error": result.get("error"), "attempts": result.get("attempts", 1), "observedAt": result.get("observedAt")})
         if len(pages) >= max(0, max_pages): break
     research["followUpPages"] = pages
     return research
 
 
-def fetch_with_retries(url, attempts=3, base_delay=1.0):
+def fetch_with_retries(url, attempts=1, base_delay=0.5, timeout=TIMEOUT):
     """Retry transient provider/network failures without retrying permanent HTTP errors."""
     retryable_http = {"HTTP_408", "HTTP_425", "HTTP_429", "HTTP_500", "HTTP_502", "HTTP_503", "HTTP_504"}
     result = None
     for attempt in range(1, max(1, attempts) + 1):
-        result = fetch_page(url)
+        result = fetch_page(url, timeout=timeout)
         result["attempts"] = attempt
         error = result.get("error") or ""
         transient_network = any(token in error for token in ("TimeoutError", "URLError", "ConnectionError", "Temporary failure"))
@@ -138,7 +138,7 @@ def fetch_with_retries(url, attempts=3, base_delay=1.0):
     return result
 
 
-def run(inputs, output, workers, max_pages_per_host=8):
+def run(inputs, output, workers, max_pages_per_host=0, timeout=TIMEOUT, retries=1):
     leads = []
     for path in inputs:
         with open(path, encoding="utf-8") as f:
@@ -156,7 +156,7 @@ def run(inputs, output, workers, max_pages_per_host=8):
         return sorted(urls, key=lambda u: (not u.startswith("https://"), len(urlparse(u).path), len(u)))[0]
     results = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, min(workers, 20))) as pool:
-        futures = {pool.submit(fetch_with_retries, representative(group)): host for host, group in groups.items()}
+        futures = {pool.submit(fetch_with_retries, representative(group), retries, timeout=timeout): host for host, group in groups.items()}
         for future in concurrent.futures.as_completed(futures): results[futures[future]] = future.result()
     records = []
     for lead in leads:
@@ -174,7 +174,7 @@ def run(inputs, output, workers, max_pages_per_host=8):
             "sourceUrl": lead.get("originalUrl", ""), "disposition": "HUMAN_REVIEW_REQUIRED",
             "researchError": "invalid or unsupported source URL", "importEligible": False,
             "verificationStatus": "UNVERIFIED", "publicationStatus": "NOT_PUBLISHED"})
-    for research in results.values(): research_candidate_pages(research, max_pages_per_host)
+    for research in results.values(): research_candidate_pages(research, max_pages_per_host, timeout, retries)
     fetched = sum(x["fetchStatus"] == "FETCHED" for x in results.values())
     status_counts = Counter(x["research"]["fetchStatus"] if x.get("research") else "INVALID_URL" for x in records)
     link_counts = Counter(link["kind"] for x in results.values() for link in x.get("candidateLinks", []))
@@ -194,6 +194,8 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--input", action="append", required=True); p.add_argument("--output", required=True)
     p.add_argument("--workers", type=int, default=12)
-    p.add_argument("--max-pages-per-host", type=int, default=8)
+    p.add_argument("--max-pages-per-host", type=int, default=0)
+    p.add_argument("--timeout", type=float, default=TIMEOUT)
+    p.add_argument("--retries", type=int, default=1)
     a = p.parse_args()
-    print(json.dumps(run(a.input, a.output, a.workers, max(0, min(a.max_pages_per_host, 24))), indent=2))
+    print(json.dumps(run(a.input, a.output, a.workers, max(0, min(a.max_pages_per_host, 24)), max(1.0, min(a.timeout, 20.0)), max(1, min(a.retries, 3))), indent=2))

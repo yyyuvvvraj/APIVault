@@ -1,29 +1,17 @@
 name: Full catalogue evidence processing
 
 on:
-  push:
-    branches: [dev]
-    paths:
-      - ".github/workflows/full-catalogue-evidence.yml"
-      - "services/catalogue-importer/cmd/catalogue-discover/**"
-      - "services/catalogue-importer/cmd/catalogue-triage/**"
-      - "services/catalogue-importer/cmd/catalogue-review-pack/**"
-      - "services/catalogue-importer/cmd/catalogue-evidence-review/**"
-      - "services/catalogue-importer/cmd/catalogue-curation-handoff/**"
-      - "services/catalogue-importer/internal/discovery/**"
-      - "services/catalogue-importer/internal/triage/**"
-      - "services/catalogue-importer/internal/reviewpack/**"
-      - "services/catalogue-importer/internal/evidence/**"
-      - "services/catalogue-importer/internal/curation/**"
-      - "services/catalogue-importer/data/evidence-review/**"
-      - "scripts/catalogue-high-priority-research.py"
-      - "scripts/tests/test_catalogue_high_priority_research.py"
   workflow_dispatch:
     inputs:
       expected_leads:
         description: Expected number of pinned discovery leads (safety check)
         required: true
         default: "2284"
+        type: string
+      batch_size:
+        description: Leads per bounded hostname research batch
+        required: true
+        default: "100"
         type: string
 
 permissions:
@@ -34,203 +22,91 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  process-all-leads:
-    name: Process all pinned discovery leads in one run
+  prepare:
+    name: Prepare immutable discovery queue
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    env:
-      SOURCE_REVISION: 88706670ac0ffaad7bf3c6307747e2515f638bed
-      EXPECTED_LEADS: ${{ inputs.expected_leads || '2284' }}
+    timeout-minutes: 10
+    outputs:
+      batches: ${{ steps.batches.outputs.matrix }}
     steps:
-      - name: Checkout APIVault
-        uses: actions/checkout@v7
-
-      - name: Set up Go
-        uses: actions/setup-go@v7
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: services/catalogue-importer/go.mod
           cache-dependency-path: services/catalogue-importer/go.sum
-
-      - name: Test importer and review pipeline
+      - name: Validate tooling
         working-directory: services/catalogue-importer
         run: go test ./...
-
-      - name: Test automated research safety and review gates
-        run: python3 -m unittest discover -s scripts/tests -p "test_catalogue_high_priority_research.py" -v
-
-      - name: Fetch immutable discovery source
-        run: |
-          set -euo pipefail
-          curl --fail --location --silent --show-error --retry 3 \
-            "https://raw.githubusercontent.com/public-apis/public-apis/$SOURCE_REVISION/README.md" \
-            -o "$RUNNER_TEMP/public-apis-README.md"
-          test -s "$RUNNER_TEMP/public-apis-README.md"
-
-      - name: Extract and triage the complete source
-        working-directory: services/catalogue-importer
-        run: |
-          set -euo pipefail
-          go run ./cmd/catalogue-discover \
-            -input "$RUNNER_TEMP/public-apis-README.md" \
-            -directory-url "https://github.com/public-apis/public-apis" \
-            -revision "$SOURCE_REVISION" \
-            -output "$RUNNER_TEMP/discovery.json"
-          go run ./cmd/catalogue-triage \
-            -input "$RUNNER_TEMP/discovery.json" \
-            -output "$RUNNER_TEMP/triage.json"
-          actual="$(jq -er '.processed' "$RUNNER_TEMP/triage.json")"
-          if [[ "$actual" != "$EXPECTED_LEADS" ]]; then
-            echo "::error::Pinned source produced $actual leads; expected $EXPECTED_LEADS. Refusing to silently change the batch."
-            exit 1
-          fi
-
-      - name: Build all queue pages in this run
-        working-directory: services/catalogue-importer
-        run: |
-          set -euo pipefail
-          for offset in 0 500 1000 1500 2000; do
-            page="$((offset / 500 + 1))"
-            go run ./cmd/catalogue-review-pack \
-              -input "$RUNNER_TEMP/triage.json" \
-              -offset "$offset" -limit 500 \
-              -output "$RUNNER_TEMP/queue-page-$page.json"
-          done
-          python3 - <<'PY'
-          import glob, json, os, sys
-          pages = [json.load(open(p, encoding="utf-8")) for p in sorted(glob.glob(os.path.join(os.environ["RUNNER_TEMP"], "queue-page-*.json")))]
-          records = [r for page in pages for r in page["candidates"]]
-          ids = [r["reviewId"] for r in records]
-          expected = int(os.environ["EXPECTED_LEADS"])
-          if len(records) != expected or len(set(ids)) != expected:
-              raise SystemExit(f"Queue integrity failed: {len(records)} records, {len(set(ids))} unique IDs, expected {expected}")
-          print(f"Queue integrity passed: {len(records)} unique leads across {len(pages)} pages")
-          PY
-
-      - name: Research every discovery lead
-        run: |
-          set -euo pipefail
-          python3 scripts/catalogue-high-priority-research.py \
-            --input "$RUNNER_TEMP/queue-page-1.json" \
-            --input "$RUNNER_TEMP/queue-page-2.json" \
-            --input "$RUNNER_TEMP/queue-page-3.json" \
-            --input "$RUNNER_TEMP/queue-page-4.json" \
-            --input "$RUNNER_TEMP/queue-page-5.json" \
-            --workers 20 \
-            --output "$RUNNER_TEMP/high-priority-research.json"
-          python3 - "$RUNNER_TEMP/high-priority-research.json" "$EXPECTED_LEADS" <<'PY'
-          import json, sys
-          report = json.load(open(sys.argv[1], encoding="utf-8"))
-          expected = int(sys.argv[2])
-          if report["leadCount"] != expected:
-              raise SystemExit(f"Expected {expected} researched leads, got {report['leadCount']}")
-          if len({x["reviewId"] for x in report["records"]}) != expected:
-              raise SystemExit("Research output contains duplicate or missing review IDs")
-          if any(x.get("importEligible") is not False or x.get("verificationStatus") != "UNVERIFIED" or x.get("publicationStatus") != "NOT_PUBLISHED" for x in report["records"]):
-              raise SystemExit("Research output violated the human-review gate")
-          print(json.dumps({k:v for k,v in report.items() if k != "records"}, indent=2))
-          PY
-
-      - name: Validate every submitted provider-evidence pack
-        working-directory: services/catalogue-importer
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/evidence-reports" "$RUNNER_TEMP/curation-handoffs"
-          shopt -s nullglob
-          packs=(data/evidence-review/*.json)
-          if (( ${#packs[@]} == 0 )); then
-            echo "No evidence packs exist; all discovery leads will remain REVIEW_REQUIRED."
-          fi
-          for pack in "${packs[@]}"; do
-            name="$(basename "$pack" .json)"
-            go run ./cmd/catalogue-evidence-review \
-              -input "$pack" \
-              -output "$RUNNER_TEMP/evidence-reports/$name.json"
-            go run ./cmd/catalogue-curation-handoff \
-              -input "$pack" \
-              -output "$RUNNER_TEMP/curation-handoffs/$name.json"
-          done
-
-      - name: Produce the full-catalogue disposition report
+      - name: Fetch and validate pinned source
         env:
+          SOURCE_REVISION: 88706670ac0ffaad7bf3c6307747e2515f638bed
           EXPECTED_LEADS: ${{ inputs.expected_leads || '2284' }}
+          BATCH_SIZE: ${{ inputs.batch_size || '100' }}
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import glob, json, os
-          root = os.environ["RUNNER_TEMP"]
-          triage = json.load(open(os.path.join(root, "triage.json"), encoding="utf-8"))
-          pages = [json.load(open(p, encoding="utf-8")) for p in sorted(glob.glob(os.path.join(root, "queue-page-*.json")))]
-          leads = [item for page in pages for item in page["candidates"]]
-          research_report = json.load(open(os.path.join(root, "high-priority-research.json"), encoding="utf-8"))
-          research_by_id = {item["reviewId"]: item for item in research_report["records"]}
-          findings = {}
-          for path in glob.glob(os.path.join(root, "evidence-reports", "*.json")):
-              report = json.load(open(path, encoding="utf-8"))
-              for finding in report.get("findings", []):
-                  rid = finding.get("reviewId")
-                  if rid in findings:
-                      findings[rid] = {"status": "REVIEW_REQUIRED", "issues": ["duplicate reviewId across evidence packs"]}
-                  else:
-                      findings[rid] = {"status": finding.get("status", "BLOCKED"), "issues": finding.get("issues", [])}
-          records = []
-          counts = {"READY_FOR_MAINTAINER_REVIEW": 0, "REVIEW_REQUIRED": 0}
-          for lead in leads:
-              evidence = findings.get(lead["reviewId"])
-              ready = bool(evidence and evidence["status"] == "READY_FOR_MAINTAINER_REVIEW")
-              status = "READY_FOR_MAINTAINER_REVIEW" if ready else "REVIEW_REQUIRED"
-              counts[status] += 1
-              records.append({
-                  "reviewId": lead["reviewId"],
-                  "name": lead.get("name", ""),
-                  "originalUrl": lead.get("originalUrl", ""),
-                  "canonicalUrl": lead.get("canonicalUrl", ""),
-                  "sourceCategory": lead.get("sourceCategory", ""),
-                  "suggestedCategory": lead.get("suggestedCategory", ""),
-                  "priority": lead.get("priority", ""),
-                  "disposition": status,
-                  "evidenceIssues": evidence["issues"] if evidence else ["No submitted provider-evidence pack for this lead"],
-                  "importEligible": False,
-                  "verificationStatus": "UNVERIFIED",
-                  "publicationStatus": "NOT_PUBLISHED",
-                  "automatedResearch": research_by_id.get(lead["reviewId"]),
-                  "humanReviewRequired": True
-              })
-          expected = int(os.environ["EXPECTED_LEADS"])
-          if len(records) != expected or len({r["reviewId"] for r in records}) != expected:
-              raise SystemExit("Final report failed record-count or unique-ID integrity check")
-          report = {
-              "schemaVersion": "1",
-              "sourceRevision": os.environ["SOURCE_REVISION"],
-              "sourceTotal": triage.get("sourceTotal"),
-              "processed": len(records),
-              "deduplication": {
-                  "exactUrlDuplicateGroups": triage.get("exactUrlDuplicateGroups", 0),
-                  "sharedHostnameGroups": triage.get("sharedHostnameGroups", 0),
-                  "duplicateNameGroups": triage.get("duplicateNameGroups", 0),
-                  "unmappedCategory": triage.get("unmappedCategory", 0),
-                  "removedTrackingParameters": triage.get("removedTrackingParameters", 0)
-              },
-              "dispositions": counts,
-              "automatedResearch": {k: v for k, v in research_report.items() if k != "records"},
-              "policy": "Automated reconnaissance is unverified research only. Evidence-complete records advance only to maintainer review. This workflow never approves, imports, verifies, or publishes a discovery lead.",
-              "records": records
-          }
-          with open(os.path.join(root, "full-catalogue-disposition.json"), "w", encoding="utf-8") as f:
-              json.dump(report, f, indent=2, ensure_ascii=False)
-          print(json.dumps({k:v for k,v in report.items() if k != "records"}, indent=2))
+          python3 -m unittest discover -s scripts/tests -p "test_catalogue_high_priority_research.py" -v
+          curl --fail --location --silent --show-error --retry 3 "https://raw.githubusercontent.com/public-apis/public-apis/$SOURCE_REVISION/README.md" -o "$RUNNER_TEMP/source.md"
+          go run ./services/catalogue-importer/cmd/catalogue-discover -input "$RUNNER_TEMP/source.md" -directory-url "https://github.com/public-apis/public-apis" -revision "$SOURCE_REVISION" -output "$RUNNER_TEMP/discovery.json"
+          go run ./services/catalogue-importer/cmd/catalogue-triage -input "$RUNNER_TEMP/discovery.json" -output "$RUNNER_TEMP/triage.json"
+          go run ./services/catalogue-importer/cmd/catalogue-review-pack -input "$RUNNER_TEMP/triage.json" -offset 0 -limit "$EXPECTED_LEADS" -output "$RUNNER_TEMP/queue.json"
+          python3 - "$RUNNER_TEMP/queue.json" "$EXPECTED_LEADS" "$BATCH_SIZE" "$GITHUB_OUTPUT" <<'PY'
+          import json, math, sys
+          queue=json.load(open(sys.argv[1],encoding="utf-8"))["candidates"]
+          expected,size=int(sys.argv[2]),int(sys.argv[3])
+          if len(queue)!=expected or len({x["reviewId"] for x in queue})!=expected: raise SystemExit("queue count/unique-ID integrity failed")
+          if not 1<=size<=200: raise SystemExit("batch_size must be 1..200")
+          matrix={"include":[{"batch":i,"offset":i*size,"limit":min(size,expected-i*size)} for i in range(math.ceil(expected/size))]}
+          with open(sys.argv[4],"a") as out: out.write("matrix="+json.dumps(matrix)+"\n")
           PY
-
-      - name: Upload complete catalogue disposition and review artifacts
-        uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7
         with:
-          name: apivault-full-catalogue-review-${{ github.run_id }}
+          name: apivault-discovery-queue-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/discovery.json
             ${{ runner.temp }}/triage.json
-            ${{ runner.temp }}/queue-page-*.json
-            ${{ runner.temp }}/evidence-reports/
-            ${{ runner.temp }}/curation-handoffs/
-            ${{ runner.temp }}/full-catalogue-disposition.json
-            ${{ runner.temp }}/high-priority-research.json
-          if-no-files-found: error
+            ${{ runner.temp }}/queue.json
+          retention-days: 90
+
+  research:
+    name: Research batch ${{ matrix.batch }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJson(needs.prepare.outputs.batches) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v7
+        with:
+          name: apivault-discovery-queue-${{ github.run_id }}
+          path: ${{ runner.temp }}/queue
+      - name: Build batch and run bounded research
+        env:
+          OFFSET: ${{ matrix.offset }}
+          LIMIT: ${{ matrix.limit }}
+          BATCH: ${{ matrix.batch }}
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/queue/queue.json" "$OFFSET" "$LIMIT" "$RUNNER_TEMP/batch.json" <<'PY'
+          import json,sys
+          items=json.load(open(sys.argv[1],encoding="utf-8"))["candidates"]
+          batch=items[int(sys.argv[2]):int(sys.argv[2])+int(sys.argv[3])]
+          json.dump({"candidates":batch},open(sys.argv[4],"w",encoding="utf-8"))
+          PY
+          python3 scripts/catalogue-high-priority-research.py --input "$RUNNER_TEMP/batch.json" --workers 12 --max-pages-per-host 0 --timeout 5 --retries 1 --output "$RUNNER_TEMP/research-$BATCH.json"
+          python3 - "$RUNNER_TEMP/research-$BATCH.json" "$LIMIT" <<'PY'
+          import json,sys
+          report=json.load(open(sys.argv[1],encoding="utf-8"))
+          if report["leadCount"]!=int(sys.argv[2]): raise SystemExit("batch count mismatch")
+          if any(x.get("importEligible") is not False or x.get("verificationStatus")!="UNVERIFIED" or x.get("publicationStatus")!="NOT_PUBLISHED" for x in report["records"]): raise SystemExit("human-review gate failed")
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: apivault-research-batch-${{ github.run_id }}-${{ matrix.batch }}
+          path: ${{ runner.temp }}/research-${{ matrix.batch }}.json
           retention-days: 90

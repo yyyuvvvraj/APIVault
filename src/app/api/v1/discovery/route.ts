@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
-import { enforcePublicApiRateLimit } from "@/lib/api-rate-limit";
 import { withRequestContext } from "@/lib/request-context";
 
 export const GET = withRequestContext("/api/v1/discovery", async function GET(request: NextRequest) {
-  let rateLimit: Awaited<ReturnType<typeof enforcePublicApiRateLimit>>;
-  try {
-    rateLimit = await enforcePublicApiRateLimit(request);
-  } catch (error) {
-    console.error("GET /api/v1/discovery rate limit failed:", error);
-    return NextResponse.json({ error: "service_unavailable", message: "The API is temporarily unavailable." }, { status: 503 });
-  }
-  if (rateLimit.response) return rateLimit.response;
-
   const params = request.nextUrl.searchParams;
   const q = (params.get("q") ?? "").trim().slice(0, 100);
   const priority = ["HIGH", "NORMAL", "LOW"].includes(params.get("priority") ?? "") ? params.get("priority")! : undefined;
@@ -55,17 +45,14 @@ export const GET = withRequestContext("/api/v1/discovery", async function GET(re
         },
       }),
     ]);
-    const payload = {
+    return NextResponse.json({
       data: records,
       notice: "Discovery leads are unverified research candidates, not published API listings. Automated evidence is not authenticated and requires human review.",
       counts: { total, highPriority, readyForReview },
       pagination: { page, limit, total: filteredTotal, totalPages: Math.ceil(filteredTotal / limit) },
-    };
-    return NextResponse.json(payload, {
-      headers: { ...rateLimit.headers, "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300" },
-    });
+    }, { headers: { "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300" } });
   } catch (error) {
     console.error("GET /api/v1/discovery failed:", error);
-    return NextResponse.json({ error: "internal_error", message: "The discovery catalogue could not be queried." }, { status: 500, headers: rateLimit.headers });
+    return NextResponse.json({ error: "service_unavailable", message: "The discovery catalogue is temporarily unavailable. Please retry shortly." }, { status: 503, headers: { "Retry-After": "15", "Cache-Control": "no-store" } });
   }
 });
