@@ -44,6 +44,7 @@ jobs:
         working-directory: services/catalogue-importer
         run: go test ./...
       - name: Fetch and validate pinned source
+        working-directory: services/catalogue-importer
         env:
           SOURCE_REVISION: 88706670ac0ffaad7bf3c6307747e2515f638bed
           EXPECTED_LEADS: ${{ inputs.expected_leads || '2284' }}
@@ -52,9 +53,9 @@ jobs:
           set -euo pipefail
           python3 -m unittest discover -s scripts/tests -p "test_catalogue_high_priority_research.py" -v
           curl --fail --location --silent --show-error --retry 3 "https://raw.githubusercontent.com/public-apis/public-apis/$SOURCE_REVISION/README.md" -o "$RUNNER_TEMP/source.md"
-          go run ./services/catalogue-importer/cmd/catalogue-discover -input "$RUNNER_TEMP/source.md" -directory-url "https://github.com/public-apis/public-apis" -revision "$SOURCE_REVISION" -output "$RUNNER_TEMP/discovery.json"
-          go run ./services/catalogue-importer/cmd/catalogue-triage -input "$RUNNER_TEMP/discovery.json" -output "$RUNNER_TEMP/triage.json"
-          go run ./services/catalogue-importer/cmd/catalogue-review-pack -input "$RUNNER_TEMP/triage.json" -offset 0 -limit "$EXPECTED_LEADS" -output "$RUNNER_TEMP/queue.json"
+          go run ./cmd/catalogue-discover -input "$RUNNER_TEMP/source.md" -directory-url "https://github.com/public-apis/public-apis" -revision "$SOURCE_REVISION" -output "$RUNNER_TEMP/discovery.json"
+          go run ./cmd/catalogue-triage -input "$RUNNER_TEMP/discovery.json" -output "$RUNNER_TEMP/triage.json"
+          go run ./cmd/catalogue-review-pack -input "$RUNNER_TEMP/triage.json" -offset 0 -limit "$EXPECTED_LEADS" -output "$RUNNER_TEMP/queue.json"
           python3 - "$RUNNER_TEMP/queue.json" "$EXPECTED_LEADS" "$BATCH_SIZE" "$GITHUB_OUTPUT" <<'PY'
           import json, math, sys
           queue=json.load(open(sys.argv[1],encoding="utf-8"))["candidates"]
