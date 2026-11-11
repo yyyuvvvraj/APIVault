@@ -103,7 +103,7 @@ jobs:
           if any(str(x.get("priority","")).upper()!="HIGH" for x in candidates): raise SystemExit("non-HIGH record leaked into queue")
           with open(queue_path,"w",encoding="utf-8") as f: json.dump({"sourceRevision":"88706670ac0ffaad7bf3c6307747e2515f638bed","priorityFilter":"HIGH","candidates":candidates},f,indent=2)
           matrix={"include":[{"batch":i,"offset":i*size,"limit":min(size,expected-i*size)} for i in range(math.ceil(expected/size))]}
-          with open(sys.argv[6],"a",encoding="utf-8") as f: f.write("matrix="+json.dumps(matrix)+"\\n")
+          with open(sys.argv[6],"a",encoding="utf-8") as f: f.write("matrix="+json.dumps(matrix)+"\n")
           print(f"Prepared {len(candidates)} unique HIGH-priority leads across {len(matrix['include'])} batches.")
           PY
           mkdir -p "$RUNNER_TEMP/queue-artifact"
