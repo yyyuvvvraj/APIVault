@@ -110,7 +110,7 @@ jobs:
             -workers=12 \
             -timeout=8s \
             -output "$RUNNER_TEMP/high-priority-live-validation.json"
-          jq '{total, validatedCandidates, autoApprovable, reviewRequired, rejected}' \
+          jq '{total, validatedCandidates, autoApprovable, reviewRequired, rejected, urlChecks: ([.results[].checks[]] | length), reachableHttpsChecks: ([.results[].checks[] | select(.reachable and .statusCode >= 200 and .statusCode < 400 and (.finalUrl | startswith("https://")))] | length), failedChecks: ([.results[].checks[] | select(.reachable == false)] | length)}' \
             "$RUNNER_TEMP/high-priority-live-validation.json"
 
       - name: Enforce non-publishing review gate
