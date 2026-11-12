@@ -236,12 +236,20 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 	replacementAPI := file.APIs[0]
 	oldHomepage := replacementAPI.HomepageURL
 	replacementAPI.HomepageURL = "https://replacement.example.org/" + firstSlug
-	replacementAPI.Sources = []Source{{
-		Kind:       "OFFICIAL_HOMEPAGE",
-		URL:        replacementAPI.HomepageURL,
-		Title:      "Replacement official API homepage",
-		IsOfficial: true,
-	}}
+	replacementAPI.Sources = []Source{
+		{
+			Kind:       "OFFICIAL_HOMEPAGE",
+			URL:        oldHomepage,
+			Title:      "Stale official API homepage",
+			IsOfficial: true,
+		},
+		{
+			Kind:       "OFFICIAL_HOMEPAGE",
+			URL:        replacementAPI.HomepageURL,
+			Title:      "Replacement official API homepage",
+			IsOfficial: true,
+		},
+	}
 	replacementFile := File{Dataset: file.Dataset, APIs: []API{replacementAPI}}
 	replacementOptions := ImportOptions{RunID: "it-source-replace-" + suffix, BatchSize: 1}
 	if _, err := ImportResumable(ctx, pool, replacementFile, replacementOptions); err != nil {
