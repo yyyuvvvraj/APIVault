@@ -68,6 +68,17 @@ jobs:
           fi
         id: export
 
+      - name: Normalize API response to catalogue manifest
+        if: steps.export.outputs.has_candidates == 'true'
+        run: |
+          set -euo pipefail
+          jq -e '(.apis | type == "array") and (.dataset | type == "object")' \
+            "$RUNNER_TEMP/catalogue-candidates.json" >/dev/null
+          jq '{apis: .apis, dataset: .dataset}' \
+            "$RUNNER_TEMP/catalogue-candidates.json" \
+            > "$RUNNER_TEMP/catalogue-manifest.json"
+          echo "Normalized $(jq '.apis | length' "$RUNNER_TEMP/catalogue-manifest.json") API candidates."
+
       - name: Run live evidence and policy checks
         if: steps.export.outputs.has_candidates == 'true'
         working-directory: services/catalogue-importer
@@ -75,7 +86,7 @@ jobs:
           set -euo pipefail
           go test ./...
           go run ./cmd/catalogue-validate \
-            -input "$RUNNER_TEMP/catalogue-candidates.json" \
+            -input "$RUNNER_TEMP/catalogue-manifest.json" \
             -live=true \
             -workers=8 \
             -timeout=8s \
@@ -109,6 +120,7 @@ jobs:
           name: apivault-automated-verification-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/catalogue-candidates.json
+            ${{ runner.temp }}/catalogue-manifest.json
             ${{ runner.temp }}/catalogue-validation-report.json
             ${{ runner.temp }}/catalogue-auto-verify-decisions.json
           if-no-files-found: warn
