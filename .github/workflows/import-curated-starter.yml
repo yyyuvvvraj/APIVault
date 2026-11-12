@@ -73,7 +73,7 @@ jobs:
             -input "$MANIFEST_PATH" \
             -apply \
             -batch-size 100 \
-            -run-id "curated-starter-v4-bootstrap-2026-11-12"
+            -run-id "curated-starter-v4-${GITHUB_RUN_ID}"
 
       - name: Report next verification stage
         run: |
