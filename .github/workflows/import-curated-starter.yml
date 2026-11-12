@@ -30,8 +30,6 @@ jobs:
       run:
         working-directory: services/catalogue-importer
     env:
-      DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       MANIFEST_PATH: ${{ inputs.manifest_path || 'data/curated-starter-v4.json' }}
     steps:
       - name: Checkout
@@ -47,6 +45,9 @@ jobs:
         run: go test ./...
 
       - name: Validate selected manifest path
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           case "$MANIFEST_PATH" in
@@ -63,13 +64,16 @@ jobs:
         run: go run ./cmd/catalogue-importer -input "$MANIFEST_PATH"
 
       - name: Import curated APIs as pending review
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           go run ./cmd/catalogue-importer \
             -input "$MANIFEST_PATH" \
             -apply \
             -batch-size 100 \
-            -run-id "curated-starter-v4-bootstrap-2026-11-12"
+            -run-id "curated-starter-v4-${GITHUB_RUN_ID}"
 
       - name: Report next verification stage
         run: |
