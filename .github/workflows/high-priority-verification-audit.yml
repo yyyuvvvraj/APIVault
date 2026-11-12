@@ -74,7 +74,7 @@ jobs:
       - name: Test evidence selection and safety gates
         run: |
           set -euo pipefail
-          python3 -m unittest discover -s scripts/tests -p "test_prepare_high_priority_verification.py" -v
+          python3 scripts/tests/test_prepare_high_priority_verification.py -v
 
       - name: Build report-only candidate manifest
         run: |
