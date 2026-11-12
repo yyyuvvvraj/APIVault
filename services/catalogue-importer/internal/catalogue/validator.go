@@ -216,7 +216,7 @@ func autoApprovalEligibility(api API, result APIValidation) []string {
 		reasons = append(reasons, "known pricing claims require official pricing evidence")
 	}
 	for _, method := range api.AuthMethods {
-		if method.Method != "" && method.Method != "UNKNOWN" && !hasAuthentication {
+		if method.Method != "" && method.Method != "UNKNOWN" && method.Method != "NONE" && !hasAuthentication {
 			reasons = append(reasons, "known authentication claims require official authentication evidence")
 			break
 		}
