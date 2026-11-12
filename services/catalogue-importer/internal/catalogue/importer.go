@@ -135,28 +135,14 @@ func importAPI(ctx context.Context, tx pgx.Tx, api API, now time.Time) error {
 		}
 	}
 
-	hasCanonicalHomepageEvidence := false
-	for _, source := range api.Sources {
-		if source.Kind == "OFFICIAL_HOMEPAGE" && source.IsOfficial && source.URL == api.HomepageURL {
-			hasCanonicalHomepageEvidence = true
-			break
-		}
-	}
-	if hasCanonicalHomepageEvidence {
-		if _, err := tx.Exec(ctx, `
-			DELETE FROM "ApiSource"
-			WHERE "apiId" = $1::uuid
-			  AND "sourceKind" = 'OFFICIAL_HOMEPAGE'::"SourceKind"
-			  AND "url" <> $2
-		`, apiID, api.HomepageURL); err != nil {
-			return fmt.Errorf("replace stale official homepage evidence: %w", err)
-		}
+	// The manifest is the source of truth for evidence references. Replace
+	// the complete set so corrected records cannot retain stale or unreachable
+	// documentation, terms, pricing, or homepage URLs from earlier imports.
+	if _, err := tx.Exec(ctx, `DELETE FROM "ApiSource" WHERE "apiId" = $1::uuid`, apiID); err != nil {
+		return fmt.Errorf("replace API source evidence: %w", err)
 	}
 
 	for _, source := range api.Sources {
-		if hasCanonicalHomepageEvidence && source.Kind == "OFFICIAL_HOMEPAGE" && source.URL != api.HomepageURL {
-			continue
-		}
 		sourceUUID, err := newUUID()
 		if err != nil {
 			return err
