@@ -79,7 +79,7 @@ jobs:
       - name: Validate research-to-disposition preparation
         run: |
           set -euo pipefail
-          python3 -m unittest scripts.tests.test_prepare_discovery_disposition -v
+          python3 -m unittest discover -s scripts/tests -p "test_prepare_discovery_disposition.py" -v
 
       - name: Prepare complete review-only disposition
         run: |
