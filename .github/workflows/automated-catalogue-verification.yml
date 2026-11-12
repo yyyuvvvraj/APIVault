@@ -1,6 +1,8 @@
 name: Automated catalogue verification
 
 on:
+  push:
+    branches: [dev]
   schedule:
     - cron: "17 4 * * *"
   workflow_dispatch:
