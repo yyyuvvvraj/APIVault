@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/import-curated-starter.yml"
       - "services/catalogue-importer/data/curated-starter-*.json"
+      - "services/catalogue-importer/internal/catalogue/*.go"
   workflow_dispatch:
     inputs:
       manifest_path:

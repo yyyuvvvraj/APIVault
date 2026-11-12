@@ -230,6 +230,46 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 		t.Fatalf("expected recovered run to complete, got %q", recoveredRunStatus)
 	}
 
+	// Re-importing a corrected official homepage must remove the stale
+	// OFFICIAL_HOMEPAGE source, otherwise a dead former homepage blocks
+	// automated verification even after the API record is corrected.
+	replacementAPI := file.APIs[0]
+	oldHomepage := replacementAPI.HomepageURL
+	replacementAPI.HomepageURL = "https://replacement.example.org/" + firstSlug
+	replacementAPI.Sources = []Source{
+		{
+			Kind:       "OFFICIAL_HOMEPAGE",
+			URL:        oldHomepage,
+			Title:      "Stale official API homepage",
+			IsOfficial: true,
+		},
+		{
+			Kind:       "OFFICIAL_HOMEPAGE",
+			URL:        replacementAPI.HomepageURL,
+			Title:      "Replacement official API homepage",
+			IsOfficial: true,
+		},
+	}
+	replacementFile := File{Dataset: file.Dataset, APIs: []API{replacementAPI}}
+	replacementOptions := ImportOptions{RunID: "it-source-replace-" + suffix, BatchSize: 1}
+	if _, err := ImportResumable(ctx, pool, replacementFile, replacementOptions); err != nil {
+		t.Fatalf("replace stale official homepage evidence: %v", err)
+	}
+	var staleHomepageCount int
+	if err := pool.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM "ApiSource" s
+		JOIN "Api" a ON a."id" = s."apiId"
+		WHERE a."slug" = $1
+		  AND s."sourceKind" = 'OFFICIAL_HOMEPAGE'::"SourceKind"
+		  AND s."url" <> $2
+	`, firstSlug, replacementAPI.HomepageURL).Scan(&staleHomepageCount); err != nil {
+		t.Fatalf("count stale official homepage evidence: %v", err)
+	}
+	if staleHomepageCount != 0 {
+		t.Fatalf("expected stale official homepage evidence to be removed, got %d row(s); old URL was %s", staleHomepageCount, oldHomepage)
+	}
+
 }
 
 func integrationAPI(slug, name, providerSlug, categorySlug, suffix string) API {
