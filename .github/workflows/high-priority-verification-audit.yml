@@ -6,7 +6,9 @@ on:
     paths:
       - ".github/workflows/high-priority-verification-audit.yml"
       - "scripts/prepare-high-priority-verification.py"
+      - "scripts/expand-high-priority-doc-discovery.py"
       - "scripts/tests/test_prepare_high_priority_verification.py"
+      - "scripts/tests/test_expand_high_priority_doc_discovery.py"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -80,13 +82,27 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/tests/test_prepare_high_priority_verification.py -v
+          python3 scripts/tests/test_expand_high_priority_doc_discovery.py -v
+
+      - name: Expand API documentation discovery across reachable providers
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/high-priority-expanded-research"
+          python3 scripts/expand-high-priority-doc-discovery.py \
+            --queue "$RUNNER_TEMP/high-priority-queue/queue.json" \
+            --research-dir "$RUNNER_TEMP/high-priority-research" \
+            --output "$RUNNER_TEMP/high-priority-expanded-research/research-000-expanded.json" \
+            --expected "$EXPECTED_LEADS" \
+            --workers 20 \
+            --timeout 4
+          jq 'del(.records)' "$RUNNER_TEMP/high-priority-expanded-research/research-000-expanded.json"
 
       - name: Build report-only candidate manifest
         run: |
           set -euo pipefail
           python3 scripts/prepare-high-priority-verification.py \
             --queue "$RUNNER_TEMP/high-priority-queue/queue.json" \
-            --research-dir "$RUNNER_TEMP/high-priority-research" \
+            --research-dir "$RUNNER_TEMP/high-priority-expanded-research" \
             --expected "$EXPECTED_LEADS" \
             --manifest "$RUNNER_TEMP/high-priority-candidates.json" \
             --report "$RUNNER_TEMP/high-priority-candidate-report.json"
@@ -131,5 +147,6 @@ jobs:
             ${{ runner.temp }}/high-priority-candidates.json
             ${{ runner.temp }}/high-priority-candidate-report.json
             ${{ runner.temp }}/high-priority-live-validation.json
+            ${{ runner.temp }}/high-priority-expanded-research/research-000-expanded.json
           if-no-files-found: warn
           retention-days: 90
