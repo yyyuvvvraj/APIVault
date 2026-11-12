@@ -61,6 +61,14 @@ class CandidatePreparationTests(unittest.TestCase):
         self.assertEqual(api["authMethods"][0]["method"], "UNKNOWN")
         self.assertEqual(api["categories"], ["developer-tools"])
 
+    def test_accepts_same_provider_subdomain_documentation(self):
+        item = record()
+        item["research"]["followUpPages"][0]["url"] = "https://docs.example.test/api-reference"
+        item["research"]["followUpPages"][0]["resolvedUrl"] = "https://docs.example.test/api-reference"
+        api, reason = candidate_for(lead(), item)
+        self.assertEqual(reason, "")
+        self.assertEqual(api["documentationUrl"], "https://docs.example.test/api-reference")
+
     def test_rejects_failed_homepage(self):
         item = record()
         item["research"]["httpStatus"] = 503
