@@ -279,7 +279,7 @@ export async function POST(request: Request) {
         held.push({ slug: result.slug, reason: "known pricing claims lack official pricing evidence" });
         continue;
       }
-      if (api.authMethods.some((method) => method.method !== "UNKNOWN") && !api.sources.some((source) =>
+      if (api.authMethods.some((method) => method.method !== "UNKNOWN" && method.method !== "NONE") && !api.sources.some((source) =>
         source.sourceKind === "AUTHENTICATION" && source.isOfficial &&
         sameProviderDomain(providerHost, new URL(source.url).hostname))) {
         held.push({ slug: result.slug, reason: "known authentication claims lack official authentication evidence" });
