@@ -230,44 +230,45 @@ func TestImportResumablePostgresRecoveryAndConcurrency(t *testing.T) {
 		t.Fatalf("expected recovered run to complete, got %q", recoveredRunStatus)
 	}
 
-	// Re-importing a corrected official homepage must remove the stale
-	// OFFICIAL_HOMEPAGE source, otherwise a dead former homepage blocks
-	// automated verification even after the API record is corrected.
+	// Re-importing corrected evidence must replace the entire source set,
+	// not just the homepage. Otherwise stale documentation or terms URLs can
+	// keep a record in REVIEW_REQUIRED after its manifest has been corrected.
 	replacementAPI := file.APIs[0]
 	oldHomepage := replacementAPI.HomepageURL
+	oldDocumentation := replacementAPI.Sources[1].URL
 	replacementAPI.HomepageURL = "https://replacement.example.org/" + firstSlug
+	newDocumentation := "https://replacement.example.org/docs/" + firstSlug
 	replacementAPI.Sources = []Source{
-		{
-			Kind:       "OFFICIAL_HOMEPAGE",
-			URL:        oldHomepage,
-			Title:      "Stale official API homepage",
-			IsOfficial: true,
-		},
 		{
 			Kind:       "OFFICIAL_HOMEPAGE",
 			URL:        replacementAPI.HomepageURL,
 			Title:      "Replacement official API homepage",
 			IsOfficial: true,
 		},
+		{
+			Kind:       "DOCUMENTATION",
+			URL:        newDocumentation,
+			Title:      "Replacement official API documentation",
+			IsOfficial: true,
+		},
 	}
 	replacementFile := File{Dataset: file.Dataset, APIs: []API{replacementAPI}}
 	replacementOptions := ImportOptions{RunID: "it-source-replace-" + suffix, BatchSize: 1}
 	if _, err := ImportResumable(ctx, pool, replacementFile, replacementOptions); err != nil {
-		t.Fatalf("replace stale official homepage evidence: %v", err)
+		t.Fatalf("replace stale API source evidence: %v", err)
 	}
-	var staleHomepageCount int
+	var staleSourceCount int
 	if err := pool.QueryRow(ctx, `
 		SELECT COUNT(*)
 		FROM "ApiSource" s
 		JOIN "Api" a ON a."id" = s."apiId"
 		WHERE a."slug" = $1
-		  AND s."sourceKind" = 'OFFICIAL_HOMEPAGE'::"SourceKind"
-		  AND s."url" <> $2
-	`, firstSlug, replacementAPI.HomepageURL).Scan(&staleHomepageCount); err != nil {
-		t.Fatalf("count stale official homepage evidence: %v", err)
+		  AND s."url" NOT IN ($2, $3)
+	`, firstSlug, replacementAPI.HomepageURL, newDocumentation).Scan(&staleSourceCount); err != nil {
+		t.Fatalf("count stale API source evidence: %v", err)
 	}
-	if staleHomepageCount != 0 {
-		t.Fatalf("expected stale official homepage evidence to be removed, got %d row(s); old URL was %s", staleHomepageCount, oldHomepage)
+	if staleSourceCount != 0 {
+		t.Fatalf("expected stale source evidence to be removed, got %d row(s); old homepage=%s old docs=%s", staleSourceCount, oldHomepage, oldDocumentation)
 	}
 
 }
@@ -280,11 +281,19 @@ func integrationAPI(slug, name, providerSlug, categorySlug, suffix string) API {
 		Provider:    Provider{Slug: providerSlug, Name: "Importer Integration Provider"},
 		HomepageURL: "https://example.org/" + slug,
 		Categories:  []string{categorySlug},
-		Sources: []Source{{
-			Kind:       "OFFICIAL_HOMEPAGE",
-			URL:        fmt.Sprintf("https://example.org/source/%s/%s", suffix, slug),
-			Title:      "Integration fixture source",
-			IsOfficial: true,
-		}},
+		Sources: []Source{
+			{
+				Kind:       "OFFICIAL_HOMEPAGE",
+				URL:        fmt.Sprintf("https://example.org/source/%s/%s", suffix, slug),
+				Title:      "Integration fixture source",
+				IsOfficial: true,
+			},
+			{
+				Kind:       "DOCUMENTATION",
+				URL:        fmt.Sprintf("https://example.org/docs/%s/%s", suffix, slug),
+				Title:      "Integration fixture documentation",
+				IsOfficial: true,
+			},
+		},
 	}
 }
