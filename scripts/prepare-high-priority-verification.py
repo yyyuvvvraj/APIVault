@@ -44,6 +44,12 @@ def safe_https(value: object):
     return parsed
 
 
+def same_provider_domain(left: str, right: str) -> bool:
+    left = left.lower().rstrip(".")
+    right = right.lower().rstrip(".")
+    return left == right or left.endswith("." + right) or right.endswith("." + left)
+
+
 def slugify(value: str, limit: int = 80) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return (slug or "api")[:limit].strip("-") or "api"
@@ -66,7 +72,7 @@ def candidate_for(lead: dict, record: dict) -> tuple[dict | None, str]:
         return None, "missing_name_description_or_https_homepage"
     if research.get("fetchStatus") != "FETCHED" or not isinstance(research.get("httpStatus"), int) or not 200 <= research["httpStatus"] < 300:
         return None, "homepage_fetch_not_successful"
-    if not resolved_home or resolved_home.hostname.lower() != homepage.hostname.lower():
+    if not resolved_home or not same_provider_domain(resolved_home.hostname, homepage.hostname):
         return None, "homepage_redirected_or_resolved_off_host"
     if lead.get("priority") != "HIGH" or record.get("priority") != "HIGH":
         return None, "not_high_priority"
@@ -84,7 +90,7 @@ def candidate_for(lead: dict, record: dict) -> tuple[dict | None, str]:
             continue
         if not page_url or not final_url:
             continue
-        if page_url.hostname.lower() != homepage.hostname.lower() or final_url.hostname.lower() != homepage.hostname.lower():
+        if not same_provider_domain(page_url.hostname, homepage.hostname) or not same_provider_domain(final_url.hostname, homepage.hostname):
             continue
         if page_url.geturl() == homepage.geturl():
             continue
