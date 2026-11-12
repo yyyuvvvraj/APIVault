@@ -123,10 +123,10 @@
       "provider": {
         "slug": "european-bioinformatics-institute",
         "name": "EMBL-EBI",
-        "homepageUrl": "https://www.ebi.ac.uk/"
+        "homepageUrl": "https://www.ebi.ac.uk/services/"
       },
-      "homepageUrl": "https://www.ebi.ac.uk/",
-      "documentationUrl": "https://dev.europepmc.org/RestfulWebService",
+      "homepageUrl": "https://www.ebi.ac.uk/services/",
+      "documentationUrl": "https://www.ebi.ac.uk/training/online/courses/embl-ebi-programmatically/europe-pmc-programmatically/",
       "baseUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest",
       "pricingModel": "UNKNOWN",
       "pricingSummary": "No pricing or blanket commercial-use claim is made in this candidate; review current EMBL-EBI service policies and the rights attached to individual records and full text.",
@@ -144,31 +144,24 @@
       "sources": [
         {
           "kind": "OFFICIAL_HOMEPAGE",
-          "url": "https://www.ebi.ac.uk/",
-          "title": "EMBL-EBI official homepage",
+          "url": "https://www.ebi.ac.uk/services/",
+          "title": "EMBL-EBI services directory",
           "isOfficial": true,
-          "notes": "Official service operator homepage."
+          "notes": "Official EMBL-EBI directory of data resources and analysis tools."
         },
         {
           "kind": "DOCUMENTATION",
-          "url": "https://dev.europepmc.org/RestfulWebService",
-          "title": "Europe PMC RESTful Web Service",
+          "url": "https://www.ebi.ac.uk/training/online/courses/embl-ebi-programmatically/europe-pmc-programmatically/",
+          "title": "Europe PMC programmatic access tutorial",
           "isOfficial": true,
-          "notes": "Documents search, result types, request methods, and service access."
-        },
-        {
-          "kind": "OTHER",
-          "url": "https://europepmc.org/",
-          "title": "Europe PMC portal",
-          "isOfficial": true,
-          "notes": "Official literature discovery portal and service overview."
+          "notes": "Official EMBL-EBI tutorial introducing the Europe PMC Articles RESTful API and programmatic access."
         },
         {
           "kind": "TERMS",
-          "url": "https://europepmc.org/PrivacyNotice",
-          "title": "Europe PMC privacy notice",
+          "url": "https://www.ebi.ac.uk/about/terms-of-use/",
+          "title": "EMBL-EBI Terms of Use",
           "isOfficial": true,
-          "notes": "Privacy notice referenced by the public REST service documentation; review it alongside source-specific content rights."
+          "notes": "Official operator terms; underlying contributed records may retain their own data-owner rights and licensing."
         }
       ]
     },
