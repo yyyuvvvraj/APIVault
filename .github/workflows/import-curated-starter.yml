@@ -7,6 +7,8 @@ on:
       - ".github/workflows/import-curated-starter.yml"
       - "services/catalogue-importer/data/curated-starter-*.json"
       - "services/catalogue-importer/internal/catalogue/*.go"
+      - ".github/workflows/automated-catalogue-verification.yml"
+      - "src/app/api/internal/auto-verify/route.ts"
   workflow_dispatch:
     inputs:
       manifest_path:
