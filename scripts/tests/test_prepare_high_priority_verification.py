@@ -4,8 +4,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from prepare_high_priority_verification import build_manifest, candidate_for
+import importlib.util
+
+SCRIPT_PATH = Path(__file__).resolve().parents[1] / "prepare-high-priority-verification.py"
+SPEC = importlib.util.spec_from_file_location("prepare_high_priority_verification", SCRIPT_PATH)
+MODULE = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = MODULE
+SPEC.loader.exec_module(MODULE)
+build_manifest = MODULE.build_manifest
+candidate_for = MODULE.candidate_for
 
 
 def lead():
