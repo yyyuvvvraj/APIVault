@@ -135,6 +135,24 @@ func importAPI(ctx context.Context, tx pgx.Tx, api API, now time.Time) error {
 		}
 	}
 
+	hasCanonicalHomepageEvidence := false
+	for _, source := range api.Sources {
+		if source.Kind == "OFFICIAL_HOMEPAGE" && source.IsOfficial && source.URL == api.HomepageURL {
+			hasCanonicalHomepageEvidence = true
+			break
+		}
+	}
+	if hasCanonicalHomepageEvidence {
+		if _, err := tx.Exec(ctx, `
+			DELETE FROM "ApiSource"
+			WHERE "apiId" = $1::uuid
+			  AND "sourceKind" = 'OFFICIAL_HOMEPAGE'::"SourceKind"
+			  AND "url" <> $2
+		`, apiID, api.HomepageURL); err != nil {
+			return fmt.Errorf("replace stale official homepage evidence: %w", err)
+		}
+	}
+
 	for _, source := range api.Sources {
 		sourceUUID, err := newUUID()
 		if err != nil {
