@@ -37,6 +37,7 @@ jobs:
     steps:
       - name: Require database connection
         run: |
+          set -euo pipefail
           if [[ -z "$DATABASE_URL" ]]; then
             echo "::error::Repository secret DATABASE_URL is required to import the discovery queue into the APIVault database."
             exit 1
@@ -45,17 +46,49 @@ jobs:
             echo "::error::A successful full-catalogue evidence workflow run is required."
             exit 1
           fi
+          if ! [[ "$EXPECTED_DISCOVERY_LEADS" =~ ^[1-9][0-9]*$ ]] || (( EXPECTED_DISCOVERY_LEADS > 50000 )); then
+            echo "::error::expected_leads must be between 1 and 50000."
+            exit 1
+          fi
 
-      - name: Download the complete disposition artifact
+      - name: Download the immutable discovery queue
         uses: actions/download-artifact@v7
         with:
-          name: apivault-full-catalogue-review-${{ github.event.workflow_run.id || inputs.source_run_id }}
+          name: apivault-discovery-queue-${{ github.event.workflow_run.id || inputs.source_run_id }}
           run-id: ${{ github.event.workflow_run.id || inputs.source_run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/catalogue-artifact
 
+      - name: Download all research batches
+        uses: actions/download-artifact@v7
+        with:
+          pattern: apivault-research-batch-${{ github.event.workflow_run.id || inputs.source_run_id }}-*
+          merge-multiple: true
+          run-id: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/research
+
       - name: Check out application
         uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Validate research-to-disposition preparation
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s scripts/tests -p "test_prepare_discovery_disposition.py" -v
+
+      - name: Prepare complete review-only disposition
+        run: |
+          set -euo pipefail
+          python3 scripts/prepare-discovery-disposition.py \
+            --queue "$RUNNER_TEMP/catalogue-artifact/queue.json" \
+            --research-dir "$RUNNER_TEMP/research" \
+            --expected "$EXPECTED_DISCOVERY_LEADS" \
+            --output "$RUNNER_TEMP/catalogue-artifact/full-catalogue-disposition.json"
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -70,9 +103,10 @@ jobs:
         run: npm run db:generate
 
       - name: Validate and import all discovery leads
-        run: npx tsx scripts/import-discovery-disposition.ts "${{ runner.temp }}/catalogue-artifact/full-catalogue-disposition.json"
+        run: npx tsx scripts/import-discovery-disposition.ts "$RUNNER_TEMP/catalogue-artifact/full-catalogue-disposition.json"
 
       - name: Report imported catalogue size
         run: |
-          echo "The full disposition artifact was imported into DiscoveryLead."
+          echo "The complete discovery research queue was imported into DiscoveryLead."
           echo "All records remain UNVERIFIED, NOT_PUBLISHED, and require human review."
+          echo "No Api, ApiProvider, or ApiSource records were created or modified."

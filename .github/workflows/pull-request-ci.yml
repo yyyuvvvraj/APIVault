@@ -138,6 +138,10 @@ jobs:
           echo "::error::Verifier health endpoint did not become healthy."
           exit 1
 
+      - name: Test discovery research disposition preparation
+        if: steps.changes.outputs.application == 'true'
+        run: python3 -m unittest discover -s scripts/tests -p "test_prepare_discovery_disposition.py" -v
+
       - name: Start PostgreSQL for application checks
         if: steps.changes.outputs.application == 'true' || steps.changes.outputs.browser == 'true'
         run: |
