@@ -107,6 +107,27 @@ func TestAutoApprovalEligibilityRequiresSameProviderDomainAndEvidence(t *testing
 	}
 }
 
+func TestAutoApprovalEligibilityAllowsExplicitNoAuthWithOfficialDocs(t *testing.T) {
+	api := API{
+		HomepageURL:      "https://api.example.com/",
+		DocumentationURL: "https://api.example.com/docs",
+		Categories:       []string{"developer-tools"},
+		AuthMethods:      []AuthMethod{{Method: "NONE"}},
+		PricingModel:     "UNKNOWN",
+		Sources: []Source{
+			{Kind: "OFFICIAL_HOMEPAGE", URL: "https://api.example.com/", IsOfficial: true},
+			{Kind: "DOCUMENTATION", URL: "https://api.example.com/docs", IsOfficial: true},
+		},
+	}
+	result := APIValidation{Verdict: "VALIDATED_CANDIDATE", Checks: []URLCheck{
+		{URL: api.HomepageURL, FinalURL: api.HomepageURL, Reachable: true},
+		{URL: api.DocumentationURL, FinalURL: api.DocumentationURL, Reachable: true},
+	}}
+	if reasons := autoApprovalEligibility(api, result); len(reasons) != 0 {
+		t.Fatalf("explicit no-auth API with live official docs should be eligible: %v", reasons)
+	}
+}
+
 func TestAutoApprovalEligibilityRequiresClaimEvidence(t *testing.T) {
 	api := API{
 		HomepageURL:      "https://example.com/",
