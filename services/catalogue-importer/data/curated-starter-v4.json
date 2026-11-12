@@ -18,7 +18,7 @@
         "name": "World Bank",
         "homepageUrl": "https://www.worldbank.org/"
       },
-      "homepageUrl": "https://www.worldbank.org/",
+      "homepageUrl": "https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures",
       "documentationUrl": "https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation",
       "baseUrl": "https://api.worldbank.org/v2",
       "pricingModel": "UNKNOWN",
@@ -50,7 +50,7 @@
           "notes": "Documents API v2, datasets, access model, and request structure."
         },
         {
-          "kind": "OTHER",
+          "kind": "OFFICIAL_HOMEPAGE",
           "url": "https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures",
           "title": "World Bank API basic call structures",
           "isOfficial": true,
@@ -68,11 +68,11 @@
         "name": "U.S. Food and Drug Administration",
         "homepageUrl": "https://www.fda.gov/"
       },
-      "homepageUrl": "https://www.fda.gov/",
+      "homepageUrl": "https://open.fda.gov/",
       "documentationUrl": "https://open.fda.gov/apis/",
       "baseUrl": "https://api.fda.gov",
-      "pricingModel": "FREE",
-      "pricingSummary": "The API key is available free of charge; documented access limits apply and users should review current FDA terms and disclaimers.",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "A free API key is documented; no separate API access price is asserted here. Review current FDA terms, quotas, and data-use disclaimers.",
       "verificationStatus": "PENDING_REVIEW",
       "categories": [
         "science-education",
@@ -87,7 +87,7 @@
       "sources": [
         {
           "kind": "OFFICIAL_HOMEPAGE",
-          "url": "https://www.fda.gov/",
+          "url": "https://open.fda.gov/",
           "title": "U.S. Food and Drug Administration",
           "isOfficial": true,
           "notes": "Official federal provider homepage."
@@ -182,7 +182,7 @@
         "name": "Google",
         "homepageUrl": "https://www.google.com/"
       },
-      "homepageUrl": "https://www.google.com/",
+      "homepageUrl": "https://developers.google.com/books",
       "documentationUrl": "https://developers.google.com/books/docs/v1/using",
       "baseUrl": "https://www.googleapis.com/books/v1",
       "pricingModel": "UNKNOWN",
@@ -205,7 +205,7 @@
       "sources": [
         {
           "kind": "OFFICIAL_HOMEPAGE",
-          "url": "https://books.google.com/",
+          "url": "https://developers.google.com/books",
           "title": "Google Books",
           "isOfficial": true,
           "notes": "Official book discovery service."
@@ -243,7 +243,7 @@
         "name": "YouTube",
         "homepageUrl": "https://www.youtube.com/"
       },
-      "homepageUrl": "https://www.youtube.com/",
+      "homepageUrl": "https://developers.google.com/youtube",
       "documentationUrl": "https://developers.google.com/youtube/v3/docs",
       "baseUrl": "https://www.googleapis.com/youtube/v3",
       "pricingModel": "UNKNOWN",
@@ -265,7 +265,7 @@
       "sources": [
         {
           "kind": "OFFICIAL_HOMEPAGE",
-          "url": "https://www.youtube.com/",
+          "url": "https://developers.google.com/youtube",
           "title": "YouTube",
           "isOfficial": true,
           "notes": "Official video platform homepage."
@@ -306,8 +306,8 @@
       "homepageUrl": "https://www.census.gov/",
       "documentationUrl": "https://www.census.gov/data/developers.html",
       "baseUrl": "https://api.census.gov/data",
-      "pricingModel": "FREE",
-      "pricingSummary": "The Census Bureau offers API keys free of charge; query and dataset-specific constraints apply.",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "API keys are documented as free to register; no separate API access price is asserted here. Dataset-specific limits and terms apply.",
       "verificationStatus": "PENDING_REVIEW",
       "categories": [
         "data-analytics",
