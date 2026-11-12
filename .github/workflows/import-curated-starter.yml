@@ -1,0 +1,77 @@
+name: Import curated starter catalogue
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/import-curated-starter.yml"
+  workflow_dispatch:
+    inputs:
+      manifest_path:
+        description: Curated manifest to import
+        required: true
+        default: data/curated-starter-v4.json
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apivault-curated-catalogue-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: Dry-run and import curated APIs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: services/catalogue-importer
+    env:
+      DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      MANIFEST_PATH: ${{ inputs.manifest_path || 'data/curated-starter-v4.json' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Test importer
+        run: go test ./...
+
+      - name: Validate selected manifest path
+        run: |
+          set -euo pipefail
+          case "$MANIFEST_PATH" in
+            data/curated-starter-*.json) ;;
+            *) echo "::error::Only curated starter manifests may be imported by this workflow."; exit 1 ;;
+          esac
+          test -s "$MANIFEST_PATH"
+          if [[ -z "$DATABASE_URL_UNPOOLED" && -z "$DATABASE_URL" ]]; then
+            echo "::error::Set DATABASE_URL or DATABASE_URL_UNPOOLED repository secret."
+            exit 1
+          fi
+
+      - name: Dry-run manifest validation
+        run: go run ./cmd/catalogue-importer -input "$MANIFEST_PATH"
+
+      - name: Import curated APIs as pending review
+        run: |
+          set -euo pipefail
+          go run ./cmd/catalogue-importer \
+            -input "$MANIFEST_PATH" \
+            -apply \
+            -batch-size 100 \
+            -run-id "curated-starter-v4-bootstrap-2026-11-12"
+
+      - name: Report next verification stage
+        run: |
+          echo "Curated API records are imported as PENDING_REVIEW/UNVERIFIED."
+          echo "The automated catalogue verification workflow runs after this workflow succeeds."
+          echo "Existing VERIFIED records are protected from candidate-import downgrades."

@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "17 4 * * *"
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Import curated starter catalogue"]
+    branches: [dev]
+    types: [completed]
 
 permissions:
   contents: read
@@ -15,6 +19,7 @@ concurrency:
 jobs:
   verify:
     name: Verify and publish eligible APIs
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
