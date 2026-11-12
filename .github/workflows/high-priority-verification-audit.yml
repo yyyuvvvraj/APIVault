@@ -29,7 +29,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: apivault-high-priority-verification-audit-\${{ github.event.workflow_run.id || inputs.source_run_id || '43262494643' }}
+  group: apivault-high-priority-verification-audit-${{ github.event.workflow_run.id || inputs.source_run_id || '43262494643' }}
   cancel-in-progress: false
 
 jobs:
@@ -39,8 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      SOURCE_RUN_ID: \${{ github.event.workflow_run.id || inputs.source_run_id || '43262494643' }}
-      EXPECTED_LEADS: \${{ inputs.expected_leads || '1161' }}
+      SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id || '43262494643' }}
+      EXPECTED_LEADS: ${{ inputs.expected_leads || '1161' }}
     steps:
       - name: Validate run inputs
         shell: bash
@@ -52,19 +52,19 @@ jobs:
       - name: Download immutable HIGH-priority queue
         uses: actions/download-artifact@v7
         with:
-          name: apivault-high-priority-queue-\${{ env.SOURCE_RUN_ID }}
-          run-id: \${{ env.SOURCE_RUN_ID }}
-          github-token: \${{ github.token }}
-          path: \${{ runner.temp }}/high-priority-queue
+          name: apivault-high-priority-queue-${{ env.SOURCE_RUN_ID }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/high-priority-queue
 
       - name: Download every evidence batch
         uses: actions/download-artifact@v7
         with:
-          pattern: apivault-high-priority-evidence-\${{ env.SOURCE_RUN_ID }}-*
+          pattern: apivault-high-priority-evidence-${{ env.SOURCE_RUN_ID }}-*
           merge-multiple: true
-          run-id: \${{ env.SOURCE_RUN_ID }}
-          github-token: \${{ github.token }}
-          path: \${{ runner.temp }}/high-priority-research
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/high-priority-research
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -121,10 +121,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: apivault-high-priority-verification-audit-\${{ github.run_id }}
+          name: apivault-high-priority-verification-audit-${{ github.run_id }}
           path: |
-            \${{ runner.temp }}/high-priority-candidates.json
-            \${{ runner.temp }}/high-priority-candidate-report.json
-            \${{ runner.temp }}/high-priority-live-validation.json
+            ${{ runner.temp }}/high-priority-candidates.json
+            ${{ runner.temp }}/high-priority-candidate-report.json
+            ${{ runner.temp }}/high-priority-live-validation.json
           if-no-files-found: warn
           retention-days: 90
