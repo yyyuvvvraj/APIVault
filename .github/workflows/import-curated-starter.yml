@@ -5,6 +5,7 @@ on:
     branches: [dev]
     paths:
       - ".github/workflows/import-curated-starter.yml"
+      - "services/catalogue-importer/data/curated-starter-*.json"
   workflow_dispatch:
     inputs:
       manifest_path:
