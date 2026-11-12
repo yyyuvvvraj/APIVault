@@ -154,6 +154,9 @@ func importAPI(ctx context.Context, tx pgx.Tx, api API, now time.Time) error {
 	}
 
 	for _, source := range api.Sources {
+		if hasCanonicalHomepageEvidence && source.Kind == "OFFICIAL_HOMEPAGE" && source.URL != api.HomepageURL {
+			continue
+		}
 		sourceUUID, err := newUUID()
 		if err != nil {
 			return err
