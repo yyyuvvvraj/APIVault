@@ -54,7 +54,7 @@ def evaluate(record: dict, original_url: str, canonical_url: str) -> tuple[str, 
     )
 
     checks = [
-        (bool(record.get("name", "").strip() and original and canonical),
+        (bool(str(record.get("name") or "").strip() and original and canonical),
          "Name and source URLs must be valid HTTP(S) URLs without embedded credentials."),
         (canonical is not None and canonical.scheme == "https",
          "Canonical provider URL must use HTTPS."),
