@@ -1,0 +1,130 @@
+name: High-priority verification evidence audit
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/high-priority-verification-audit.yml"
+      - "scripts/prepare-high-priority-verification.py"
+      - "scripts/tests/test_prepare_high_priority_verification.py"
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Completed High-priority evidence follow-up run ID
+        required: true
+        default: "43262494643"
+        type: string
+      expected_leads:
+        description: Expected HIGH-priority lead count
+        required: true
+        default: "1161"
+        type: string
+  workflow_run:
+    workflows: ["High-priority evidence follow-up"]
+    branches: [dev]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: apivault-high-priority-verification-audit-\${{ github.event.workflow_run.id || inputs.source_run_id || '43262494643' }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Prepare and live-check high-priority candidates
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SOURCE_RUN_ID: \${{ github.event.workflow_run.id || inputs.source_run_id || '43262494643' }}
+      EXPECTED_LEADS: \${{ inputs.expected_leads || '1161' }}
+    steps:
+      - name: Validate run inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[1-9][0-9]*$ ]] || { echo "::error::source_run_id must be numeric"; exit 1; }
+          [[ "$EXPECTED_LEADS" =~ ^[1-9][0-9]*$ ]] || { echo "::error::expected_leads must be positive"; exit 1; }
+
+      - name: Download immutable HIGH-priority queue
+        uses: actions/download-artifact@v7
+        with:
+          name: apivault-high-priority-queue-\${{ env.SOURCE_RUN_ID }}
+          run-id: \${{ env.SOURCE_RUN_ID }}
+          github-token: \${{ github.token }}
+          path: \${{ runner.temp }}/high-priority-queue
+
+      - name: Download every evidence batch
+        uses: actions/download-artifact@v7
+        with:
+          pattern: apivault-high-priority-evidence-\${{ env.SOURCE_RUN_ID }}-*
+          merge-multiple: true
+          run-id: \${{ env.SOURCE_RUN_ID }}
+          github-token: \${{ github.token }}
+          path: \${{ runner.temp }}/high-priority-research
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Test evidence selection and safety gates
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s scripts/tests -p "test_prepare_high_priority_verification.py" -v
+
+      - name: Build report-only candidate manifest
+        run: |
+          set -euo pipefail
+          python3 scripts/prepare-high-priority-verification.py \
+            --queue "$RUNNER_TEMP/high-priority-queue/queue.json" \
+            --research-dir "$RUNNER_TEMP/high-priority-research" \
+            --expected "$EXPECTED_LEADS" \
+            --manifest "$RUNNER_TEMP/high-priority-candidates.json" \
+            --report "$RUNNER_TEMP/high-priority-candidate-report.json"
+          jq '{sourceTotal, candidateCount, heldCount, heldReasons, publicationPolicy}' \
+            "$RUNNER_TEMP/high-priority-candidate-report.json"
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Run live HTTPS and duplicate checks without publication
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          go test ./...
+          go run ./cmd/catalogue-validate \
+            -input "$RUNNER_TEMP/high-priority-candidates.json" \
+            -live=true \
+            -workers=12 \
+            -timeout=8s \
+            -output "$RUNNER_TEMP/high-priority-live-validation.json"
+          jq '{total, validatedCandidates, autoApprovable, reviewRequired, rejected}' \
+            "$RUNNER_TEMP/high-priority-live-validation.json"
+
+      - name: Enforce non-publishing review gate
+        run: |
+          set -euo pipefail
+          jq -e 'all(.apis[]; .verificationStatus == "PENDING_REVIEW" and ([.sources[] | select(.isOfficial == true)] | length == 0))' \
+            "$RUNNER_TEMP/high-priority-candidates.json" >/dev/null
+          jq -e 'all(.results[]; .autoApprove == false)' \
+            "$RUNNER_TEMP/high-priority-live-validation.json" >/dev/null
+          echo "Safety gate passed: no candidate was imported, verified, or published."
+
+      - name: Upload complete evidence and validation reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: apivault-high-priority-verification-audit-\${{ github.run_id }}
+          path: |
+            \${{ runner.temp }}/high-priority-candidates.json
+            \${{ runner.temp }}/high-priority-candidate-report.json
+            \${{ runner.temp }}/high-priority-live-validation.json
+          if-no-files-found: warn
+          retention-days: 90
