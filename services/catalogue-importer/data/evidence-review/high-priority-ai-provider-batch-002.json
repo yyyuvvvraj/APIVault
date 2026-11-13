@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "1",
+  "reviewedAt": "2026-11-13T05:30:00Z",
+  "reviewer": "APIVault research batch 002 (assistant-prepared; maintainer review required)",
+  "submissions": [
+    {
+      "reviewId": "50abd52c306941cacc98fcf5",
+      "providerName": "Cohere",
+      "providerDomains": [
+        "cohere.com"
+      ],
+      "officialHomepageUrl": "https://cohere.com/",
+      "documentationUrl": "https://docs.cohere.com/reference/about",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "API_KEY",
+      "pricing": "FREEMIUM",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://docs.cohere.com/reference/about",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://cohere.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://docs.cohere.com/reference/about",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://docs.cohere.com/docs/create-client",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "PRICING",
+          "url": "https://docs.cohere.com/v2/docs/rate-limits",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "35bb060f891f24d0863c8603",
+      "providerName": "DeepAI",
+      "providerDomains": [
+        "deepai.org"
+      ],
+      "officialHomepageUrl": "https://deepai.org/",
+      "documentationUrl": "https://api.deepai.org/docs",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "API_KEY",
+      "pricing": "PAID",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://api.deepai.org/docs",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://deepai.org/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://api.deepai.org/docs",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://api.deepai.org/apis",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "PRICING",
+          "url": "https://deepai.org/pricing",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "b868d227945f8911fc15df82",
+      "providerName": "Replicate",
+      "providerDomains": [
+        "replicate.com"
+      ],
+      "officialHomepageUrl": "https://replicate.com/",
+      "documentationUrl": "https://replicate.com/docs/reference/http",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "OTHER",
+      "pricing": "PAID",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://replicate.com/docs/reference/http",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://replicate.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://replicate.com/docs/reference/http",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://replicate.com/docs/topics/security/api-tokens",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        },
+        {
+          "claim": "PRICING",
+          "url": "https://replicate.com/pricing",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:30:00Z"
+        }
+      ]
+    }
+  ]
+}

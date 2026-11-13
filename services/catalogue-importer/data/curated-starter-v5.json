@@ -1,0 +1,186 @@
+{
+  "dataset": {
+    "name": "APIVault high-priority AI API curation batch 002",
+    "sourceUrl": "https://github.com/yyyuvvvraj/APIVault/blob/dev/services/catalogue-importer/data/curated-starter-v5.json",
+    "version": "v5",
+    "retrievedAt": "2026-11-13T05:30:00Z",
+    "license": "NOASSERTION",
+    "attribution": "APIVault-curated API metadata based on provider-controlled official documentation. API usage rights, model licenses, service terms, and pricing remain governed by each provider."
+  },
+  "apis": [
+    {
+      "slug": "cohere-9cabf15b",
+      "name": "Cohere",
+      "summary": "Access Cohere-hosted language models for chat, embeddings, reranking, and related natural-language processing tasks.",
+      "description": "Cohere provides hosted APIs for its Command, Embed, Rerank, and related models. The v2 API and SDK documentation describe API-key authentication; evaluation keys are free with usage limits, while production keys are paid and have different limits. Model-specific capabilities and pricing should be checked in the linked provider documentation.",
+      "provider": {
+        "slug": "cohere",
+        "name": "Cohere",
+        "homepageUrl": "https://cohere.com/"
+      },
+      "homepageUrl": "https://cohere.com/",
+      "documentationUrl": "https://docs.cohere.com/reference/about",
+      "baseUrl": "https://api.cohere.com/v2",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Evaluation keys are free with usage limits; production keys are paid. Model pricing and production limits vary and should be checked against current Cohere pricing documentation.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "ai-machine-learning"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "The Cohere client accepts an API key; official docs distinguish evaluation/trial keys from production keys."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://cohere.com/",
+          "title": "Cohere official homepage",
+          "isOfficial": true,
+          "notes": "Provider homepage; identifies Cohere's enterprise AI platform and models."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://docs.cohere.com/reference/about",
+          "title": "Working with Cohere's API and SDK",
+          "isOfficial": true,
+          "notes": "Official v2 API overview describing Cohere models and API usage."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://docs.cohere.com/docs/create-client",
+          "title": "Creating a Cohere API client",
+          "isOfficial": true,
+          "notes": "Documents API-key initialization for the Cohere v2 client."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://docs.cohere.com/v2/docs/rate-limits",
+          "title": "Cohere API key types and rate limits",
+          "isOfficial": true,
+          "notes": "Distinguishes free evaluation keys from paid production keys and documents plan-specific limits."
+        }
+      ]
+    },
+    {
+      "slug": "deepai-2cf798f8",
+      "name": "DeepAI",
+      "summary": "Use DeepAI REST APIs for image generation, image editing, upscaling, background removal, and related AI tools.",
+      "description": "DeepAI exposes REST endpoints for image generation, editing, super-resolution, background removal, and video generation. API requests use an API key in the api-key header. The provider states that API access is included with DeepAI Pro and usage beyond included allowances can draw from a prepaid wallet.",
+      "provider": {
+        "slug": "deepai",
+        "name": "DeepAI",
+        "homepageUrl": "https://deepai.org/"
+      },
+      "homepageUrl": "https://deepai.org/",
+      "documentationUrl": "https://api.deepai.org/docs",
+      "baseUrl": "https://api.deepai.org/api",
+      "pricingModel": "PAID",
+      "pricingSummary": "API access is included with DeepAI Pro; usage beyond plan allowances is charged against a prepaid wallet. Confirm current subscription and overage rates on the provider pricing page.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "ai-machine-learning"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Requests pass the account API key in the api-key HTTP header; the provider states API access requires an active DeepAI Pro subscription."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://deepai.org/",
+          "title": "DeepAI official homepage",
+          "isOfficial": true,
+          "notes": "Provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://api.deepai.org/docs",
+          "title": "DeepAI API documentation",
+          "isOfficial": true,
+          "notes": "Official API reference documenting REST endpoints, API-key header authentication, and request formats."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://api.deepai.org/apis",
+          "title": "DeepAI for Developers",
+          "isOfficial": true,
+          "notes": "Provider developer page shows the api-key header and explains API access requirements."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://deepai.org/pricing",
+          "title": "DeepAI Pro pricing",
+          "isOfficial": true,
+          "notes": "Provider pricing page documents the subscription, monthly allowances, and prepaid-wallet overages."
+        }
+      ]
+    },
+    {
+      "slug": "replicate-8db7ceed",
+      "name": "Replicate",
+      "summary": "Run hosted machine-learning models through a REST API for predictions, deployments, model management, and training.",
+      "description": "Replicate provides an HTTP API for running public and private machine-learning models, creating predictions, managing deployments, and training models. Requests use a Replicate API token in the Authorization header with the Bearer scheme. Pricing varies by model and compute hardware.",
+      "provider": {
+        "slug": "replicate",
+        "name": "Replicate",
+        "homepageUrl": "https://replicate.com/"
+      },
+      "homepageUrl": "https://replicate.com/",
+      "documentationUrl": "https://replicate.com/docs/reference/http",
+      "baseUrl": "https://api.replicate.com/v1",
+      "pricingModel": "PAID",
+      "pricingSummary": "Usage is billed according to model and compute hardware; private deployments can also incur charges while instances are idle. Consult current provider pricing before estimating costs.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "ai-machine-learning"
+      ],
+      "authMethods": [
+        {
+          "method": "BEARER_TOKEN",
+          "details": "All HTTP API requests require a Replicate API token in the Authorization header using the Bearer scheme."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://replicate.com/",
+          "title": "Replicate official homepage",
+          "isOfficial": true,
+          "notes": "Provider homepage for hosted model inference and deployment."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://replicate.com/docs/reference/http",
+          "title": "Replicate HTTP API reference",
+          "isOfficial": true,
+          "notes": "Official API reference for predictions, models, deployments, training, and related operations."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://replicate.com/docs/topics/security/api-tokens",
+          "title": "Replicate API tokens",
+          "isOfficial": true,
+          "notes": "Documents API token creation and Bearer authorization header."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://replicate.com/pricing",
+          "title": "Replicate pricing",
+          "isOfficial": true,
+          "notes": "Documents model and hardware-based compute pricing."
+        }
+      ]
+    }
+  ]
+}
