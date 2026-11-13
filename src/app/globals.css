@@ -235,3 +235,46 @@ main:not(.av-home) button[type="submit"]:hover { background: #f6121d; }
   .av-topbar > div { gap: 1rem; }
   .av-topbar nav { gap: 1.15rem; }
 }
+
+
+/* Admin console: same cinematic black/red identity, with operations-first density. */
+.av-admin { background: #000; }
+.av-admin-nav {
+  background: linear-gradient(180deg, rgba(0,0,0,.99), rgba(10,10,10,.96)) !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,.28);
+}
+.av-admin-links { scrollbar-width: none; }
+.av-admin-links::-webkit-scrollbar { display: none; }
+.av-admin [class*="bg-[#10151e]"],
+.av-admin [class*="bg-[#0f141d]"],
+.av-admin [class*="bg-[#11151d]"] {
+  background-color: #141414 !important;
+}
+.av-admin [class*="rounded-2xl"],
+.av-admin [class*="rounded-3xl"],
+.av-admin [class*="rounded-xl"] { border-radius: 6px !important; }
+.av-admin article,
+.av-admin section[aria-label] {
+  border-color: rgba(255,255,255,.10);
+}
+.av-admin main header h1 { letter-spacing: -.055em; }
+.av-admin main header a[class*="rounded-"] {
+  border-radius: 4px !important;
+  box-shadow: none;
+}
+.av-admin main a[class*="text-rose-"] { color: #f0444b !important; }
+.av-admin main a[class*="text-cyan-"] { color: #f0444b !important; }
+.av-admin main [class*="border-cyan-"] { border-color: rgba(229,9,20,.28) !important; }
+.av-admin main [class*="bg-cyan-"] { background-color: rgba(229,9,20,.12) !important; }
+.av-admin main [class*="text-cyan-"] { color: #fca5a5 !important; }
+.av-admin main table thead { background: #1d1d1d !important; }
+.av-admin main table tbody tr { border-color: rgba(255,255,255,.08); }
+.av-admin main table tbody tr:hover { background: rgba(255,255,255,.035); }
+.av-admin-login { isolation: isolate; }
+.av-admin-login section { border-radius: 6px !important; }
+.av-admin-login input { min-height: 56px; }
+@media (max-width: 767px) {
+  .av-admin-nav > div { flex-wrap: wrap; gap: .75rem; padding-top: .75rem; padding-bottom: .5rem; }
+  .av-admin-links { order: 3; flex-basis: 100%; width: 100%; gap: 1.25rem; }
+  .av-admin-links a[aria-current="page"] span { bottom: -8px; }
+}
