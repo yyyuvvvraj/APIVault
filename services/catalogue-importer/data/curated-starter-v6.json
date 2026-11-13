@@ -116,11 +116,18 @@
           "notes": "Official token request and access instructions."
         },
         {
-          "kind": "TERMS",
+          "kind": "PRICING",
           "url": "https://aqicn.org/api/tos/",
-          "title": "Programmatic API terms of service",
+          "title": "World Air Quality Index API terms and access policy",
           "isOfficial": true,
-          "notes": "Free API with required token; data cannot be sold, used in paid applications, or redistributed as cached/archived data. Attribution and permissions are required for some public uses."
+          "notes": "The provider states the programmatic API is free; token access and quotas apply."
+        },
+        {
+          "kind": "TERMS",
+          "url": "https://aqicn.org/data-platform/tos/",
+          "title": "World Air Quality Index data platform terms",
+          "isOfficial": true,
+          "notes": "Data cannot be sold, used in paid applications, or redistributed as cached/archived data; attribution and permissions apply."
         }
       ]
     },
