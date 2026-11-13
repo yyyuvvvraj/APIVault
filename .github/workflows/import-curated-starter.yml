@@ -14,7 +14,7 @@ on:
       manifest_path:
         description: Curated manifest to import
         required: true
-        default: data/curated-starter-v5.json
+        default: data/curated-starter-v6.json
         type: string
 
 permissions:
@@ -33,7 +33,7 @@ jobs:
       run:
         working-directory: services/catalogue-importer
     env:
-      MANIFEST_PATH: ${{ inputs.manifest_path || 'data/curated-starter-v5.json' }}
+      MANIFEST_PATH: ${{ inputs.manifest_path || 'data/curated-starter-v6.json' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

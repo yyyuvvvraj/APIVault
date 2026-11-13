@@ -1,0 +1,310 @@
+{
+  "dataset": {
+    "name": "APIVault high-priority general API curation batch 003",
+    "sourceUrl": "https://github.com/yyyuvvvraj/APIVault/blob/dev/services/catalogue-importer/data/curated-starter-v6.json",
+    "version": "v6",
+    "retrievedAt": "2026-11-13T05:25:00Z",
+    "license": "NOASSERTION",
+    "attribution": "APIVault-curated metadata based on provider-controlled official documentation. Provider-specific data rights and service terms remain applicable."
+  },
+  "apis": [
+    {
+      "slug": "alpha-vantage-002e5d0b",
+      "name": "Alpha Vantage",
+      "summary": "Financial market data APIs for equities, forex, crypto, commodities, and economic indicators.",
+      "description": "Alpha Vantage provides APIs for financial market and economic data, including time series, quotes, forex, digital assets, and fundamental indicators. Requests use an API key; most endpoints have a free daily allowance, while premium endpoints and higher request volumes require a paid plan.",
+      "provider": {
+        "slug": "alpha-vantage",
+        "name": "Alpha Vantage",
+        "homepageUrl": "https://www.alphavantage.co/"
+      },
+      "homepageUrl": "https://www.alphavantage.co/",
+      "documentationUrl": "https://www.alphavantage.co/documentation/",
+      "baseUrl": "https://www.alphavantage.co/query",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Most endpoints have a free daily allowance; premium functions and higher request volumes require paid membership. Commercial use of regulated real-time market data may require separate licensing.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "finance"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Requests include an API key in the apikey query parameter."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.alphavantage.co/",
+          "title": "Alpha Vantage official homepage",
+          "isOfficial": true,
+          "notes": "Official provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://www.alphavantage.co/documentation/",
+          "title": "Alpha Vantage API documentation",
+          "isOfficial": true,
+          "notes": "Official API reference covering endpoints, parameters, and API key usage."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://www.alphavantage.co/support/api-key/",
+          "title": "Alpha Vantage API key and usage limits",
+          "isOfficial": true,
+          "notes": "Official support page explains free request allowance and API key access."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://www.alphavantage.co/premium/",
+          "title": "Alpha Vantage premium membership",
+          "isOfficial": true,
+          "notes": "Official premium plan page for higher-volume and premium endpoint access."
+        }
+      ]
+    },
+    {
+      "slug": "aqicn-dca57b40",
+      "name": "World Air Quality Index API",
+      "summary": "Retrieve real-time air-quality observations and forecasts from monitoring stations around the world.",
+      "description": "The World Air Quality Index project provides programmatic access to station and city-level air-quality observations, pollutant indices, station metadata, and forecasts. API access requires a token. The provider's usage terms prohibit selling the data, using it in paid applications, or redistributing cached or archived data; attribution and additional permission requirements apply to some uses.",
+      "provider": {
+        "slug": "world-air-quality-index-project",
+        "name": "World Air Quality Index Project",
+        "homepageUrl": "https://aqicn.org/"
+      },
+      "homepageUrl": "https://aqicn.org/",
+      "documentationUrl": "https://aqicn.org/api/",
+      "baseUrl": "https://api.waqi.info",
+      "pricingModel": "FREE",
+      "pricingSummary": "The API is provided free of charge with a required token and quotas. Provider terms restrict paid-app use, resale, redistribution, and some for-profit public uses.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "weather-environment"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "A valid API token is required for programmatic API access."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://aqicn.org/",
+          "title": "World Air Quality Index Project homepage",
+          "isOfficial": true,
+          "notes": "Official project homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://aqicn.org/api/",
+          "title": "Air Quality Programmatic APIs",
+          "isOfficial": true,
+          "notes": "Official API overview and programmatic access documentation."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://aqicn.org/data-platform/token/",
+          "title": "API token request",
+          "isOfficial": true,
+          "notes": "Official token request and access instructions."
+        },
+        {
+          "kind": "TERMS",
+          "url": "https://aqicn.org/api/tos/",
+          "title": "Programmatic API terms of service",
+          "isOfficial": true,
+          "notes": "Free API with required token; data cannot be sold, used in paid applications, or redistributed as cached/archived data. Attribution and permissions are required for some public uses."
+        }
+      ]
+    },
+    {
+      "slug": "clickup-46daad90",
+      "name": "ClickUp API",
+      "summary": "Build integrations with ClickUp workspaces, tasks, users, goals, and related productivity resources.",
+      "description": "ClickUp API v2 exposes workspace and task-management resources for integrations and applications. Personal API tokens are used for individual access, while OAuth 2.0 is available for apps connecting other users' workspaces. Rate limits vary by workspace plan and are enforced per token.",
+      "provider": {
+        "slug": "clickup",
+        "name": "ClickUp",
+        "homepageUrl": "https://clickup.com/"
+      },
+      "homepageUrl": "https://clickup.com/",
+      "documentationUrl": "https://developer.clickup.com/docs",
+      "baseUrl": "https://api.clickup.com/api/v2",
+      "pricingModel": "UNKNOWN",
+      "pricingSummary": "API access and rate limits are tied to the ClickUp workspace plan; no standalone API price is asserted here.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "productivity"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Personal API tokens are sent in the Authorization header for individual access."
+        },
+        {
+          "method": "OAUTH2",
+          "details": "OAuth 2.0 authorization-code flow is supported for apps connecting other users' workspaces."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://clickup.com/",
+          "title": "ClickUp official homepage",
+          "isOfficial": true,
+          "notes": "Official productivity platform homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://developer.clickup.com/docs",
+          "title": "ClickUp API documentation",
+          "isOfficial": true,
+          "notes": "Official developer documentation for API v2 and v3."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://developer.clickup.com/docs/authentication",
+          "title": "ClickUp API authentication",
+          "isOfficial": true,
+          "notes": "Documents personal API tokens and OAuth 2.0."
+        },
+        {
+          "kind": "RATE_LIMITS",
+          "url": "https://developer.clickup.com/docs/rate-limits",
+          "title": "ClickUp API rate limits",
+          "isOfficial": true,
+          "notes": "Documents per-token limits by workspace plan."
+        }
+      ]
+    },
+    {
+      "slug": "cloudconvert-b380da6a",
+      "name": "CloudConvert API",
+      "summary": "Convert documents, images, audio, video, and other file formats through CloudConvert's job and task API.",
+      "description": "CloudConvert API v2 provides jobs and tasks for file import, conversion, processing, and export across supported formats. API requests can use scoped API keys with Bearer authorization or OAuth 2.0. The service offers a limited free daily allowance and paid credit packages or subscriptions.",
+      "provider": {
+        "slug": "cloudconvert",
+        "name": "CloudConvert",
+        "homepageUrl": "https://cloudconvert.com/"
+      },
+      "homepageUrl": "https://cloudconvert.com/",
+      "documentationUrl": "https://cloudconvert.com/docs",
+      "baseUrl": "https://api.cloudconvert.com/v2",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "Free usage includes 10 conversion credits per day; paid one-time credit packages and monthly subscriptions are also available.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "productivity"
+      ],
+      "authMethods": [
+        {
+          "method": "BEARER_TOKEN",
+          "details": "API keys are sent using the Authorization: Bearer API_KEY header."
+        },
+        {
+          "method": "OAUTH2",
+          "details": "OAuth 2.0 authorization-code and implicit flows are supported for client applications."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://cloudconvert.com/",
+          "title": "CloudConvert official homepage",
+          "isOfficial": true,
+          "notes": "Official provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://cloudconvert.com/docs",
+          "title": "CloudConvert API v2 documentation",
+          "isOfficial": true,
+          "notes": "Official API v2 documentation and API overview."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://cloudconvert.com/docs/getting-started/introduction",
+          "title": "CloudConvert API authentication",
+          "isOfficial": true,
+          "notes": "Documents scoped API keys, Bearer authorization, and OAuth 2.0."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://cloudconvert.com/pricing",
+          "title": "CloudConvert pricing",
+          "isOfficial": true,
+          "notes": "Documents free daily credits, one-time packages, and subscriptions."
+        }
+      ]
+    },
+    {
+      "slug": "bigdatacloud-56161f36",
+      "name": "BigDataCloud API",
+      "summary": "Geolocation and location intelligence APIs for IP addresses, reverse geocoding, and related data services.",
+      "description": "BigDataCloud provides API packages for IP geolocation, reverse geocoding, phone and email validation, network engineering, and free client-side endpoints. Premium packages use an API key, while selected free endpoints require no key. Pricing is based on monthly request volume, with a free tier and paid plans.",
+      "provider": {
+        "slug": "bigdatacloud",
+        "name": "BigDataCloud",
+        "homepageUrl": "https://www.bigdatacloud.com/"
+      },
+      "homepageUrl": "https://www.bigdatacloud.com/",
+      "documentationUrl": "https://www.bigdatacloud.com/docs/endpoints",
+      "baseUrl": "https://api-bdc.net/data",
+      "pricingModel": "FREEMIUM",
+      "pricingSummary": "A free monthly request allowance is available; paid plans scale with monthly volume. Some free client-side endpoints require no key, while premium packages require an API key.",
+      "status": "ACTIVE",
+      "verificationStatus": "PENDING_REVIEW",
+      "featured": false,
+      "categories": [
+        "maps-geospatial"
+      ],
+      "authMethods": [
+        {
+          "method": "API_KEY",
+          "details": "Premium API packages use an API key in the key query parameter or x-bdc-key header; selected free client-side endpoints do not require a key."
+        }
+      ],
+      "sources": [
+        {
+          "kind": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.bigdatacloud.com/",
+          "title": "BigDataCloud official homepage",
+          "isOfficial": true,
+          "notes": "Official provider homepage."
+        },
+        {
+          "kind": "DOCUMENTATION",
+          "url": "https://www.bigdatacloud.com/docs/endpoints",
+          "title": "BigDataCloud API domains and endpoints",
+          "isOfficial": true,
+          "notes": "Documents API package domains and endpoint URL structures."
+        },
+        {
+          "kind": "AUTHENTICATION",
+          "url": "https://www.bigdatacloud.com/docs/authentication",
+          "title": "BigDataCloud API authentication",
+          "isOfficial": true,
+          "notes": "Documents API key query/header authentication and free endpoints."
+        },
+        {
+          "kind": "PRICING",
+          "url": "https://www.bigdatacloud.com/pricing",
+          "title": "BigDataCloud pricing",
+          "isOfficial": true,
+          "notes": "Documents free monthly allowance and paid request-volume plans."
+        }
+      ]
+    }
+  ]
+}
