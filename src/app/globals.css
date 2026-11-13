@@ -129,7 +129,7 @@ aside a[aria-current="page"]::before {
 aside a[aria-current="page"] { gap: 12px; }
 
 /* The landing-page hero gets a stronger editorial/cinematic hierarchy. */
-main > section:first-of-type {
+.av-home > section:first-of-type {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -140,16 +140,16 @@ main > section:first-of-type {
     linear-gradient(105deg, rgba(0, 0, 0, 0.98) 0%, rgba(20, 20, 20, 0.9) 58%, rgba(80, 0, 5, 0.42) 100%),
     radial-gradient(ellipse at 90% 50%, rgba(229, 9, 20, 0.2), transparent 55%);
 }
-main > section:first-of-type h1 {
+.av-home > section:first-of-type h1 {
   max-width: 900px;
   font-size: clamp(2.6rem, 5.6vw, 5rem);
   line-height: 0.98;
   letter-spacing: -0.055em;
 }
-main > section:first-of-type > p:first-child {
+.av-home > section:first-of-type > p:first-child {
   color: #f0444b !important;
 }
-main > section:first-of-type a[class*="bg-rose-"] {
+.av-home > section:first-of-type a[class*="bg-rose-"] {
   min-height: 42px;
   display: inline-flex;
   align-items: center;
@@ -157,9 +157,81 @@ main > section:first-of-type a[class*="bg-rose-"] {
   border-radius: 4px !important;
   background: #e50914 !important;
 }
-main > section:first-of-type a[class*="bg-rose-"]:hover { background: #f6121d !important; }
+.av-home > section:first-of-type a[class*="bg-rose-"]:hover { background: #f6121d !important; }
 
 @media (max-width: 1023px) {
-  main > section:first-of-type { margin-top: 0.25rem; }
-  main > section:first-of-type h1 { font-size: clamp(2.35rem, 9vw, 4rem); }
+  .av-home > section:first-of-type { margin-top: 0.25rem; }
+  .av-home > section:first-of-type h1 { font-size: clamp(2.35rem, 9vw, 4rem); }
+}
+
+
+/* Netflix-style browsing shell and content rails. */
+.av-topbar {
+  background: linear-gradient(180deg, rgba(0,0,0,.98) 0%, rgba(0,0,0,.88) 72%, rgba(0,0,0,.68) 100%) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(16px);
+}
+.av-topbar nav { scrollbar-width: none; }
+.av-topbar nav::-webkit-scrollbar, .av-collection-rail::-webkit-scrollbar { display: none; }
+.av-home > section:first-of-type.av-hero {
+  min-height: clamp(560px, 68vw, 720px);
+  padding: 5rem clamp(1.5rem, 5vw, 5rem) 7rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.av-home > section:first-of-type.av-hero h1 {
+  max-width: 800px;
+  font-size: clamp(3.4rem, 8vw, 7.5rem);
+  line-height: .88;
+  letter-spacing: -.075em;
+}
+.av-hero-art { background: radial-gradient(ellipse at 78% 42%, rgba(110,0,8,.22), transparent 48%), linear-gradient(90deg, #000 0%, rgba(0,0,0,.94) 38%, rgba(0,0,0,.18) 100%); }
+.av-hero-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg,#000 0%,transparent 36%),linear-gradient(90deg,#000 0%,transparent 100%);
+}
+.av-home { background: #000; }
+.av-home section:not(.av-search-panel) h2 { text-wrap: balance; }
+.av-collection-rail { scrollbar-width: none; scroll-snap-type: x proximity; }
+.av-category-tile { scroll-snap-align: start; }
+.av-api-card { transform-origin: center bottom; }
+.av-api-card:hover { z-index: 2; }
+.av-api-card a:focus-visible { outline-offset: -4px; }
+.av-search-panel input { min-height: 2.5rem; }
+.av-search-panel:focus-within { border-color: rgba(229,9,20,.55); }
+.av-discovery-banner { box-shadow: inset 0 1px rgba(255,255,255,.04); }
+
+/* Carry the same visual language into catalogue, discovery and detail views. */
+main:not(.av-home) h1 { letter-spacing: -.045em; }
+main:not(.av-home) form {
+  border-radius: 6px;
+  border-color: rgba(255,255,255,.12);
+  background-color: #171717;
+}
+main:not(.av-home) article {
+  border-color: rgba(255,255,255,.12);
+  background-color: #171717;
+  border-radius: 6px;
+}
+main:not(.av-home) article:hover { border-color: rgba(255,255,255,.28); }
+main:not(.av-home) input, main:not(.av-home) select, main:not(.av-home) textarea {
+  background-color: #090909;
+  border-color: rgba(255,255,255,.16);
+  border-radius: 4px;
+}
+main:not(.av-home) button[type="submit"] {
+  border-radius: 4px;
+  background: #e50914;
+  font-weight: 800;
+}
+main:not(.av-home) button[type="submit"]:hover { background: #f6121d; }
+
+@media (max-width: 767px) {
+  .av-home > section:first-of-type.av-hero { min-height: 570px; padding-top: 4rem; padding-bottom: 6rem; }
+  .av-home > section:first-of-type.av-hero h1 { font-size: clamp(3.25rem, 15vw, 5.2rem); }
+  .av-topbar > div { gap: 1rem; }
+  .av-topbar nav { gap: 1.15rem; }
 }
