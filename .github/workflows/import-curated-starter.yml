@@ -14,7 +14,7 @@ on:
       manifest_path:
         description: Curated manifest to import
         required: true
-        default: data/curated-starter-v4.json
+        default: data/curated-starter-v5.json
         type: string
 
 permissions:
@@ -33,7 +33,7 @@ jobs:
       run:
         working-directory: services/catalogue-importer
     env:
-      MANIFEST_PATH: ${{ inputs.manifest_path || 'data/curated-starter-v4.json' }}
+      MANIFEST_PATH: ${{ inputs.manifest_path || 'data/curated-starter-v5.json' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -76,7 +76,7 @@ jobs:
             -input "$MANIFEST_PATH" \
             -apply \
             -batch-size 100 \
-            -run-id "curated-starter-v4-${GITHUB_RUN_ID}"
+            -run-id "curated-starter-${GITHUB_RUN_ID}"
 
       - name: Report next verification stage
         run: |
