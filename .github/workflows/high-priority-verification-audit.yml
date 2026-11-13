@@ -7,6 +7,7 @@ on:
       - ".github/workflows/high-priority-verification-audit.yml"
       - "scripts/prepare-high-priority-verification.py"
       - "scripts/expand-high-priority-doc-discovery.py"
+      - "scripts/build-high-priority-review-queue.py"
       - "scripts/tests/test_prepare_high_priority_verification.py"
       - "scripts/tests/test_expand_high_priority_doc_discovery.py"
   workflow_dispatch:
@@ -83,6 +84,7 @@ jobs:
           set -euo pipefail
           python3 scripts/tests/test_prepare_high_priority_verification.py -v
           python3 scripts/tests/test_expand_high_priority_doc_discovery.py -v
+          python3 scripts/tests/test_build_high_priority_review_queue.py -v
 
       - name: Expand API documentation discovery across reachable providers
         run: |
@@ -129,6 +131,17 @@ jobs:
           jq '{total, validatedCandidates, autoApprovable, reviewRequired, rejected, urlChecks: ([.results[].checks[]] | length), reachableHttpsChecks: ([.results[].checks[] | select(.reachable and .statusCode >= 200 and .statusCode < 400 and (.finalUrl | startswith("https://")))] | length), failedChecks: ([.results[].checks[] | select(.reachable == false)] | length)}' \
             "$RUNNER_TEMP/high-priority-live-validation.json"
 
+      - name: Build maintainer review queue
+        if: success()
+        run: |
+          set -euo pipefail
+          python3 scripts/build-high-priority-review-queue.py \
+            --manifest "$RUNNER_TEMP/high-priority-candidates.json" \
+            --research "$RUNNER_TEMP/high-priority-expanded-research/research-000-expanded.json" \
+            --validation "$RUNNER_TEMP/high-priority-live-validation.json" \
+            --json-output "$RUNNER_TEMP/high-priority-review-queue.json" \
+            --markdown-output "$RUNNER_TEMP/high-priority-review-queue.md"
+          jq '{candidateTotal, priorityCounts, policy}' "$RUNNER_TEMP/high-priority-review-queue.json"
       - name: Enforce non-publishing review gate
         run: |
           set -euo pipefail
@@ -147,6 +160,8 @@ jobs:
             ${{ runner.temp }}/high-priority-candidates.json
             ${{ runner.temp }}/high-priority-candidate-report.json
             ${{ runner.temp }}/high-priority-live-validation.json
+            ${{ runner.temp }}/high-priority-review-queue.json
+            ${{ runner.temp }}/high-priority-review-queue.md
             ${{ runner.temp }}/high-priority-expanded-research/research-000-expanded.json
           if-no-files-found: warn
           retention-days: 90
