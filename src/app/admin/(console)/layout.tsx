@@ -6,14 +6,14 @@ export default async function AdminConsoleLayout({ children }: { children: React
   const session = await requireAdmin();
 
   return (
-    <div className="min-h-screen bg-[#090c11] text-slate-100 lg:flex">
-      <AdminNavigation
-        name={session.user.name || "APIVault admin"}
-        email={session.user.email}
-      />
-      <main className="min-w-0 flex-1 px-5 py-7 sm:px-8 lg:px-10 lg:py-9">
-        <div className="mx-auto max-w-[1400px]">{children}</div>
+    <div className="av-admin min-h-screen bg-black text-white">
+      <AdminNavigation name={session.user.name || "APIVault admin"} email={session.user.email} />
+      <main className="min-w-0 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
+        <div className="mx-auto max-w-[1600px]">{children}</div>
       </main>
+      <footer className="border-t border-white/10 px-6 py-6 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-600">
+        APIVault · Maintainer control room
+      </footer>
     </div>
   );
 }

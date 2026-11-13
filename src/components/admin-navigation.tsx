@@ -5,14 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 const items = [
-  { href: "/admin", label: "Overview", icon: "▦" },
-  { href: "/discover", label: "Discover leads", icon: "⌕" },
-  { href: "/admin/apis", label: "API catalogue", icon: "◫" },
-  { href: "/admin/review-queue", label: "Verification queue", icon: "✓" },
-  { href: "/admin/freshness", label: "Catalogue freshness", icon: "◷" },
-  { href: "/admin/health", label: "Verifier health", icon: "◉" },
-  { href: "/admin/submissions", label: "Submissions", icon: "⇩" },
-  { href: "/admin/categories", label: "Categories", icon: "▤" },
+  { href: "/admin", label: "Overview" },
+  { href: "/discover", label: "Discover leads" },
+  { href: "/admin/apis", label: "API catalogue" },
+  { href: "/admin/review-queue", label: "Verification" },
+  { href: "/admin/freshness", label: "Freshness" },
+  { href: "/admin/health", label: "Verifier health" },
+  { href: "/admin/submissions", label: "Submissions" },
+  { href: "/admin/categories", label: "Categories" },
 ];
 
 export function AdminNavigation({ name, email }: { name: string; email: string }) {
@@ -26,51 +26,35 @@ export function AdminNavigation({ name, email }: { name: string; email: string }
   }
 
   return (
-    <aside className="flex min-h-screen w-full shrink-0 flex-col border-b border-white/10 bg-[#0d1118] lg:sticky lg:top-0 lg:h-screen lg:w-[260px] lg:border-b-0 lg:border-r">
-      <div className="flex items-center gap-3 px-6 py-6">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#181d27] text-xl font-black tracking-tight text-white ring-1 ring-white/10">
-          <span className="text-rose-500">A</span>V
-        </span>
-        <div>
-          <p className="text-sm font-black tracking-[0.12em] text-white">APIVAULT</p>
-          <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Control centre</p>
-        </div>
-      </div>
-
-      <div className="px-4 pb-3">
-        <p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-600">Workspace</p>
-        <nav aria-label="Admin navigation" className="grid grid-cols-2 gap-1 lg:grid-cols-1">
+    <header className="av-admin-nav sticky top-0 z-50 border-b border-white/10 bg-black/95 text-white backdrop-blur-xl">
+      <div className="mx-auto flex min-h-[72px] max-w-[1800px] items-center gap-5 px-5 sm:px-8 lg:px-12">
+        <Link href="/admin" className="shrink-0 text-[23px] font-black tracking-[-0.085em]" aria-label="APIVault admin overview">
+          <span className="text-[#e50914]">API</span><span>VAULT</span>
+        </Link>
+        <span className="hidden h-7 w-px bg-white/15 md:block" />
+        <span className="hidden shrink-0 text-[10px] font-black uppercase tracking-[0.2em] text-[#e50914] md:block">Control room</span>
+        <nav aria-label="Admin navigation" className="av-admin-links flex min-w-0 flex-1 items-center gap-5 overflow-x-auto whitespace-nowrap py-3 [scrollbar-width:none] lg:gap-6">
           {items.map((item) => {
-            const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
+            const active = item.href === "/admin" ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-white/10 text-white shadow-inner shadow-white/5" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
-              >
-                <span className={`w-5 text-center text-base ${active ? "text-rose-400" : "text-slate-600"}`}>{item.icon}</span>
+              <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined}
+                className={`relative py-2 text-xs transition-colors hover:text-white ${active ? "font-extrabold text-white" : "font-semibold text-neutral-400"}`}>
                 {item.label}
+                {active && <span className="absolute inset-x-0 -bottom-[13px] h-[3px] rounded-full bg-[#e50914]" />}
               </Link>
             );
           })}
         </nav>
-      </div>
-
-      <div className="mt-auto border-t border-white/10 p-4">
-        <div className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-500/15 text-sm font-black text-rose-300">
-            {name.slice(0, 1).toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
+        <div className="hidden shrink-0 items-center gap-3 xl:flex">
+          <div className="max-w-[180px] text-right">
             <p className="truncate text-xs font-bold text-white">{name}</p>
-            <p className="truncate text-[11px] text-slate-500">{email}</p>
+            <p className="truncate text-[10px] text-neutral-500">{email}</p>
           </div>
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-[#1a1a1a] text-sm font-black text-white">{name.slice(0, 1).toUpperCase()}</div>
+          <button type="button" onClick={signOut} aria-label="Sign out of the APIVault admin console" className="rounded-[4px] border border-white/15 px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-neutral-300 transition hover:border-[#e50914] hover:bg-[#e50914] hover:text-white">Sign out</button>
         </div>
-        <button type="button" onClick={signOut} aria-label="Sign out of the APIVault admin console" className="mt-3 flex w-full items-center justify-between rounded-lg border border-rose-400/15 bg-rose-500/[0.07] px-3 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:border-rose-400/30 hover:bg-rose-500/15 hover:text-rose-200">
-          Sign out ↗
-        </button>
+        <button type="button" onClick={signOut} className="shrink-0 rounded-[4px] bg-[#e50914] px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-white transition hover:bg-[#f6121d] xl:hidden">Exit</button>
       </div>
-    </aside>
+    </header>
   );
 }
