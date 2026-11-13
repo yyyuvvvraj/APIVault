@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { SiteSidebar } from "@/components/site-sidebar";
+import { SiteHeader } from "@/components/site-header";
 
 export function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -11,17 +11,15 @@ export function SiteChrome({ children }: { children: ReactNode }) {
   if (isAdmin) return <>{children}</>;
 
   return (
-    <div className="flex min-h-screen bg-[#0b0c0f] text-slate-100">
-      <SiteSidebar />
-      <div className="min-w-0 flex-1">
-        {children}
-        <footer className="border-t border-white/[0.07] bg-[#090a0d] px-6 py-6 text-[11px] text-slate-600 sm:px-8">
-          <div className="mx-auto flex max-w-[1680px] flex-wrap items-center justify-between gap-3">
-            <span><strong className="text-slate-300">APIVault</strong> · A community-built API directory.</span>
-            <span>Discover · Verify · Build</span>
-          </div>
-        </footer>
-      </div>
+    <div className="min-h-screen bg-black text-white">
+      <SiteHeader />
+      <div className="min-w-0">{children}</div>
+      <footer className="border-t border-white/10 bg-black px-6 py-8 text-xs text-neutral-500 sm:px-10">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3">
+          <span><strong className="font-black tracking-tight text-white"><span className="text-[#e50914]">API</span>VAULT</strong> · The open catalogue for developers.</span>
+          <div className="flex gap-5"><a className="transition hover:text-white" href="https://github.com/yyyuvvvraj/APIVault" target="_blank" rel="noreferrer">GitHub</a><a className="transition hover:text-white" href="https://github.com/yyyuvvvraj/APIVault/discussions" target="_blank" rel="noreferrer">Community</a></div>
+        </div>
+      </footer>
     </div>
   );
 }
