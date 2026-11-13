@@ -55,7 +55,7 @@
       ],
       "officialHomepageUrl": "https://aqicn.org/",
       "documentationUrl": "https://aqicn.org/api/",
-      "termsUrl": "https://aqicn.org/api/tos/",
+      "termsUrl": "https://aqicn.org/data-platform/tos/",
       "licenseAssessment": "RESTRICTED",
       "authentication": "API_KEY",
       "pricing": "FREE",
@@ -85,12 +85,6 @@
           "accessedAt": "2026-11-13T05:25:00Z"
         },
         {
-          "claim": "TERMS_LICENSE",
-          "url": "https://aqicn.org/api/tos/",
-          "sourceType": "PROVIDER_CONTROLLED",
-          "accessedAt": "2026-11-13T05:25:00Z"
-        },
-        {
           "claim": "PRICING",
           "url": "https://aqicn.org/api/tos/",
           "sourceType": "PROVIDER_CONTROLLED",
@@ -99,6 +93,12 @@
         {
           "claim": "RATE_LIMITS",
           "url": "https://aqicn.org/api/tos/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "TERMS_LICENSE",
+          "url": "https://aqicn.org/data-platform/tos/",
           "sourceType": "PROVIDER_CONTROLLED",
           "accessedAt": "2026-11-13T05:25:00Z"
         }
