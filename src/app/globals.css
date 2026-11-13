@@ -110,3 +110,56 @@ hr { border-color: rgba(128, 128, 128, 0.24); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Sidebar and navigation hierarchy. */
+[class~="bg-[#090a0d]"] { background-color: #080808 !important; }
+[class~="bg-[#090a0d]/95"] { background-color: rgba(0, 0, 0, 0.95) !important; }
+[class*="bg-rose-500/10"] { background-color: rgba(229, 9, 20, 0.12) !important; }
+[class*="ring-rose-400/20"] { --tw-ring-color: rgba(229, 9, 20, 0.3) !important; }
+aside { border-color: rgba(128, 128, 128, 0.22) !important; }
+aside a[aria-current="page"] { border-radius: 4px !important; }
+aside a[aria-current="page"]::before {
+  content: "";
+  width: 3px;
+  align-self: stretch;
+  margin: -2px 2px -2px -5px;
+  border-radius: 2px;
+  background: #e50914;
+}
+aside a[aria-current="page"] { gap: 12px; }
+
+/* The landing-page hero gets a stronger editorial/cinematic hierarchy. */
+main > section:first-of-type {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(105deg, rgba(0, 0, 0, 0.98) 0%, rgba(20, 20, 20, 0.9) 58%, rgba(80, 0, 5, 0.42) 100%),
+    radial-gradient(ellipse at 90% 50%, rgba(229, 9, 20, 0.2), transparent 55%);
+}
+main > section:first-of-type h1 {
+  max-width: 900px;
+  font-size: clamp(2.6rem, 5.6vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+main > section:first-of-type > p:first-child {
+  color: #f0444b !important;
+}
+main > section:first-of-type a[class*="bg-rose-"] {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px !important;
+  background: #e50914 !important;
+}
+main > section:first-of-type a[class*="bg-rose-"]:hover { background: #f6121d !important; }
+
+@media (max-width: 1023px) {
+  main > section:first-of-type { margin-top: 0.25rem; }
+  main > section:first-of-type h1 { font-size: clamp(2.35rem, 9vw, 4rem); }
+}
