@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "1",
+  "reviewedAt": "2026-11-13T05:25:00Z",
+  "reviewer": "APIVault research batch 003 (assistant-prepared; maintainer review required)",
+  "submissions": [
+    {
+      "reviewId": "7b8932a297d3d1351545798b",
+      "providerName": "Alpha Vantage",
+      "providerDomains": [
+        "alphavantage.co"
+      ],
+      "officialHomepageUrl": "https://www.alphavantage.co/",
+      "documentationUrl": "https://www.alphavantage.co/documentation/",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "API_KEY",
+      "pricing": "FREEMIUM",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://www.alphavantage.co/documentation/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.alphavantage.co/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://www.alphavantage.co/documentation/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://www.alphavantage.co/support/api-key/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "PRICING",
+          "url": "https://www.alphavantage.co/premium/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "b5f1c337ed660e1ee6b70b2b",
+      "providerName": "World Air Quality Index API",
+      "providerDomains": [
+        "aqicn.org"
+      ],
+      "officialHomepageUrl": "https://aqicn.org/",
+      "documentationUrl": "https://aqicn.org/api/",
+      "termsUrl": "https://aqicn.org/api/tos/",
+      "licenseAssessment": "RESTRICTED",
+      "authentication": "API_KEY",
+      "pricing": "FREE",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://aqicn.org/api/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://aqicn.org/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://aqicn.org/api/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://aqicn.org/data-platform/token/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "TERMS_LICENSE",
+          "url": "https://aqicn.org/api/tos/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "PRICING",
+          "url": "https://aqicn.org/api/tos/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "RATE_LIMITS",
+          "url": "https://aqicn.org/api/tos/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "3866e731292d361ba0a80afe",
+      "providerName": "ClickUp",
+      "providerDomains": [
+        "clickup.com"
+      ],
+      "officialHomepageUrl": "https://clickup.com/",
+      "documentationUrl": "https://developer.clickup.com/docs",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "OTHER",
+      "pricing": "UNKNOWN",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://developer.clickup.com/docs",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://clickup.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://developer.clickup.com/docs",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://developer.clickup.com/docs/authentication",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "RATE_LIMITS",
+          "url": "https://developer.clickup.com/docs/rate-limits",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "4c2002fca8a235145b3b6e5f",
+      "providerName": "CloudConvert",
+      "providerDomains": [
+        "cloudconvert.com"
+      ],
+      "officialHomepageUrl": "https://cloudconvert.com/",
+      "documentationUrl": "https://cloudconvert.com/docs",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "OTHER",
+      "pricing": "FREEMIUM",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://cloudconvert.com/docs/getting-started/introduction",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://cloudconvert.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://cloudconvert.com/docs",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://cloudconvert.com/docs/getting-started/introduction",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "PRICING",
+          "url": "https://cloudconvert.com/pricing",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        }
+      ]
+    },
+    {
+      "reviewId": "3ac55647afde998edfb87fb3",
+      "providerName": "BigDataCloud",
+      "providerDomains": [
+        "bigdatacloud.com"
+      ],
+      "officialHomepageUrl": "https://www.bigdatacloud.com/",
+      "documentationUrl": "https://www.bigdatacloud.com/docs/endpoints",
+      "licenseAssessment": "UNKNOWN",
+      "authentication": "API_KEY",
+      "pricing": "FREEMIUM",
+      "evidence": [
+        {
+          "claim": "PROVIDER_IDENTITY",
+          "url": "https://www.bigdatacloud.com/docs/endpoints",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "OFFICIAL_HOMEPAGE",
+          "url": "https://www.bigdatacloud.com/",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "DOCUMENTATION",
+          "url": "https://www.bigdatacloud.com/docs/endpoints",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "AUTHENTICATION",
+          "url": "https://www.bigdatacloud.com/docs/authentication",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        },
+        {
+          "claim": "PRICING",
+          "url": "https://www.bigdatacloud.com/pricing",
+          "sourceType": "PROVIDER_CONTROLLED",
+          "accessedAt": "2026-11-13T05:25:00Z"
+        }
+      ]
+    }
+  ]
+}
