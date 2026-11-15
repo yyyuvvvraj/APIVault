@@ -1,0 +1,101 @@
+name: Stage high-priority APIs for maintainer review
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful high-priority verification audit run ID
+        required: true
+        default: "43271252196"
+        type: string
+      confirm_stage:
+        description: Explicitly stage candidates as PENDING_REVIEW (never verified or published)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: apivault-high-priority-review-import
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    name: Validate and stage review-only candidates
+    if: inputs.confirm_stage == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+    steps:
+      - name: Validate inputs and database configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[1-9][0-9]*$ ]] || { echo "::error::source_run_id must be numeric"; exit 1; }
+          test -n "$DATABASE_URL" || { echo "::error::Repository secret DATABASE_URL is required"; exit 1; }
+          echo "Staging is limited to PENDING_REVIEW records. No verification or publication is performed."
+
+      - name: Download immutable high-priority candidate manifest
+        uses: actions/download-artifact@v7
+        with:
+          name: apivault-high-priority-verification-audit-${{ env.SOURCE_RUN_ID }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/high-priority-audit
+
+      - name: Check out application
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Test review-only import safety gate
+        run: |
+          set -euo pipefail
+          cd scripts
+          python3 -m unittest -v test_validate_review_import.py
+          cd ..
+          python3 scripts/validate_review_import.py \
+            --manifest "$RUNNER_TEMP/high-priority-audit/high-priority-candidates.json"
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: services/catalogue-importer/go.mod
+          cache-dependency-path: services/catalogue-importer/go.sum
+
+      - name: Validate manifest with canonical importer
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          go test ./...
+          go run ./cmd/catalogue-importer \
+            -input "$RUNNER_TEMP/high-priority-audit/high-priority-candidates.json"
+
+      - name: Stage candidates as PENDING_REVIEW
+        working-directory: services/catalogue-importer
+        run: |
+          set -euo pipefail
+          count="$(jq '.apis | length' "$RUNNER_TEMP/high-priority-audit/high-priority-candidates.json")"
+          echo "Staging $count review-only candidates from audit run $SOURCE_RUN_ID."
+          go run ./cmd/catalogue-importer \
+            -input "$RUNNER_TEMP/high-priority-audit/high-priority-candidates.json" \
+            -apply \
+            -run-id "high-priority-review-$SOURCE_RUN_ID" \
+            -batch-size 100
+
+      - name: Report staging outcome
+        if: always()
+        run: |
+          echo "Source audit run: $SOURCE_RUN_ID"
+          echo "All staged candidates retain PENDING_REVIEW and isOfficial=false."
+          echo "This workflow does not call the verifier or publication lifecycle."
