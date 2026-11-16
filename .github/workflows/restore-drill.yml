@@ -70,7 +70,7 @@ jobs:
           fi
 
       - name: Download encrypted backup from GitHub Actions artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: apivault-encrypted-postgres-backup-${{ inputs.backup_run_id }}
           run-id: ${{ inputs.backup_run_id }}

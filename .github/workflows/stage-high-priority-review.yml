@@ -41,7 +41,7 @@ jobs:
           echo "Staging is limited to PENDING_REVIEW records. No verification or publication is performed."
 
       - name: Download immutable high-priority candidate manifest
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: apivault-high-priority-verification-audit-${{ env.SOURCE_RUN_ID }}
           run-id: ${{ env.SOURCE_RUN_ID }}
